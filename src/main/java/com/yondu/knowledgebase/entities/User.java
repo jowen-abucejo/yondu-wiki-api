@@ -18,6 +18,19 @@ public class User {
     private String status;
     private LocalDate createdAt;
 
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+    public User() {
+    }
+
     public Long getId() {
         return id;
     }
