@@ -2,7 +2,9 @@ package com.yondu.knowledgebase.entities;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -42,18 +44,27 @@ public class Page {
     private Directory directory;
 
     @OneToMany(mappedBy = "page")
+    private List<PageVersion> pageVersions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "page")
     private List<Comment> comments = new ArrayList<>();
 
     @OneToMany(mappedBy = "page")
-    private List<PageLock> pageLock;
+    private List<PageLock> pageLock = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
-    private List<Category> categories;
+    private List<Category> categories = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
-    private List<Tag> tags;
+    private List<Tag> tags = new ArrayList<>();;
+
+    @OneToMany(mappedBy = "page")
+    private Set<UserPagePermission> userPagePermissions = new HashSet<>();
+
+    @OneToMany(mappedBy = "page")
+    private Set<UserPageRating> userPageRatings = new HashSet<>();
 
     /**
      * 
