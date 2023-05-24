@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
