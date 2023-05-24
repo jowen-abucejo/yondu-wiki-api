@@ -8,43 +8,57 @@ public class UserCommentRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "page_id")
-    private Page page;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
     private int rating;
 
-    // Constructors, getters, and setters
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id", referencedColumnName = "id")
+    private Comment comment;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 
     public UserCommentRating() {
     }
 
-    public UserCommentRating(Page page, User user, int rating) {
-        this.page = page;
-        this.user = user;
+    /**
+     * @param id
+     * @param rating
+     * @param comment
+     * @param user
+     */
+    public UserCommentRating(Long id, int rating, Comment comment, User user) {
+        this.id = id;
         this.rating = rating;
+        this.comment = comment;
+        this.user = user;
     }
 
-    // Getters and setters
-
+    /**
+     * @return the id
+     */
     public Long getId() {
         return id;
     }
 
-    public Page getPage() {
-        return page;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
+    /**
+     * @return the rating
+     */
     public int getRating() {
         return rating;
     }
 
+    /**
+     * @return the comment
+     */
+    public Comment getComment() {
+        return comment;
+    }
+
+    /**
+     * @return the user
+     */
+    public User getUser() {
+        return user;
+    }
 }
