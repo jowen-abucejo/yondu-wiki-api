@@ -3,6 +3,8 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name="users")
 public class User {
@@ -18,7 +20,10 @@ public class User {
     private String status;
     private LocalDate createdAt;
 
-    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserRole> userRole = new HashSet<>();
+
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt, Set<UserRole> userRole) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -26,6 +31,7 @@ public class User {
         this.firstName = firstName;
         this.status = status;
         this.createdAt = createdAt;
+        this.userRole = userRole;
     }
 
     public User() {
@@ -35,56 +41,32 @@ public class User {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
     public String getPassword() {
         return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
     public String getStatus() {
         return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
     }
 
     public LocalDate getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
-        this.createdAt = createdAt;
+    public Set<UserRole> getUserRole() {
+        return userRole;
     }
 
     @Override
@@ -97,6 +79,7 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
+                ", userRole=" + userRole +
                 '}';
     }
 }
