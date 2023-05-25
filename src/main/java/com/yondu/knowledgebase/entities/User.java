@@ -31,6 +31,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comment = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserDirectoryAccess> userDirectoryAccesses;
     
     public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
