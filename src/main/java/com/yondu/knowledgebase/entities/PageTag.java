@@ -2,8 +2,9 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+@Entity
 public class PageTag {
-    @jakarta.persistence.Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
