@@ -7,8 +7,6 @@ import java.util.List;
 
 public interface UserCommentRatingService {
 
-    public UserCommentRating addCommentRating (UserCommentRatingDTO UserCommentRatingDTO);
-
     public UserCommentRating rateComment (Long commentId, Long userId, String ratingValue);
 
     public int totalCommentRating(Long commentId);

@@ -25,23 +25,6 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
     }
 
     @Override
-    public UserCommentRating addCommentRating (UserCommentRatingDTO userCommentRatingReqDTO){
-        User user = userRepository.findById(userCommentRatingReqDTO.getUserId()).orElse(null);
-        Comment comment = commentRepository.findById(userCommentRatingReqDTO.getCommentId()).orElse(null);
-        UserCommentRating userCommentRating = new UserCommentRating();
-        userCommentRating.setRating(userCommentRatingReqDTO.getRating());
-
-        if(user != null && comment != null){
-            userCommentRating.setUser(user);
-            userCommentRating.setComment(comment);
-            return userCommentRatingRepository.save(userCommentRating);
-        }else {
-            return null;
-        }
-
-    }
-
-    @Override
     public UserCommentRating rateComment (Long commentId, Long userId, String ratingValue){
         User user = userRepository.findById(userId).orElse(null);
         Comment comment = commentRepository.findById(commentId).orElse(null);

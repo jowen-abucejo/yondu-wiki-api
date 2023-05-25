@@ -18,19 +18,7 @@ public class UserCommentRatingController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingRequest){
-        UserCommentRating addedRating = userCommentRatingService.addCommentRating(userCommentRatingRequest);
-        if(addedRating!=null){
-            userCommentRatingRequest.setMessage("Comment Rating added successfully");
-            return ResponseEntity.status(HttpStatus.CREATED).body(userCommentRatingRequest);
-        }else {
-            userCommentRatingRequest.setMessage("Failed to add Comment Rating");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(userCommentRatingRequest);
-        }
-    }
-
-    @PostMapping("/test")
-    public ResponseEntity<?> addRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO){
+    public ResponseEntity<?> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO){
 
         String ratingValue = userCommentRatingDTO.getRating();
         System.out.println(ratingValue);
