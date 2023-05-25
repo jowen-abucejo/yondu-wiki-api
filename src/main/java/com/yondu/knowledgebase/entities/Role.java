@@ -25,7 +25,7 @@ public class Role {
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
+    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
 
     public Role() {
     }
@@ -48,12 +48,12 @@ public class Role {
         return userPermissions;
     }
 
-    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
-        return roleDirectoryPermissions;
+    public Set<RoleDirectoryAccess> getRoleDirectoryPermissions() {
+        return roleDirectoryAccesses;
     }
 
-    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
-        this.roleDirectoryPermissions = roleDirectoryPermissions;
+    public void setRoleDirectoryPermissions(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+        this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
     @Override

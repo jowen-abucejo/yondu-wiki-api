@@ -18,7 +18,7 @@ public class Directory {
     private Directory parent;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
+    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
 
     public Directory() {
     }
@@ -52,12 +52,12 @@ public class Directory {
         this.parent = parent;
     }
 
-    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
-        return roleDirectoryPermissions;
+    public Set<RoleDirectoryAccess> getRoleDirectoryPermissions() {
+        return roleDirectoryAccesses;
     }
 
-    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
-        this.roleDirectoryPermissions = roleDirectoryPermissions;
+    public void setRoleDirectoryPermissions(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+        this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
     @Override
