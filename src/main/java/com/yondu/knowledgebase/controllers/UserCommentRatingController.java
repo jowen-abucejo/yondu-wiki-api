@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/comment-rating")
@@ -30,5 +29,30 @@ public class UserCommentRatingController {
         }
     }
 
+    @PostMapping("/test")
+    public ResponseEntity<?> addRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO){
+
+        String ratingValue = userCommentRatingDTO.getRating();
+        System.out.println(ratingValue);
+
+        if(!(ratingValue.equals("UP") || ratingValue.equals("DOWN"))){
+            userCommentRatingDTO.setMessage("Invalid rating value");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(userCommentRatingDTO);
+        }
+
+        UserCommentRating userCommentRating = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
+
+        if(userCommentRating == null){
+            userCommentRatingDTO.setMessage("User/Comment ID Not Found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userCommentRatingDTO);
+        }
+
+        int totalCommentRating = userCommentRatingService.totalCommentRating(userCommentRatingDTO.getCommentId());
+
+        userCommentRatingDTO.setMessage("Rating Successfully Added");
+        UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRatingDTO.getUserId(),userCommentRatingDTO.getCommentId(),ratingValue,totalCommentRating,userCommentRatingDTO.getMessage());
+
+        return ResponseEntity.status(HttpStatus.OK).body(userCommentRatingResponse);
+    }
 
 }

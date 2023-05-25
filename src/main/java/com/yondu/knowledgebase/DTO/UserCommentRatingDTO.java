@@ -1,16 +1,27 @@
 package com.yondu.knowledgebase.DTO;
 
 public class UserCommentRatingDTO {
-    private int rating;
+    private String rating;
     private Long userId;
     private Long commentId;
-
     private String message;
-    public int getRating() {
+    private int totalRating;
+
+    public UserCommentRatingDTO(){};
+
+    public UserCommentRatingDTO(Long userId, Long commentId, String ratingValue, int totalCommentRating, String message) {
+        this.userId = userId;
+        this.commentId = commentId;
+        this.rating = ratingValue;
+        this.totalRating = totalCommentRating;
+        this.message = message;
+    }
+
+    public String getRating() {
         return rating;
     }
 
-    public void setRating(int rating) {
+    public void setRating(String rating) {
         this.rating = rating;
     }
 
@@ -36,5 +47,13 @@ public class UserCommentRatingDTO {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public int getTotalRating() {
+        return totalRating;
+    }
+
+    public void setTotalRating(int totalRating) {
+        this.totalRating = totalRating;
     }
 }

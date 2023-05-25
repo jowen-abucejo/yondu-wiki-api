@@ -8,7 +8,7 @@ public class UserCommentRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int rating;
+    private String rating;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", referencedColumnName = "id")
@@ -22,13 +22,11 @@ public class UserCommentRating {
     }
 
     /**
-     * @param id
      * @param rating
      * @param comment
      * @param user
      */
-    public UserCommentRating(Long id, int rating, Comment comment, User user) {
-        this.id = id;
+    public UserCommentRating(String rating, Comment comment, User user) {
         this.rating = rating;
         this.comment = comment;
         this.user = user;
@@ -44,7 +42,7 @@ public class UserCommentRating {
     /**
      * @return the rating
      */
-    public int getRating() {
+    public String getRating() {
         return rating;
     }
 
@@ -65,7 +63,7 @@ public class UserCommentRating {
     /**
      * @set the rating
      */
-    public void setRating(int rating) {
+    public void setRating(String rating) {
         this.rating = rating;
     }
 
