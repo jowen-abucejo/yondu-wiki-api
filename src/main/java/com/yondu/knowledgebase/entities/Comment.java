@@ -101,4 +101,32 @@ public class Comment {
     public Page getPage() {
         return page;
     }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public void setParentCommentId(Long parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
+
+    public void setUserCommentRating(List<UserCommentRating> userCommentRating) {
+        this.userCommentRating = userCommentRating;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setPage(Page page) {
+        this.page = page;
+    }
 }
