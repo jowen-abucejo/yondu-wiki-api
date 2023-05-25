@@ -3,8 +3,7 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+
 
 @Entity(name="users")
 public class User {
@@ -20,10 +19,7 @@ public class User {
     private String status;
     private LocalDate createdAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRole = new HashSet<>();
-
-    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt, Set<UserRole> userRole) {
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -31,7 +27,6 @@ public class User {
         this.firstName = firstName;
         this.status = status;
         this.createdAt = createdAt;
-        this.userRole = userRole;
     }
 
     public User() {
@@ -65,10 +60,6 @@ public class User {
         return createdAt;
     }
 
-    public Set<UserRole> getUserRole() {
-        return userRole;
-    }
-
     @Override
     public String toString() {
         return "User{" +
@@ -79,7 +70,6 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
-                ", userRole=" + userRole +
                 '}';
     }
 }
