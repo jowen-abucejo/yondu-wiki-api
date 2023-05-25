@@ -21,14 +21,6 @@ public class Role {
     )
     private Set<UserPermission> userPermissions = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> user = new HashSet<>();
-
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
@@ -36,11 +28,10 @@ public class Role {
     }
 
 
-    public Role(Long id, String name, Set<UserPermission> userPermissions, Set<User> user) {
+    public Role(Long id, String name, Set<UserPermission> userPermissions) {
         this.id = id;
         this.name = name;
         this.userPermissions = userPermissions;
-        this.user = user;
     }
 
     public Long getId() {
@@ -55,9 +46,6 @@ public class Role {
         return userPermissions;
     }
 
-    public Set<User> getUser() {
-        return user;
-    }
 
     @Override
     public String toString() {
@@ -65,7 +53,6 @@ public class Role {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", userPermissions=" + userPermissions +
-                ", user=" + user +
                 '}';
     }
 }
