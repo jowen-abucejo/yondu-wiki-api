@@ -22,85 +22,85 @@ public class PageVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String title;
-
-    @Lob
-    private String content;
-
-    @LastModifiedDate
-    private LocalDateTime dateModified;
-
-    @LastModifiedBy
-    private User modifiedBy;
-
-    @OneToMany(mappedBy = "pageVersion")
-    private List<Review> reviews = new ArrayList<>();
-
-    /**
-     * 
-     */
-    public PageVersion() {
-    }
-
-    /**
-     * @param id
-     * @param title
-     * @param content
-     * @param dateModified
-     * @param modifiedBy
-     * @param reviews
-     */
-    public PageVersion(Long id, String title, String content, LocalDateTime dateModified, User modifiedBy,
-            List<Review> reviews) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.dateModified = dateModified;
-        this.modifiedBy = modifiedBy;
-        this.reviews = reviews;
-    }
-
-    /**
-     * @return the id
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * @return the title
-     */
-    public String getTitle() {
-        return title;
-    }
-
-    /**
-     * @return the content
-     */
-    public String getContent() {
-        return content;
-    }
-
-    /**
-     * @return the dateModified
-     */
-    public LocalDateTime getDateModified() {
-        return dateModified;
-    }
-
-    /**
-     * @return the modifiedBy
-     */
-    public User getModifiedBy() {
-        return modifiedBy;
-    }
-
-    /**
-     * @return the reviews
-     */
-    public List<Review> getReviews() {
-        return reviews;
-    }
+//
+//    private String title;
+//
+//    @Lob
+//    private String content;
+//
+//    @LastModifiedDate
+//    private LocalDateTime dateModified;
+//
+//    @LastModifiedBy
+//    private User modifiedBy;
+//
+//    @OneToMany(mappedBy = "pageVersion")
+//    private List<Review> reviews = new ArrayList<>();
+//
+//    /**
+//     *
+//     */
+//    public PageVersion() {
+//    }
+//
+//    /**
+//     * @param id
+//     * @param title
+//     * @param content
+//     * @param dateModified
+//     * @param modifiedBy
+//     * @param reviews
+//     */
+//    public PageVersion(Long id, String title, String content, LocalDateTime dateModified, User modifiedBy,
+//            List<Review> reviews) {
+//        this.id = id;
+//        this.title = title;
+//        this.content = content;
+//        this.dateModified = dateModified;
+//        this.modifiedBy = modifiedBy;
+//        this.reviews = reviews;
+//    }
+//
+//    /**
+//     * @return the id
+//     */
+//    public Long getId() {
+//        return id;
+//    }
+//
+//    /**
+//     * @return the title
+//     */
+//    public String getTitle() {
+//        return title;
+//    }
+//
+//    /**
+//     * @return the content
+//     */
+//    public String getContent() {
+//        return content;
+//    }
+//
+//    /**
+//     * @return the dateModified
+//     */
+//    public LocalDateTime getDateModified() {
+//        return dateModified;
+//    }
+//
+//    /**
+//     * @return the modifiedBy
+//     */
+//    public User getModifiedBy() {
+//        return modifiedBy;
+//    }
+//
+//    /**
+//     * @return the reviews
+//     */
+//    public List<Review> getReviews() {
+//        return reviews;
+//    }
 
 }

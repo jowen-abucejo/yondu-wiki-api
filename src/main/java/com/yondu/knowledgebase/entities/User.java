@@ -23,9 +23,6 @@ public class User {
     private LocalDate createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRole = new HashSet<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserPagePermission> userPagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -35,7 +32,7 @@ public class User {
     private List<Comment> comment = new ArrayList<>();
 
     
-    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt, Set<UserRole> userRole) {
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -43,7 +40,6 @@ public class User {
         this.firstName = firstName;
         this.status = status;
         this.createdAt = createdAt;
-        this.userRole = userRole;
     }
 
     public User() {
@@ -77,10 +73,6 @@ public class User {
         return createdAt;
     }
 
-    public Set<UserRole> getUserRole() {
-        return userRole;
-    }
-
     @Override
     public String toString() {
         return "User{" +
@@ -91,7 +83,6 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
-                ", userRole=" + userRole +
                 '}';
     }
 }
