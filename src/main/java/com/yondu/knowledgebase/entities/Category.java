@@ -33,7 +33,7 @@ public class Category {
     public Category(Long id, String name, List<Page> pages){
         this.id= id;
         this.name = name;
-        this.page = pages;
+        this.pages = pages;
     }
 
     public Long getId(){
