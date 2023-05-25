@@ -24,9 +24,11 @@ public class Role {
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
+
     public Role() {
     }
-
 
     public Role(Long id, String name, Set<UserPermission> userPermissions) {
         this.id = id;
@@ -46,6 +48,13 @@ public class Role {
         return userPermissions;
     }
 
+    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
+        return roleDirectoryPermissions;
+    }
+
+    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
+        this.roleDirectoryPermissions = roleDirectoryPermissions;
+    }
 
     @Override
     public String toString() {
