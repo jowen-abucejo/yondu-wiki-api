@@ -2,8 +2,6 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
-import java.util.Set;
-
 @Entity
 @Table(name = "directories")
 public class Directory {
@@ -17,16 +15,12 @@ public class Directory {
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private Set<Directory> subdirectories;
-
     public Directory() {
     }
 
-    public Directory(String name, Directory parent, Set<Directory> subdirectories) {
+    public Directory(String name, Directory parent) {
         this.name = name;
         this.parent = parent;
-        this.subdirectories = subdirectories;
     }
 
     public Long getId() {
@@ -53,11 +47,14 @@ public class Directory {
         this.parent = parent;
     }
 
-    public Set<Directory> getSubdirectories() {
-        return subdirectories;
-    }
-
-    public void setSubdirectories(Set<Directory> subdirectories) {
-        this.subdirectories = subdirectories;
+    @Override
+    public String toString() {
+        Directory currentDirectory = this.parent;
+        StringBuilder directory = new StringBuilder(this.name);
+        while(currentDirectory != null) {
+            directory.insert(0, currentDirectory.name + "/");
+            currentDirectory = currentDirectory.parent;
+        }
+        return directory.toString();
     }
 }
