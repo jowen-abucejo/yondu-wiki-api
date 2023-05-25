@@ -18,4 +18,10 @@ public class UserPermissionService {
     public List<UserPermission> getAllPermission(){
         return userPermissionRepository.findAll();
     }
+
+    public UserPermission addPermission(UserPermission userPermission) {
+
+        userPermissionRepository.save(userPermission);
+        return userPermission;
+    }
 }
