@@ -1,45 +1,48 @@
 package com.yondu.knowledgebase.entities;
 
-import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.util.HashSet;
-import java.util.Set;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 
 @Entity
 public class Tag {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
     private String name;
 
-    @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<PageTag> pageTag = new HashSet<>();
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "tag_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
+    private List<Page> pages = new ArrayList<>();
 
-    public Tag() {
+    public Tag(){
 
     }
-    public Tag(Long id, String name) {
-        Id = id;
+
+    public Tag(Long id, String name, List<Page> pages){
+        this.id= id;
         this.name = name;
+        this.pages = pages;
     }
 
-    public Long getId() {
-        return Id;
+    public Long getId(){
+        return id;
     }
 
-    public void setId(Long id) {
-        Id = id;
-    }
-
-    public String getName() {
+    public String getName(){
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<PageTag> getPageTag() {
-        return pageTag;
+    public List<Page> getPages(){
+        return pages;
     }
 }
