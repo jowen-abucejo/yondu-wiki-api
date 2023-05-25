@@ -20,12 +20,15 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<Comment> createComment(@RequestBody CommentReqDTO commentRequest) {
-        Comment comment = new Comment();
-        comment.setDateCreated(commentRequest.getDate());
-        comment.setComment(commentRequest.getComment());
-//        To do -- Set Page ID and User ID
-        Comment createdComment = commentService.createComment(comment);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
+    public ResponseEntity<?> createComment(@RequestBody CommentReqDTO commentRequest) {
+        Comment createdComment = commentService.createComment(commentRequest);
+
+        if (createdComment != null) {
+            commentRequest.setMessage("Comment created successfully.");
+            return ResponseEntity.status(HttpStatus.CREATED).body(commentRequest);
+        } else {
+            commentRequest.setMessage("Failed to create comment.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentRequest);
+        }
     }
 }

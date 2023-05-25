@@ -9,8 +9,18 @@ public class CommentReqDTO {
     private Long pageId;
     private Long ratingId;
 
+    private String message;
+
     public Long getUserId() {
         return userId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public void setUserId(Long userId) {
