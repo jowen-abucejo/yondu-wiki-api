@@ -15,6 +15,13 @@ public class DirectoryPermission {
     @Column(nullable = false)
     private String description;
 
+    public DirectoryPermission() {}
+
+    public DirectoryPermission(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
     public Long getId() {
         return id;
     }
