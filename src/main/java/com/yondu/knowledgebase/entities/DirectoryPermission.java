@@ -17,6 +17,9 @@ public class DirectoryPermission {
     @Column(nullable = false)
     private String description;
 
+    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
+
     public DirectoryPermission() {}
 
     public DirectoryPermission(String name, String description) {
@@ -42,6 +45,14 @@ public class DirectoryPermission {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
+        return roleDirectoryPermissions;
+    }
+
+    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
+        this.roleDirectoryPermissions = roleDirectoryPermissions;
     }
 
     @Override

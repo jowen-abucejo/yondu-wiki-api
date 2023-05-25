@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "directories")
 public class Directory {
@@ -14,6 +16,9 @@ public class Directory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
+
+    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
 
     public Directory() {
     }
@@ -45,6 +50,14 @@ public class Directory {
 
     public void setParent(Directory parent) {
         this.parent = parent;
+    }
+
+    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
+        return roleDirectoryPermissions;
+    }
+
+    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
+        this.roleDirectoryPermissions = roleDirectoryPermissions;
     }
 
     @Override
