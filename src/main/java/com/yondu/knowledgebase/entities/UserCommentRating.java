@@ -61,4 +61,25 @@ public class UserCommentRating {
     public User getUser() {
         return user;
     }
+
+    /**
+     * @set the rating
+     */
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    /**
+     * @set the comment
+     */
+    public void setComment(Comment comment) {
+        this.comment = comment;
+    }
+
+    /**
+     * @set the user
+     */
+    public void setUser(User user) {
+        this.user = user;
+    }
 }
