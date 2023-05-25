@@ -25,7 +25,7 @@ public class RoleController {
         return roleService.getRole(id);
     }
 
-    @PostMapping("role")
+    @PostMapping("/role")
     public Role addRole(@RequestBody Role role){
         return roleService.addRole(role);
     }

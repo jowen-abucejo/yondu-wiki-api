@@ -47,15 +47,19 @@ public class Role {
     public Set<UserPermission> getUserPermissions() {
         return userPermissions;
     }
-
-    public Set<RoleDirectoryAccess> getRoleDirectoryPermissions() {
+  
+  public void setUserPermissions(Set<UserPermission> userPermissions) {
+        this.userPermissions = userPermissions;
+  }
+  
+   public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
         return roleDirectoryAccesses;
     }
 
-    public void setRoleDirectoryPermissions(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
         this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
-
+  
     @Override
     public String toString() {
         return "Role{" +
