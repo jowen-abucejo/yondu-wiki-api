@@ -13,19 +13,31 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "role_permission",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<UserPermission> userPermissions = new HashSet<>();
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRole = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<User> user = new HashSet<>();
 
     public Role() {
     }
 
-    public Role(Long id, String name, Set<RolePermission> rolePermissions) {
+
+    public Role(Long id, String name, Set<UserPermission> userPermissions, Set<User> user) {
         this.id = id;
         this.name = name;
-        this.rolePermissions = rolePermissions;
+        this.userPermissions = userPermissions;
+        this.user = user;
     }
 
     public Long getId() {
@@ -36,8 +48,12 @@ public class Role {
         return name;
     }
 
-    public Set<RolePermission> getRolePermissions() {
-        return rolePermissions;
+    public Set<UserPermission> getUserPermissions() {
+        return userPermissions;
+    }
+
+    public Set<User> getUser() {
+        return user;
     }
 
     @Override
@@ -45,8 +61,8 @@ public class Role {
         return "Role{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
-                ", rolePermissions=" + rolePermissions +
+                ", userPermissions=" + userPermissions +
+                ", user=" + user +
                 '}';
     }
-
 }
