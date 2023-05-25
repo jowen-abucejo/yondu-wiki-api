@@ -31,16 +31,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comment = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "user_role",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> role = new HashSet<>();
-
-
-    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt, Set<UserPagePermission> userPagePermisisons, List<UserCommentRating> userCommentRating, List<Comment> comment, Set<Role> role) {
+    
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -48,10 +40,6 @@ public class User {
         this.firstName = firstName;
         this.status = status;
         this.createdAt = createdAt;
-        this.userPagePermisisons = userPagePermisisons;
-        this.userCommentRating = userCommentRating;
-        this.comment = comment;
-        this.role = role;
     }
 
     public User() {
@@ -85,22 +73,6 @@ public class User {
         return createdAt;
     }
 
-    public Set<UserPagePermission> getUserPagePermisisons() {
-        return userPagePermisisons;
-    }
-
-    public List<UserCommentRating> getUserCommentRating() {
-        return userCommentRating;
-    }
-
-    public List<Comment> getComment() {
-        return comment;
-    }
-
-    public Set<Role> getRole() {
-        return role;
-    }
-
     @Override
     public String toString() {
         return "User{" +
@@ -111,10 +83,6 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
-                ", userPagePermisisons=" + userPagePermisisons +
-                ", userCommentRating=" + userCommentRating +
-                ", comment=" + comment +
-                ", role=" + role +
                 '}';
     }
 }
