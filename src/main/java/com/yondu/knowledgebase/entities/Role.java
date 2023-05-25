@@ -46,6 +46,9 @@ public class Role {
         return userPermissions;
     }
 
+    public void setUserPermissions(Set<UserPermission> userPermissions) {
+        this.userPermissions = userPermissions;
+    }
 
     @Override
     public String toString() {
