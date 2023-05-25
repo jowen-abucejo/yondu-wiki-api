@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.repositories.RoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RoleService {
@@ -25,6 +26,7 @@ public class RoleService {
 
     public Role addRole(Role role) {
         roleRepository.save(role);
+
 
         return role;
     }
