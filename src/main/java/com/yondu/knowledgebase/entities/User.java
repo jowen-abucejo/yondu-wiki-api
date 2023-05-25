@@ -3,7 +3,10 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
-
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.List;
 
 @Entity(name="users")
 public class User {
@@ -19,6 +22,16 @@ public class User {
     private String status;
     private LocalDate createdAt;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserPagePermission> userPagePermisisons = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCommentRating> userCommentRating = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comment = new ArrayList<>();
+
+    
     public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
