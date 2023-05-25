@@ -1,14 +1,12 @@
 package com.yondu.knowledgebase.controllers;
 
-import com.yondu.knowledgebase.DTO.CommentReqDTO;
+import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
+import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.services.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/comments")
@@ -20,15 +18,18 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createComment(@RequestBody CommentReqDTO commentRequest) {
-        Comment createdComment = commentService.createComment(commentRequest);
+    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId) {
+        Comment createdComment = commentService.createComment(commentRequest, userId);
 
         if (createdComment != null) {
-            commentRequest.setMessage("Comment created successfully.");
-            return ResponseEntity.status(HttpStatus.CREATED).body(commentRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
         } else {
-            commentRequest.setMessage("Failed to create comment.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentRequest);
         }
+    }
+
+    @GetMapping
+    public CommentResponseDTO getAllComments() {
+        return commentService.getAllComments();
     }
 }
