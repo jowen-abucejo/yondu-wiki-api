@@ -1,33 +1,27 @@
-package com.yondu.knowledgebase.entities;
+package com.yondu.knowledgebase.DTO.directory;
+
+import com.yondu.knowledgebase.entities.DirectoryPermission;
+import com.yondu.knowledgebase.entities.RoleDirectoryAccess;
+import com.yondu.knowledgebase.entities.UserDirectoryAccess;
 
 import java.util.Set;
 
-import jakarta.persistence.*;
-
-@Entity
-public class DirectoryPermission {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class DirectoryPermissionDTO {
     private Long id;
-
-    @Column(unique = true, nullable = false)
     private String name;
-
-    @Column(nullable = false)
     private String description;
-
-    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<RoleDirectoryAccess> roleDirectoryAccesses;
-
-    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<UserDirectoryAccess> userDirectoryAccesses;
 
-    public DirectoryPermission() {
+    public DirectoryPermissionDTO() {
     }
 
-    public DirectoryPermission(String name, String description) {
-        this.name = name;
-        this.description = description;
+    public DirectoryPermissionDTO(DirectoryPermission directoryPermission) {
+        this.id = directoryPermission.getId();
+        this.name = directoryPermission.getName();
+        this.description = directoryPermission.getDescription();
+        this.roleDirectoryAccesses = directoryPermission.getRoleDirectoryAccesses();
+        this.userDirectoryAccesses = directoryPermission.getUserDirectoryAccesses();
     }
 
     public Long getId() {
@@ -72,7 +66,7 @@ public class DirectoryPermission {
 
     @Override
     public String toString() {
-        return "DirectoryPermission{" +
+        return "DirectoryPermissionDTO{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
