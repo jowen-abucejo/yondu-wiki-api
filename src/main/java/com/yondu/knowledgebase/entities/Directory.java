@@ -31,6 +31,12 @@ public class Directory {
         this.parent = parent;
     }
 
+    public Directory(String name, Directory parent, Set<Directory> subDirectories) {
+        this.name = name;
+        this.parent = parent;
+        this.subDirectories = subDirectories;
+    }
+
     public Long getId() {
         return id;
     }
