@@ -22,11 +22,15 @@ public class RoleController {
         return roleService.getAllRoles();
     }
 
+    @PostMapping("/role")
+    public Role addRole(@RequestBody Role role){
+        return roleService.addRole(role);
+    }
 
-    @GetMapping("/role/{$id}")
-    public ResponseEntity<Role> getRoleByID(@PathVariable Long id) {
-        Role role = roleService.getRole(id);
-        return (role != null) ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
+    @GetMapping("/role/{id}")
+    public ResponseEntity<?> getRoleByID(@PathVariable Long id) {
+            Role role = roleService.getRole(id);
+            return (role != null) ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
     }
 
 }

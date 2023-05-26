@@ -11,7 +11,7 @@ public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+    private String roleName;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<UserPermission> userPermissions = new HashSet<>();
@@ -25,18 +25,20 @@ public class Role {
     public Role() {
     }
 
-    public Role(Long id, String name, Set<UserPermission> userPermissions) {
+    public Role(Long id, String roleName, Set<UserPermission> userPermissions, Set<RolePagePermission> rolePagePermisisons, Set<RoleDirectoryAccess> roleDirectoryAccesses) {
         this.id = id;
-        this.name = name;
+        this.roleName = roleName;
         this.userPermissions = userPermissions;
+        this.rolePagePermisisons = rolePagePermisisons;
+        this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
     public Long getId() {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getRoleName() {
+        return roleName;
     }
 
     public Set<UserPermission> getUserPermissions() {
@@ -55,12 +57,18 @@ public class Role {
         this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
+    public Set<RolePagePermission> getRolePagePermisisons() {
+        return rolePagePermisisons;
+    }
+
     @Override
     public String toString() {
         return "Role{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
+                ", name='" + roleName + '\'' +
                 ", userPermissions=" + userPermissions +
+                ", rolePagePermisisons=" + rolePagePermisisons +
+                ", roleDirectoryAccesses=" + roleDirectoryAccesses +
                 '}';
     }
 }
