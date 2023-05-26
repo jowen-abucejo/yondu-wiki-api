@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.services.RoleService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,13 +22,16 @@ public class RoleController {
         return roleService.getAllRoles();
     }
 
-    @GetMapping("/role/{id}")
-    public Role getRole(@PathVariable Long id){
-        return roleService.getRole(id);
+
+    @GetMapping("/role/{$id}")
+    public ResponseEntity<Role> getRoleByID(@PathVariable Long id) {
+        Role role = roleService.getRole(id);
+        return (role != null) ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("role")
-    public Role addRole(@RequestBody Role role){
-        return roleService.addRole(role);
+    @PostMapping("/role")
+    public ResponseEntity<Role> addRole(@RequestBody Role role) {
+        Role addedRole = roleService.addRole(role);
+        return ResponseEntity.status(HttpStatus.CREATED).body(addedRole);
     }
 }
