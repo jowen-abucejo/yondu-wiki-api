@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Status;
 import com.yondu.knowledgebase.exceptions.InvalidEmailException;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
+import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,5 +53,25 @@ public class UserService {
         User createdUser = userRepository.save(user);
         createdUser.setPassword("");
         return createdUser;
+    }
+
+    public User deactivateUser(User user) throws UserException, MissingFieldException, Exception {
+        log.info("UserService.deactivateUser()");
+        log.info("user : " + user.toString());
+
+        // Check for nulls
+        if(Util.isNullOrWhiteSpace(user.getEmail()))
+            throw new MissingFieldException("email");
+
+        user = userRepository.getUserByEmail(user.getEmail());
+        if(user == null){
+            throw new UserException("User not found.");
+        }
+        user.setStatus(Status.INACTIVE.getCode());
+
+        User updatedUser = userRepository.save(user);
+        updatedUser.setPassword("");
+
+        return updatedUser;
     }
 }
