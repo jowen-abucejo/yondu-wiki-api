@@ -1,43 +1,29 @@
-package com.yondu.knowledgebase.entities;
+package com.yondu.knowledgebase.DTO.directory;
 
-import jakarta.persistence.*;
+import com.yondu.knowledgebase.entities.Directory;
+import com.yondu.knowledgebase.entities.RoleDirectoryAccess;
+import com.yondu.knowledgebase.entities.UserDirectoryAccess;
 
 import java.util.Set;
 
-@Entity
-@Table(name = "directories")
-public class Directory {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class DirectoryDTO {
     private Long id;
-
-    @Column(nullable = false)
     private String name;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
-
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Directory> subDirectories;
-
-    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<RoleDirectoryAccess> roleDirectoryAccesses;
-
-    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<UserDirectoryAccess> userDirectoryAccesses;
 
-    public Directory() {
+    public DirectoryDTO() {
     }
 
-    public Directory(String name, Directory parent) {
-        this.name = name;
-        this.parent = parent;
-    }
-
-    public Directory(String name, Directory parent, Set<Directory> subDirectories) {
-        this.name = name;
-        this.parent = parent;
-        this.subDirectories = subDirectories;
+    public DirectoryDTO(Directory directory) {
+        this.id = directory.getId();
+        this.name = directory.getName();
+        this.parent = directory.getParent();
+        this.subDirectories = directory.getSubDirectories();
+        this.roleDirectoryAccesses = directory.getRoleDirectoryAccesses();
+        this.userDirectoryAccesses = directory.getUserDirectoryAccesses();
     }
 
     public Long getId() {
@@ -90,12 +76,13 @@ public class Directory {
 
     @Override
     public String toString() {
-        Directory currentDirectory = this.parent;
-        StringBuilder directory = new StringBuilder(this.name);
-        while(currentDirectory != null) {
-            directory.insert(0, currentDirectory.name + "/");
-            currentDirectory = currentDirectory.parent;
-        }
-        return directory.toString();
+        return "DirectoryDTO{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", parent=" + parent +
+                ", subDirectories=" + subDirectories +
+                ", roleDirectoryAccesses=" + roleDirectoryAccesses +
+                ", userDirectoryAccesses=" + userDirectoryAccesses +
+                '}';
     }
 }
