@@ -1,6 +1,9 @@
 package com.yondu.knowledgebase.repositories;
 
 import com.yondu.knowledgebase.entities.User;
+
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -11,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("UPDATE users SET status = 'INA' WHERE email = ?1 AND status = 'ACT'")
     void deactivateUserByEmail(String email);
+
+    Optional<User> findByEmail(String email);
 }
