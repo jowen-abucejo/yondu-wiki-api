@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -82,5 +83,7 @@ public class UserService implements UserDetailsService {
     public User loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(
                 String.format("Active user with email of %s not found", email)));
+    public List<User> getAllUser() {
+        return userRepository.findAll();
     }
 }

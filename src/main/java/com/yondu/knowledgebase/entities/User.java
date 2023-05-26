@@ -43,8 +43,12 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserDirectoryAccess> userDirectoryAccesses;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> role = new HashSet<>();
+
     public User(Long id, String username, String email, String password, String firstName, String lastName,
-            String status, LocalDate createdAt) {
+            String status, LocalDate createdAt, Set<Role> role) {
         this.id = id;
         this.username = username;
         this.email = email;
@@ -53,6 +57,7 @@ public class User implements UserDetails {
         this.lastName = lastName;
         this.status = status;
         this.createdAt = createdAt;
+        this.role = role;
     }
 
     public User() {
@@ -122,6 +127,10 @@ public class User implements UserDetails {
         this.createdAt = createdAt;
     }
 
+    public Set<Role> getRole() {
+        return role;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -130,8 +139,10 @@ public class User implements UserDetails {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
+                ", role=" + role +
                 '}';
     }
 
