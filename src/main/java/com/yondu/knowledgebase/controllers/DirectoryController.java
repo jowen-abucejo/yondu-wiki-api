@@ -1,7 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
-import com.yondu.knowledgebase.DTO.directory.CreateDirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.CreateDirectoryResponse;
+import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
+import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
 import com.yondu.knowledgebase.services.DirectoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,18 +15,43 @@ public class DirectoryController {
         this.directoryService = directoryService;
     }
 
-    @PostMapping("/{parentId}")
-    private ResponseEntity<CreateDirectoryResponse> createDirectory(@PathVariable Long parentId, @RequestBody CreateDirectoryRequest createDirectoryRequest) {
+    @PostMapping("/{parentId}/create")
+    public ResponseEntity<DirectoryResponse> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest directoryRequest) {
         try {
-            if(createDirectoryRequest.getName() == null || createDirectoryRequest.getName().isEmpty()) {
-                System.out.println("dumaan");
+            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty()) {
                 throw new NullPointerException();
             }
-            CreateDirectoryResponse response = directoryService.createDirectory(parentId, createDirectoryRequest.getName());
+            DirectoryResponse response = directoryService.createDirectory(parentId, directoryRequest.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @PutMapping("/{id}/rename")
+    public ResponseEntity<DirectoryResponse> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest directoryRequest) {
+        try {
+            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty()) {
+                throw new NullPointerException();
+            }
+            DirectoryResponse response = directoryService.renameDirectory(id, directoryRequest.getName());
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PutMapping("/{id}/remove")
+    public ResponseEntity<DirectoryResponse> deleteDirectory(@PathVariable("id") Long id) {
+        try {
+            DirectoryResponse response = directoryService.removeDirectory(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

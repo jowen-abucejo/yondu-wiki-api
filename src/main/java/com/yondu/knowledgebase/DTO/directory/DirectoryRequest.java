@@ -1,9 +1,9 @@
 package com.yondu.knowledgebase.DTO.directory;
 
-public class CreateDirectoryRequest {
+public class DirectoryRequest {
     private String name;
 
-    public CreateDirectoryRequest() {}
+    public DirectoryRequest() {}
 
     public String getName() {
         return name;
