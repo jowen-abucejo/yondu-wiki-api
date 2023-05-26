@@ -2,10 +2,11 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "directories")
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "parent_id"})})
 public class Directory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,6 +17,9 @@ public class Directory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
+
+    @Column(nullable = false)
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Directory> subDirectories;
@@ -29,15 +33,24 @@ public class Directory {
     public Directory() {
     }
 
+    // creation of root
+    public Directory(String name) {
+        this.name = name;
+        this.parent = null;
+        this.isDeleted = false;
+        this.subDirectories = new HashSet<>();
+        this.roleDirectoryAccesses = new HashSet<>();
+        this.userDirectoryAccesses = new HashSet<>();
+    }
+
+    // creation of subdirectories
     public Directory(String name, Directory parent) {
         this.name = name;
         this.parent = parent;
-    }
-
-    public Directory(String name, Directory parent, Set<Directory> subDirectories) {
-        this.name = name;
-        this.parent = parent;
-        this.subDirectories = subDirectories;
+        this.isDeleted = false;
+        this.subDirectories = new HashSet<>();
+        this.roleDirectoryAccesses = new HashSet<>();
+        this.userDirectoryAccesses = new HashSet<>();
     }
 
     public Long getId() {
@@ -54,6 +67,14 @@ public class Directory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
     public Directory getParent() {
