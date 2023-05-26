@@ -18,9 +18,6 @@ public class Directory {
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
 
-    @Column(nullable = false)
-    private Boolean isDeleted;
-
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Directory> subDirectories;
 
@@ -37,7 +34,6 @@ public class Directory {
     public Directory(String name) {
         this.name = name;
         this.parent = null;
-        this.isDeleted = false;
         this.subDirectories = new HashSet<>();
         this.roleDirectoryAccesses = new HashSet<>();
         this.userDirectoryAccesses = new HashSet<>();
@@ -47,7 +43,6 @@ public class Directory {
     public Directory(String name, Directory parent) {
         this.name = name;
         this.parent = parent;
-        this.isDeleted = false;
         this.subDirectories = new HashSet<>();
         this.roleDirectoryAccesses = new HashSet<>();
         this.userDirectoryAccesses = new HashSet<>();
@@ -67,14 +62,6 @@ public class Directory {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Boolean getDeleted() {
-        return isDeleted;
-    }
-
-    public void setDeleted(Boolean deleted) {
-        isDeleted = deleted;
     }
 
     public Directory getParent() {
@@ -107,16 +94,5 @@ public class Directory {
 
     public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
         this.userDirectoryAccesses = userDirectoryAccesses;
-    }
-
-    @Override
-    public String toString() {
-        Directory currentDirectory = this.parent;
-        StringBuilder directory = new StringBuilder(this.name);
-        while(currentDirectory != null) {
-            directory.insert(0, currentDirectory.name + "/");
-            currentDirectory = currentDirectory.parent;
-        }
-        return directory.toString();
     }
 }

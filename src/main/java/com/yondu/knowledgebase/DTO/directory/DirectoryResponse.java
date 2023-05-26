@@ -2,20 +2,29 @@ package com.yondu.knowledgebase.DTO.directory;
 
 import com.yondu.knowledgebase.entities.Directory;
 
-public class CreateDirectoryResponse {
+import java.util.ArrayList;
+import java.util.List;
+
+public class DirectoryResponse {
     private Long id;
     private String name;
     private Long parentId;
     private String fullPath;
+    private List<DirectoryResponse> subDirectories;
 
-    public CreateDirectoryResponse() {}
+    public DirectoryResponse() {}
 
-    public CreateDirectoryResponse(Directory directory) {
+    public DirectoryResponse(Directory directory) {
         this.id = directory.getId();
         this.name = directory.getName();
         if (directory.getParent() != null) {
             this.parentId = directory.getParent().getId();
             this.fullPath = getFullPath(directory);
+        }
+        if (directory.getSubDirectories() != null && !directory.getSubDirectories().isEmpty()) {
+            this.subDirectories = directory.getSubDirectories().stream().map(DirectoryResponse::new).toList();
+        } else {
+            this.subDirectories = new ArrayList<>();
         }
     }
 
@@ -49,6 +58,14 @@ public class CreateDirectoryResponse {
 
     public void setFullPath(String fullPath) {
         this.fullPath = fullPath;
+    }
+
+    public List<DirectoryResponse> getSubDirectories() {
+        return subDirectories;
+    }
+
+    public void setSubDirectories(List<DirectoryResponse> subDirectories) {
+        this.subDirectories = subDirectories;
     }
 
     public static String getFullPath(Directory directory) {
