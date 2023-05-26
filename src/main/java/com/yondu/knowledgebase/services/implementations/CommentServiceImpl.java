@@ -1,4 +1,4 @@
-package com.yondu.knowledgebase.services.implementations;
+package com.yondu.knowledgebase.services.implimentations;
 
 import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
 import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private  final UserRepository userRepository;
 
     public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
@@ -30,14 +30,14 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = new Comment();
         comment.setDateCreated(currentDate);
         comment.setComment(commentRequestDTO.getComment());
+        comment.setTotalCommentRating(0);
 
-        // TO DO ---- Need PageRepository and Rating
-        // comment.setPage(commentReqDTO.getPageId());
-        // comment.setRatingId(commentReqDTO.getRatingId());
+//        TO DO ---- Need PageRepository and  Rating
+//        comment.setPage(commentReqDTO.getPageId());
 
         if (user == null) {
             throw new RuntimeException("User not found");
-        } else {
+        }else{
             comment.setUser(user);
         }
         return commentRepository.save(comment);
@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
         responseDTO.setData(commentDTOs);
         responseDTO.setTotalComment(getTotalComments());
 
-        // Temp Response message
+//        Temp Response message
         Response response = new Response();
         response.setCode(200);
         response.setMessage("Success");
@@ -72,4 +72,12 @@ public class CommentServiceImpl implements CommentService {
         System.out.println(Math.toIntExact(commentRepository.count()));
         return Math.toIntExact(commentRepository.count());
     }
+
+    @Override
+    public Comment getComment (Long commentId){
+        Comment retieveComment = commentRepository.findById(commentId).orElseThrow(null);
+        return retieveComment;
+    }
+
+
 }

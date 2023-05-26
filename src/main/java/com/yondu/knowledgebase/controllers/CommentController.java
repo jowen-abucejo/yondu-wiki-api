@@ -32,4 +32,9 @@ public class CommentController {
     public CommentResponseDTO getAllComments() {
         return commentService.getAllComments();
     }
+
+    @GetMapping ("/{commentId}")
+    public Comment getComment (@PathVariable Long commentId) {
+        return commentService.getComment(commentId);
+    }
 }
