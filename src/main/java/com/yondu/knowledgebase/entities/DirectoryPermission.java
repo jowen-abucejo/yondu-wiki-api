@@ -1,11 +1,17 @@
 package com.yondu.knowledgebase.entities;
 
-import jakarta.persistence.*;
-
 import java.util.Set;
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+
 @Entity
-@Table(name = "directory_permissions")
 public class DirectoryPermission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +26,8 @@ public class DirectoryPermission {
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<RoleDirectoryAccess> roleDirectoryAccesses;
 
-    public DirectoryPermission() {}
+    public DirectoryPermission() {
+    }
 
     public DirectoryPermission(String name, String description) {
         this.name = name;
@@ -42,6 +49,7 @@ public class DirectoryPermission {
     public void setName(String name) {
         this.name = name;
     }
+
     public String getDescription() {
         return description;
     }

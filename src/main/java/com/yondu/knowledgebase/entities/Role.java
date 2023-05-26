@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "roles")
 public class Role {
 
     @Id
@@ -14,11 +13,7 @@ public class Role {
     private Long id;
     private String name;
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "role_permission",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
+    @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<UserPermission> userPermissions = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -47,19 +42,19 @@ public class Role {
     public Set<UserPermission> getUserPermissions() {
         return userPermissions;
     }
-  
-  public void setUserPermissions(Set<UserPermission> userPermissions) {
+
+    public void setUserPermissions(Set<UserPermission> userPermissions) {
         this.userPermissions = userPermissions;
-  }
-  
-   public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
+    }
+
+    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
         return roleDirectoryAccesses;
     }
 
     public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
         this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
-  
+
     @Override
     public String toString() {
         return "Role{" +

@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "role_directory_accesses")
 public class RoleDirectoryAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +20,8 @@ public class RoleDirectoryAccess {
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public RoleDirectoryAccess() {}
+    public RoleDirectoryAccess() {
+    }
 
     public RoleDirectoryAccess(Role role, Directory directory, DirectoryPermission permission) {
         this.role = role;

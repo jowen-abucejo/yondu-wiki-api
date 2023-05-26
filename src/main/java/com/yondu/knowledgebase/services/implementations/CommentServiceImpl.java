@@ -1,4 +1,4 @@
-package com.yondu.knowledgebase.services.implimentations;
+package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
 import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
@@ -16,7 +16,7 @@ import java.util.List;
 @Service
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private  final UserRepository userRepository;
+    private final UserRepository userRepository;
 
     public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
@@ -31,13 +31,13 @@ public class CommentServiceImpl implements CommentService {
         comment.setDateCreated(currentDate);
         comment.setComment(commentRequestDTO.getComment());
 
-//        TO DO ---- Need PageRepository and  Rating
-//        comment.setPage(commentReqDTO.getPageId());
-//        comment.setRatingId(commentReqDTO.getRatingId());
+        // TO DO ---- Need PageRepository and Rating
+        // comment.setPage(commentReqDTO.getPageId());
+        // comment.setRatingId(commentReqDTO.getRatingId());
 
         if (user == null) {
             throw new RuntimeException("User not found");
-        }else{
+        } else {
             comment.setUser(user);
         }
         return commentRepository.save(comment);
@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
         responseDTO.setData(commentDTOs);
         responseDTO.setTotalComment(getTotalComments());
 
-//        Temp Response message
+        // Temp Response message
         Response response = new Response();
         response.setCode(200);
         response.setMessage("Success");

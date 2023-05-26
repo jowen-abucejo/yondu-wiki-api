@@ -9,7 +9,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "role_page_permisison")
+@Table(name = "role_page_permission")
 public class RolePagePermission {
 
     @Id
@@ -56,8 +56,8 @@ public class RolePagePermission {
 
     @Override
     public String toString() {
-        return "RolePagePermisison [id=" + id + ", pagePermission=" + pagePermission + ", role=" + role + ", page="
+        return "RolePagePermission [id=" + id + ", pagePermission=" + pagePermission + ", role=" + role + ", page="
                 + page + "]";
-    } 
+    }
 
 }

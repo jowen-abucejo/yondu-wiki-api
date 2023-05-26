@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
-@Table(name = "directories")
 public class Directory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -64,7 +63,7 @@ public class Directory {
     public String toString() {
         Directory currentDirectory = this.parent;
         StringBuilder directory = new StringBuilder(this.name);
-        while(currentDirectory != null) {
+        while (currentDirectory != null) {
             directory.insert(0, currentDirectory.name + "/");
             currentDirectory = currentDirectory.parent;
         }

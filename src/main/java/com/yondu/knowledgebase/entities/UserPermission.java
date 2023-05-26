@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "user_permission")
 public class UserPermission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

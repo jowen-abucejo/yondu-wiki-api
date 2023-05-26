@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "reviews")
 public class Review {
 
     @Id
@@ -21,7 +20,6 @@ public class Review {
     private User user;
 
     private String comment;
-
 
     private LocalDate reviewDate;
     private String status;

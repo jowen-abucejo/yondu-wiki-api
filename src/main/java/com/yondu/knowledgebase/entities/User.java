@@ -8,11 +8,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 
-@Entity(name="users")
+@Entity(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String username;
@@ -25,7 +25,7 @@ public class User {
     private LocalDate createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserPagePermission> userPagePermisisons = new HashSet<>();
+    private Set<UserPagePermission> userPagePermissions = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserCommentRating> userCommentRating = new ArrayList<>();
@@ -36,7 +36,8 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<UserDirectoryAccess> userDirectoryAccesses;
 
-    public User(Long id, String username, String email, String password, String firstName, String lastName, String status, LocalDate createdAt) {
+    public User(Long id, String username, String email, String password, String firstName, String lastName,
+            String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
