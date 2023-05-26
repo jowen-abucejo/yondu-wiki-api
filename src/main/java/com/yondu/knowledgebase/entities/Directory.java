@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
+@Table(name = "directories")
 public class Directory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,6 +16,9 @@ public class Directory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Directory> subDirectories;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<RoleDirectoryAccess> roleDirectoryAccesses;
@@ -51,11 +55,19 @@ public class Directory {
         this.parent = parent;
     }
 
-    public Set<RoleDirectoryAccess> getRoleDirectoryPermissions() {
+    public Set<Directory> getSubDirectories() {
+        return subDirectories;
+    }
+
+    public void setSubDirectories(Set<Directory> subDirectories) {
+        this.subDirectories = subDirectories;
+    }
+
+    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
         return roleDirectoryAccesses;
     }
 
-    public void setRoleDirectoryPermissions(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
         this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
@@ -63,7 +75,7 @@ public class Directory {
     public String toString() {
         Directory currentDirectory = this.parent;
         StringBuilder directory = new StringBuilder(this.name);
-        while (currentDirectory != null) {
+        while(currentDirectory != null) {
             directory.insert(0, currentDirectory.name + "/");
             currentDirectory = currentDirectory.parent;
         }
