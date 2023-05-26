@@ -16,11 +16,9 @@ public class User {
     private Long id;
 
     private String username;
-    @Column(unique = true)
     private String email;
     private String password;
     private String firstName;
-    private String lastName;
     private String status;
     private LocalDate createdAt;
 
@@ -33,14 +31,15 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comment = new ArrayList<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserDirectoryAccess> userDirectoryAccesses;
 
-    public User(Long id, String username, String email, String password, String firstName, String lastName, String status, LocalDate createdAt) {
+    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
-        this.lastName = lastName;
         this.status = status;
         this.createdAt = createdAt;
     }
@@ -68,48 +67,12 @@ public class User {
         return firstName;
     }
 
-    public String getLastName() {
-        return lastName;
-    }
-
     public String getStatus() {
         return status;
     }
 
     public LocalDate getCreatedAt() {
         return createdAt;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setCreatedAt(LocalDate createdAt) {
-        this.createdAt = createdAt;
     }
 
     @Override
