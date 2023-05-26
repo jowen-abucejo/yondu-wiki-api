@@ -8,10 +8,20 @@ public class CommentResponseDTO {
     private List<CommentRequestDTO> data;
     private Response response;
 
+    private int totalComment;
+
     // Getter and Setter
     public List<CommentRequestDTO> getData() { return data; }
 
     public void setData(List<CommentRequestDTO> data) { this.data = data; }
+
+    public int getTotalComment() {
+        return totalComment;
+    }
+
+    public void setTotalComment(int totalComment) {
+        this.totalComment = totalComment;
+    }
 
     public Response getResponse() {return response; }
 
@@ -20,8 +30,9 @@ public class CommentResponseDTO {
     public void setResponse(Response response) { this.response = response; }
 
     public CommentResponseDTO() {}
-    public CommentResponseDTO(List<CommentRequestDTO> data, Response response) {
+    public CommentResponseDTO(List<CommentRequestDTO> data, Response response, int totalComment) {
         this.data = data;
+        this.totalComment = totalComment;
         this.response = response;
     }
 }

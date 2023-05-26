@@ -8,4 +8,5 @@ import com.yondu.knowledgebase.entities.Comment;
 public interface CommentService {
     public Comment createComment(CommentRequestDTO comment, Long userId);
     public CommentResponseDTO getAllComments();
+    public int getTotalComments();
 }

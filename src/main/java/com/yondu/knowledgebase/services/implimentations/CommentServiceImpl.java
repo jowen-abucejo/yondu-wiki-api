@@ -55,6 +55,7 @@ public class CommentServiceImpl implements CommentService {
 
         CommentResponseDTO responseDTO = new CommentResponseDTO();
         responseDTO.setData(commentDTOs);
+        responseDTO.setTotalComment(getTotalComments());
 
 //        Temp Response message
         Response response = new Response();
@@ -64,5 +65,11 @@ public class CommentServiceImpl implements CommentService {
         responseDTO.setResponse(response);
 
         return responseDTO;
+    }
+
+    @Override
+    public int getTotalComments() {
+        System.out.println(Math.toIntExact(commentRepository.count()));
+        return Math.toIntExact(commentRepository.count());
     }
 }
