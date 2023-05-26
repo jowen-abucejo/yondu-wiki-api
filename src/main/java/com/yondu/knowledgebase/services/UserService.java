@@ -10,13 +10,16 @@ import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -31,17 +34,17 @@ public class UserService {
         log.info("user : " + user.toString());
 
         // Check for nulls
-        if(Util.isNullOrWhiteSpace(user.getEmail()))
+        if (Util.isNullOrWhiteSpace(user.getEmail()))
             throw new MissingFieldException("email");
-        else if(Util.isNullOrWhiteSpace(user.getUsername()))
+        else if (Util.isNullOrWhiteSpace(user.getUsername()))
             throw new MissingFieldException("username");
-        else if(Util.isNullOrWhiteSpace(user.getPassword()))
+        else if (Util.isNullOrWhiteSpace(user.getPassword()))
             throw new MissingFieldException("password");
-        else if(Util.isNullOrWhiteSpace(user.getFirstName()))
+        else if (Util.isNullOrWhiteSpace(user.getFirstName()))
             throw new MissingFieldException("first name");
-        else if(Util.isNullOrWhiteSpace(user.getLastName()))
+        else if (Util.isNullOrWhiteSpace(user.getLastName()))
             throw new MissingFieldException("last name");
-        else if(!Util.isEmailValid(user.getEmail()))
+        else if (!Util.isEmailValid(user.getEmail()))
             throw new InvalidEmailException();
 
         // Encrypt password
@@ -60,11 +63,11 @@ public class UserService {
         log.info("user : " + user.toString());
 
         // Check for nulls
-        if(Util.isNullOrWhiteSpace(user.getEmail()))
+        if (Util.isNullOrWhiteSpace(user.getEmail()))
             throw new MissingFieldException("email");
 
         user = userRepository.getUserByEmail(user.getEmail());
-        if(user == null){
+        if (user == null) {
             throw new UserException("User not found.");
         }
         user.setStatus(Status.INACTIVE.getCode());
@@ -73,5 +76,11 @@ public class UserService {
         updatedUser.setPassword("");
 
         return updatedUser;
+    }
+
+    @Override
+    public User loadUserByUsername(String email) throws UsernameNotFoundException {
+        return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException(
+                String.format("Active user with email of %s not found", email)));
     }
 }
