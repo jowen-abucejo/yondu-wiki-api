@@ -1,0 +1,1 @@
+INSERT IGNORE INTO USERS(email, password, username, first_name, last_name, status, created_at) VALUES('admin@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'ADM', 'Administrator', '', 'ACT', CURRENT_DATE);

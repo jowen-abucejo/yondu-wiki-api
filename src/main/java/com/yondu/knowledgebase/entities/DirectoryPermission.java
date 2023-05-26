@@ -18,7 +18,7 @@ public class DirectoryPermission {
     private String description;
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoleDirectoryPermission> roleDirectoryPermissions;
+    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
 
     public DirectoryPermission() {}
 
@@ -31,28 +31,31 @@ public class DirectoryPermission {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void setName(String name) {
         this.name = name;
+    }
+    public String getDescription() {
+        return description;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public Set<RoleDirectoryPermission> getRoleDirectoryPermissions() {
-        return roleDirectoryPermissions;
+    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
+        return roleDirectoryAccesses;
     }
 
-    public void setRoleDirectoryPermissions(Set<RoleDirectoryPermission> roleDirectoryPermissions) {
-        this.roleDirectoryPermissions = roleDirectoryPermissions;
+    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+        this.roleDirectoryAccesses = roleDirectoryAccesses;
     }
 
     @Override

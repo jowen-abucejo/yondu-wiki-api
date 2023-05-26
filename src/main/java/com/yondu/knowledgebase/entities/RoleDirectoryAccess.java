@@ -3,11 +3,11 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "role_directory_permissions")
-public class RoleDirectoryPermission {
+@Table(name = "role_directory_accesses")
+public class RoleDirectoryAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long Id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
@@ -21,20 +21,20 @@ public class RoleDirectoryPermission {
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public RoleDirectoryPermission() {}
+    public RoleDirectoryAccess() {}
 
-    public RoleDirectoryPermission(Role role, Directory directory, DirectoryPermission permission) {
+    public RoleDirectoryAccess(Role role, Directory directory, DirectoryPermission permission) {
         this.role = role;
         this.directory = directory;
         this.permission = permission;
     }
 
-    public long getId() {
-        return Id;
+    public Long getId() {
+        return id;
     }
 
-    public void setId(long id) {
-        Id = id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public Role getRole() {
@@ -61,5 +61,13 @@ public class RoleDirectoryPermission {
         this.permission = permission;
     }
 
-
+    @Override
+    public String toString() {
+        return "RoleDirectoryAccess{" +
+                "id=" + id +
+                ", role=" + role +
+                ", directory=" + directory +
+                ", permission=" + permission +
+                '}';
+    }
 }
