@@ -1,0 +1,14 @@
+package com.yondu.knowledgebase.services;
+
+import com.yondu.knowledgebase.DTO.UserCommentRatingDTO;
+import com.yondu.knowledgebase.entities.UserCommentRating;
+
+import java.util.List;
+
+public interface UserCommentRatingService {
+
+    public UserCommentRating rateComment (Long commentId, Long userId, String ratingValue);
+
+    public int totalCommentRating(Long commentId);
+
+}

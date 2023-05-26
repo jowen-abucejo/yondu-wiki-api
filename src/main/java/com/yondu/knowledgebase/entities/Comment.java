@@ -23,8 +23,10 @@ public class Comment {
     @OneToMany(mappedBy = "comment")
     private List<UserCommentRating> userCommentRating = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+
+
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -100,5 +102,33 @@ public class Comment {
      */
     public Page getPage() {
         return page;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public void setParentCommentId(Long parentCommentId) {
+        this.parentCommentId = parentCommentId;
+    }
+
+    public void setUserCommentRating(List<UserCommentRating> userCommentRating) {
+        this.userCommentRating = userCommentRating;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setPage(Page page) {
+        this.page = page;
     }
 }

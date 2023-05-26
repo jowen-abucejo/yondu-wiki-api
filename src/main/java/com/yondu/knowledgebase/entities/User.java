@@ -3,35 +3,49 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
-@Entity(name="users")
+@Entity(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String username;
+    @Column(unique = true)
     private String email;
     private String password;
     private String firstName;
+    private String lastName;
     private String status;
     private LocalDate createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRole = new HashSet<>();
+    private Set<UserPagePermission> userPagePermissions = new HashSet<>();
 
-    public User(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt, Set<UserRole> userRole) {
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserCommentRating> userCommentRating = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comment = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<UserDirectoryAccess> userDirectoryAccesses;
+
+    public User(Long id, String username, String email, String password, String firstName, String lastName,
+            String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
+        this.lastName = lastName;
         this.status = status;
         this.createdAt = createdAt;
-        this.userRole = userRole;
     }
 
     public User() {
@@ -65,8 +79,40 @@ public class User {
         return createdAt;
     }
 
-    public Set<UserRole> getUserRole() {
-        return userRole;
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public void setCreatedAt(LocalDate createdAt) {
+        this.createdAt = createdAt;
     }
 
     @Override
@@ -79,7 +125,6 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", status='" + status + '\'' +
                 ", createdAt=" + createdAt +
-                ", userRole=" + userRole +
                 '}';
     }
 }

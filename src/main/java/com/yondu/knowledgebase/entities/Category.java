@@ -11,24 +11,26 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 
 @Entity
-public class Tag {
+public class Category {
 
+   
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "tag_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
+    @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
     private List<Page> pages = new ArrayList<>();
 
-    public Tag(){
+    public Category(){
 
     }
 
-    public Tag(Long id, String name, List<Page> pages){
+    public Category(Long id, String name, List<Page> pages){
         this.id= id;
         this.name = name;
         this.pages = pages;
@@ -39,7 +41,7 @@ public class Tag {
     }
 
     public String getName(){
-        return name;
+        return name; 
     }
 
     public List<Page> getPages(){

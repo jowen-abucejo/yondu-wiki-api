@@ -29,9 +29,4 @@ public class RoleController {
         return (role != null) ? ResponseEntity.ok(role) : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/role")
-    public ResponseEntity<Role> addRole(@RequestBody Role role) {
-        Role addedRole = roleService.addRole(role);
-        return ResponseEntity.status(HttpStatus.CREATED).body(addedRole);
-    }
 }
