@@ -10,11 +10,12 @@ public class DirectoryPermission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String name;
 
-    @Column(nullable = false)
     private String description;
+
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<RoleDirectoryAccess> roleDirectoryAccesses;
@@ -28,6 +29,7 @@ public class DirectoryPermission {
     public DirectoryPermission(String name, String description) {
         this.name = name;
         this.description = description;
+        this.isDeleted = false;
     }
 
     public Long getId() {
@@ -54,6 +56,14 @@ public class DirectoryPermission {
         this.description = description;
     }
 
+    public Boolean getDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
     public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
         return roleDirectoryAccesses;
     }
@@ -76,6 +86,7 @@ public class DirectoryPermission {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", isDeleted=" + isDeleted +
                 ", roleDirectoryAccesses=" + roleDirectoryAccesses +
                 ", userDirectoryAccesses=" + userDirectoryAccesses +
                 '}';
