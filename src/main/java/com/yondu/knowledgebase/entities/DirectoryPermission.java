@@ -18,10 +18,10 @@ public class DirectoryPermission {
     private Boolean isDeleted;
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
+    private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<UserDirectoryAccess> userDirectoryAccesses;
+    private Set<DirectoryUserAccess> directoryUserAccesses;
 
     public DirectoryPermission() {
     }
@@ -64,20 +64,20 @@ public class DirectoryPermission {
         isDeleted = deleted;
     }
 
-    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
-        return roleDirectoryAccesses;
+    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
+        return directoryRoleAccesses;
     }
 
-    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
-        this.roleDirectoryAccesses = roleDirectoryAccesses;
+    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
+        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
-    public Set<UserDirectoryAccess> getUserDirectoryAccesses() {
-        return userDirectoryAccesses;
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
     }
 
-    public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
-        this.userDirectoryAccesses = userDirectoryAccesses;
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     @Override
@@ -101,8 +101,8 @@ public class DirectoryPermission {
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", isDeleted=" + isDeleted +
-                ", roleDirectoryAccesses=" + roleDirectoryAccesses +
-                ", userDirectoryAccesses=" + userDirectoryAccesses +
+                ", directoryRoleAccesses=" + directoryRoleAccesses +
+                ", DirectoryUserAccesses=" + directoryUserAccesses +
                 '}';
     }
 }

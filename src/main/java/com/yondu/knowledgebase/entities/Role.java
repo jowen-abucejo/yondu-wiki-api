@@ -21,17 +21,17 @@ public class Role {
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
+    private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     public Role() {
     }
 
-    public Role(Long id, String roleName, Set<UserPermission> userPermissions, Set<RolePagePermission> rolePagePermisisons, Set<RoleDirectoryAccess> roleDirectoryAccesses) {
+    public Role(Long id, String roleName, Set<UserPermission> userPermissions, Set<RolePagePermission> rolePagePermisisons, Set<DirectoryRoleAccess> directoryRoleAccesses) {
         this.id = id;
         this.roleName = roleName;
         this.userPermissions = userPermissions;
         this.rolePagePermisisons = rolePagePermisisons;
-        this.roleDirectoryAccesses = roleDirectoryAccesses;
+        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
     public Long getId() {
@@ -50,12 +50,12 @@ public class Role {
         this.userPermissions = userPermissions;
     }
 
-    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
-        return roleDirectoryAccesses;
+    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
+        return directoryRoleAccesses;
     }
 
-    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
-        this.roleDirectoryAccesses = roleDirectoryAccesses;
+    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
+        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
     public Set<RolePagePermission> getRolePagePermisisons() {
@@ -82,7 +82,7 @@ public class Role {
                 ", name='" + roleName + '\'' +
                 ", userPermissions=" + userPermissions +
                 ", rolePagePermisisons=" + rolePagePermisisons +
-                ", roleDirectoryAccesses=" + roleDirectoryAccesses +
+                ", directoryRoleAccesses=" + directoryRoleAccesses +
                 '}';
     }
 }

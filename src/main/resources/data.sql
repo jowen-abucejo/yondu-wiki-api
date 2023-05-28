@@ -3,6 +3,8 @@ INSERT IGNORE INTO USERS(email, password, username, first_name, last_name, statu
 -- INITIALIZE ROOT DIRECTORY
 INSERT IGNORE INTO DIRECTORY(id, name, description, date_created, date_modified) VALUES(1, 'YONDU Wiki', 'root directory', CURRENT_DATE, CURRENT_DATE);
 
+-- INITIAL ROLE
+INSERT IGNORE INTO ROLE(id, role_name) VALUES(1, 'admin');
 -- DIRECTORY PERMISSIONS
 INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(1, 'Create Directory', 'Allows users to create new directories within the specified directory', 0);
 INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(2, 'Edit Directory', 'Allows users to edit the directory properties of the specified directory', 0);
