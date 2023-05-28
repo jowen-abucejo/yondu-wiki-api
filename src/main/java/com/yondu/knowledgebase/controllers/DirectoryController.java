@@ -3,61 +3,96 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
 import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
+import com.yondu.knowledgebase.DTO.directory.request.CreateDirectoryRequest;
+import com.yondu.knowledgebase.DTO.directory.request.RenameDirectoryRequest;
 import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessRequest;
 import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessResponse;
-import com.yondu.knowledgebase.entities.DirectoryRoleAccess;
+import com.yondu.knowledgebase.exceptions.BadRequestException;
+import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.DirectoryService;
 import com.yondu.knowledgebase.services.DirectoryRoleAccessService;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/directories")
 public class DirectoryController {
     private final DirectoryService directoryService;
     private final DirectoryRoleAccessService directoryRoleAccessService;
+
     public DirectoryController(DirectoryService directoryService, DirectoryRoleAccessService directoryRoleAccessService) {
         this.directoryService = directoryService;
         this.directoryRoleAccessService = directoryRoleAccessService;
     }
 
-    @PostMapping("/{parentId}/create")
-    public ResponseEntity<Object> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest directoryRequest) {
+    @PostMapping("/{parentId}")
+    public ResponseEntity<ApiResponse<Object>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody CreateDirectoryRequest request) {
         try {
-            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty() || directoryRequest.getDescription() == null || directoryRequest.getDescription().isEmpty()) {
-                throw new NullPointerException();
+            if (request.getName().isEmpty() || request.getDescription().isEmpty()) {
+                throw new BadRequestException("Invalid request body");
             }
-            DirectoryResponse response = directoryService.createDirectory(parentId, directoryRequest);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+            Object data = directoryService.createDirectory(parentId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("success", data, "Directory created successfully"));
+
+        } catch (BadRequestException e) {
+            return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+
+        } catch (NotFoundException e) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+
+        } catch (DataIntegrityViolationException e) {
+            return createErrorResponse(HttpStatus.CONFLICT, "Directory already exists");
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
         }
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<Object> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest directoryRequest) {
+    public ResponseEntity<ApiResponse<Object>> renameDirectory(@PathVariable("id") Long id, @RequestBody RenameDirectoryRequest request) {
         try {
-            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty()) {
-                throw new NullPointerException();
+            if (request.getName().isEmpty()) {
+                throw new BadRequestException("Invalid request body");
             }
-            DirectoryResponse response = directoryService.renameDirectory(id, directoryRequest.getName());
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+            Object data = directoryService.renameDirectory(id, request.getName());
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", data, "Directory renamed successfully"));
+
+        } catch (BadRequestException e) {
+            return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+
+        } catch (NotFoundException e) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+
+        } catch (DataIntegrityViolationException e) {
+            return createErrorResponse(HttpStatus.CONFLICT, "Directory already exists");
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
         }
+
     }
 
-    @PutMapping("/{id}/remove")
-    public ResponseEntity<Object> deleteDirectory(@PathVariable("id") Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Object>> deleteDirectory(@PathVariable("id") Long id) {
         try {
-            String response = directoryService.removeDirectory(id);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            directoryService.removeDirectory(id);
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", null, "Directory deleted successfully"));
+        } catch (NotFoundException e) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            e.printStackTrace();
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
         }
     }
 
@@ -98,4 +133,9 @@ public class DirectoryController {
         }
     }
     //removeRoledirectoryaccess
+
+
+    private ResponseEntity<ApiResponse<Object>> createErrorResponse(HttpStatus status, String errorMessage) {
+        return ResponseEntity.status(status).body(new ApiResponse<>("error", null, errorMessage));
+    }
 }
