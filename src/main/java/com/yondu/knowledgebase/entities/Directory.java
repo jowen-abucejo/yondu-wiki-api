@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "parent_id"})})
@@ -118,13 +120,13 @@ public class Directory {
     }
 
     public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
-        Set<RoleDirectoryAccess> rds = this.roleDirectoryAccesses;
+        Set<RoleDirectoryAccess> rda = this.roleDirectoryAccesses;
         Directory current = this;
-        while (rds == null || rds.isEmpty()) {
-            rds = current.getParent().getRoleDirectoryAccesses();
+        while (rda == null || rda.isEmpty()) {
+            rda = current.getParent().roleDirectoryAccesses;
             current = current.getParent();
         }
-        return roleDirectoryAccesses;
+        return rda;
     }
 
     public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
@@ -132,7 +134,13 @@ public class Directory {
     }
 
     public Set<UserDirectoryAccess> getUserDirectoryAccesses() {
-        return userDirectoryAccesses;
+        Directory current = this;
+        Set<UserDirectoryAccess> uda;
+        do {
+            uda = current.userDirectoryAccesses;
+            current = current.getParent();
+        } while ((uda == null || uda.isEmpty()) && current != null);
+        return uda;
     }
 
     public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
@@ -140,6 +148,25 @@ public class Directory {
     }
 
     public boolean userHasAccess(User user, DirectoryPermission permission) {
+        Set<UserDirectoryAccess> userDirectoryAccesses = getUserDirectoryAccesses();
+        if (userDirectoryAccesses != null) {
+            List<DirectoryPermission> userDirectoryPermission = userDirectoryAccesses.stream()
+                    .filter(uda -> uda.getUser().equals(user))
+                    .map(UserDirectoryAccess::getPermission)
+                    .toList();
+
+            if (!userDirectoryPermission.isEmpty()) {
+                return userDirectoryPermission.contains(permission);
+            }
+        }
+
+        Set<RoleDirectoryAccess> roleDirectoryAccesses = getRoleDirectoryAccesses();
+        if (roleDirectoryAccesses != null) {
+            return user.getRole().stream()
+                    .anyMatch(role ->
+                            roleDirectoryAccesses.stream()
+                                    .anyMatch(rda -> rda.getRole().equals(role) && rda.getPermission().equals(permission)));
+        }
 
         return false;
     }

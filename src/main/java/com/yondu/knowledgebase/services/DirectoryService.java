@@ -37,7 +37,7 @@ public class DirectoryService {
         // get parent directory
         Directory parent = directoryRepository.findById(parentId).orElseThrow(EntityNotFoundException::new);
 
-        if (parent.userHasAccess(currentUser, permission)) {
+        if (!parent.userHasAccess(currentUser, permission)) {
             // throw access denied
         }
 
@@ -58,7 +58,7 @@ public class DirectoryService {
         // get directory
         Directory directory = directoryRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
-        if (directory.userHasAccess(currentUser, permission)) {
+        if (!directory.userHasAccess(currentUser, permission)) {
             // throw access denied
         }
 
@@ -79,7 +79,7 @@ public class DirectoryService {
 
         Directory directory = directoryRepository.findById(id).orElseThrow(EntityNotFoundException::new);
 
-        if (directory.userHasAccess(currentUser, permission)) {
+        if (!directory.userHasAccess(currentUser, permission)) {
             // throw access denied
         }
 
@@ -87,8 +87,4 @@ public class DirectoryService {
         return "Directory deleted successfully";
     }
 
-    public static boolean findRolePermission_RoleAccessDirectory(Set<RoleDirectoryAccess> roleDirectoryAccesses, String requiredPermission, String requiredRole) {
-        return roleDirectoryAccesses.stream().anyMatch((rda) -> rda.getRole().getRoleName().equals(requiredRole)
-                                                            && rda.getPermission().getName().equals(requiredPermission));
-    }
 }
