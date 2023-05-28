@@ -26,6 +26,7 @@ public class PageVersion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
 
     @Lob
@@ -60,15 +61,17 @@ public class PageVersion {
      * @param dateModified
      * @param modifiedBy
      * @param reviews
+     * @param page
      */
     public PageVersion(Long id, String title, String content, LocalDateTime dateModified, User modifiedBy,
-            List<Review> reviews) {
+            List<Review> reviews, Page page) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.dateModified = dateModified;
         this.modifiedBy = modifiedBy;
         this.reviews = reviews;
+        this.page = page;
     }
 
     /**
@@ -118,6 +121,55 @@ public class PageVersion {
      */
     public Page getPage() {
         return page;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * @param title the title to set
+     */
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    /**
+     * @param content the content to set
+     */
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    /**
+     * @param dateModified the dateModified to set
+     */
+    public void setDateModified(LocalDateTime dateModified) {
+        this.dateModified = dateModified;
+    }
+
+    /**
+     * @param modifiedBy the modifiedBy to set
+     */
+    public void setModifiedBy(User modifiedBy) {
+        this.modifiedBy = modifiedBy;
+    }
+
+    /**
+     * @param reviews the reviews to set
+     */
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    /**
+     * @param page the page to set
+     */
+    public void setPage(Page page) {
+        this.page = page;
     }
 
 }

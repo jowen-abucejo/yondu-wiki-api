@@ -1,14 +1,11 @@
 package com.yondu.knowledgebase.services;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
-import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 
 public interface PageService {
 
-    public Page findById(Long id);
+    public PageDTO findById(Long id);
 
-    public List<Page> findAll();
+    public PaginatedResponse<PageDTO> findAll(String searchKey, Integer pageNumber, Integer pageSize, String[] sortBy);
 }
