@@ -10,7 +10,6 @@ public class DirectoryResponse {
     private String name;
     private Long parentId;
     private String fullPath;
-    private List<DirectoryResponse> subDirectories;
 
     public DirectoryResponse() {}
 
@@ -20,11 +19,6 @@ public class DirectoryResponse {
         if (directory.getParent() != null) {
             this.parentId = directory.getParent().getId();
             this.fullPath = getFullPath(directory);
-        }
-        if (directory.getSubDirectories() != null && !directory.getSubDirectories().isEmpty()) {
-            this.subDirectories = directory.getSubDirectories().stream().map(DirectoryResponse::new).toList();
-        } else {
-            this.subDirectories = new ArrayList<>();
         }
     }
 
@@ -58,14 +52,6 @@ public class DirectoryResponse {
 
     public void setFullPath(String fullPath) {
         this.fullPath = fullPath;
-    }
-
-    public List<DirectoryResponse> getSubDirectories() {
-        return subDirectories;
-    }
-
-    public void setSubDirectories(List<DirectoryResponse> subDirectories) {
-        this.subDirectories = subDirectories;
     }
 
     public static String getFullPath(Directory directory) {
