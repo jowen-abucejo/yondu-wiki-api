@@ -2,22 +2,17 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
-import com.yondu.knowledgebase.DTO.directory.request.CreateDirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.request.RenameDirectoryRequest;
 import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessRequest;
 import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessResponse;
+import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.BadRequestException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.DirectoryService;
 import com.yondu.knowledgebase.services.DirectoryRoleAccessService;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 
 @RestController
@@ -32,9 +27,9 @@ public class DirectoryController {
     }
 
     @PostMapping("/{parentId}")
-    public ResponseEntity<ApiResponse<Object>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody CreateDirectoryRequest request) {
+    public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest.Create request) {
         try {
-            if (request.getName().isEmpty() || request.getDescription().isEmpty()) {
+            if (request.name().isEmpty() || request.description().isEmpty()) {
                 throw new BadRequestException("Invalid request body");
             }
 
@@ -47,6 +42,9 @@ public class DirectoryController {
         } catch (NotFoundException e) {
             return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
 
+        } catch (AccessDeniedException e) {
+            return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+
         } catch (DataIntegrityViolationException e) {
             return createErrorResponse(HttpStatus.CONFLICT, "Directory already exists");
 
@@ -57,13 +55,13 @@ public class DirectoryController {
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<ApiResponse<Object>> renameDirectory(@PathVariable("id") Long id, @RequestBody RenameDirectoryRequest request) {
+    public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest.Rename request) {
         try {
-            if (request.getName().isEmpty()) {
+            if (request.name().isEmpty()) {
                 throw new BadRequestException("Invalid request body");
             }
 
-            Object data = directoryService.renameDirectory(id, request.getName());
+            Object data = directoryService.renameDirectory(id, request);
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", data, "Directory renamed successfully"));
 
         } catch (BadRequestException e) {
@@ -83,7 +81,7 @@ public class DirectoryController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Object>> deleteDirectory(@PathVariable("id") Long id) {
+    public ResponseEntity<ApiResponse<?>> deleteDirectory(@PathVariable("id") Long id) {
         try {
             directoryService.removeDirectory(id);
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", null, "Directory deleted successfully"));
@@ -135,7 +133,7 @@ public class DirectoryController {
     //removeRoledirectoryaccess
 
 
-    private ResponseEntity<ApiResponse<Object>> createErrorResponse(HttpStatus status, String errorMessage) {
+    private ResponseEntity<ApiResponse<?>> createErrorResponse(HttpStatus status, String errorMessage) {
         return ResponseEntity.status(status).body(new ApiResponse<>("error", null, errorMessage));
     }
 }
