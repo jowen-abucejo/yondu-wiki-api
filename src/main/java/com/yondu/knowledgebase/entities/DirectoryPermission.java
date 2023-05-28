@@ -81,6 +81,20 @@ public class DirectoryPermission {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryPermission other = (DirectoryPermission) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
+
+    @Override
     public String toString() {
         return "DirectoryPermission{" +
                 "id=" + id +

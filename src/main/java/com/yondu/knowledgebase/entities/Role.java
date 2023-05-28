@@ -12,6 +12,7 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String roleName;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<UserPermission> userPermissions = new HashSet<>();
@@ -59,6 +60,19 @@ public class Role {
 
     public Set<RolePagePermission> getRolePagePermisisons() {
         return rolePagePermisisons;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Role other = (Role) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
     }
 
     @Override

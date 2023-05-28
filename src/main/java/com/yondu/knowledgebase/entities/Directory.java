@@ -1,7 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -119,6 +118,12 @@ public class Directory {
     }
 
     public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
+        Set<RoleDirectoryAccess> rds = this.roleDirectoryAccesses;
+        Directory current = this;
+        while (rds == null || rds.isEmpty()) {
+            rds = current.getParent().getRoleDirectoryAccesses();
+            current = current.getParent();
+        }
         return roleDirectoryAccesses;
     }
 
@@ -132,5 +137,23 @@ public class Directory {
 
     public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
         this.userDirectoryAccesses = userDirectoryAccesses;
+    }
+
+    public boolean userHasAccess(User user, DirectoryPermission permission) {
+
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Directory other = (Directory) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
     }
 }

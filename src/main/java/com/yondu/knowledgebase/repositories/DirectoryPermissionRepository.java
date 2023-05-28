@@ -9,4 +9,6 @@ import java.util.Optional;
 public interface DirectoryPermissionRepository extends JpaRepository<DirectoryPermission, Long> {
     List<DirectoryPermission> findByIsDeletedFalse();
     Optional<DirectoryPermission> findByIdAndIsDeletedFalse(Long id);
+
+    Optional<DirectoryPermission> findByNameAndIsDeletedFalse(String requiredPermissionName);
 }
