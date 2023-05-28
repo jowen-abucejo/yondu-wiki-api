@@ -1,7 +1,9 @@
 package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -14,6 +16,14 @@ public class Directory {
 
     @Column(nullable = false)
     private String name;
+
+    private String description;
+
+    @Column(nullable = false)
+    private LocalDate dateCreated;
+
+    @Column(nullable = false)
+    private LocalDate dateModified;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Directory parent;
@@ -31,8 +41,9 @@ public class Directory {
     }
 
     // creation of root
-    public Directory(String name) {
+    public Directory(String name, String description) {
         this.name = name;
+        this.description = description;
         this.parent = null;
         this.subDirectories = new HashSet<>();
         this.roleDirectoryAccesses = new HashSet<>();
@@ -40,8 +51,11 @@ public class Directory {
     }
 
     // creation of subdirectories
-    public Directory(String name, Directory parent) {
+    public Directory(String name, String description, Directory parent) {
         this.name = name;
+        this.description = description;
+        this.dateCreated = LocalDate.now();
+        this.dateModified = LocalDate.now();
         this.parent = parent;
         this.subDirectories = new HashSet<>();
         this.roleDirectoryAccesses = new HashSet<>();
@@ -62,6 +76,30 @@ public class Directory {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDate dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public LocalDate getDateModified() {
+        return dateModified;
+    }
+
+    public void setDateModified(LocalDate dateModified) {
+        this.dateModified = dateModified;
     }
 
     public Directory getParent() {

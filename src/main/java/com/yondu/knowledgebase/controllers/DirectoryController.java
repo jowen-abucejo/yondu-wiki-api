@@ -16,21 +16,20 @@ public class DirectoryController {
     }
 
     @PostMapping("/{parentId}/create")
-    public ResponseEntity<DirectoryResponse> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest directoryRequest) {
+    public ResponseEntity<Object> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest directoryRequest) {
         try {
-            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty()) {
+            if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty() || directoryRequest.getDescription() == null || directoryRequest.getDescription().isEmpty()) {
                 throw new NullPointerException();
             }
-            DirectoryResponse response = directoryService.createDirectory(parentId, directoryRequest.getName());
+            DirectoryResponse response = directoryService.createDirectory(parentId, directoryRequest);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<DirectoryResponse> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest directoryRequest) {
+    public ResponseEntity<Object> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest directoryRequest) {
         try {
             if(directoryRequest.getName() == null || directoryRequest.getName().isEmpty()) {
                 throw new NullPointerException();
@@ -38,18 +37,16 @@ public class DirectoryController {
             DirectoryResponse response = directoryService.renameDirectory(id, directoryRequest.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PutMapping("/{id}/remove")
-    public ResponseEntity<DirectoryResponse> deleteDirectory(@PathVariable("id") Long id) {
+    public ResponseEntity<Object> deleteDirectory(@PathVariable("id") Long id) {
         try {
-            DirectoryResponse response = directoryService.removeDirectory(id);
+            String response = directoryService.removeDirectory(id);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

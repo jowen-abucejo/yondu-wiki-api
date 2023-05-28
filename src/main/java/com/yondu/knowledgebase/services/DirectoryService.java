@@ -1,10 +1,13 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
 import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 
 @Service
 public class DirectoryService {
@@ -13,29 +16,25 @@ public class DirectoryService {
         this.directoryRepository = directoryRepository;
     }
 
-    public DirectoryResponse createDirectory(Long parentId, String name) {
-        // check if parent directory exist
-        Directory parent = directoryRepository.findById(parentId).orElseThrow(EntityNotFoundException::new);
-        // save new directory
-        Directory savedDirectory = directoryRepository.save(new Directory(name, parent));
+    public DirectoryResponse createDirectory(Long parentId, DirectoryRequest request) {
+        Directory savedDirectory = directoryRepository.findById(parentId)
+                .map(parent -> directoryRepository.save(new Directory(request.getName(), request.getDescription(), parent)))
+                .orElseThrow(EntityNotFoundException::new);
+
         return new DirectoryResponse(savedDirectory);
     }
 
     public DirectoryResponse renameDirectory(Long id, String name) {
-        // check if directory exist
         Directory directory = directoryRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        // rename
         directory.setName(name);
-        // save
+        directory.setDateModified(LocalDate.now());
         Directory savedDirectory = directoryRepository.save(directory);
         return new DirectoryResponse(savedDirectory);
     }
 
-    public DirectoryResponse removeDirectory(Long id) {
-        // check if directory exist
+    public String removeDirectory(Long id) {
         Directory directory = directoryRepository.findById(id).orElseThrow(EntityNotFoundException::new);
-        // delete
         directoryRepository.delete(directory);
-        return new DirectoryResponse(directory);
+        return "Directory deleted successfully";
     }
 }
