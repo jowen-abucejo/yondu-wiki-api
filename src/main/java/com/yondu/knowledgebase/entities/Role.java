@@ -63,6 +63,19 @@ public class Role {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Role other = (Role) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
+    @Override
     public String toString() {
         return "Role{" +
                 "id=" + id +
