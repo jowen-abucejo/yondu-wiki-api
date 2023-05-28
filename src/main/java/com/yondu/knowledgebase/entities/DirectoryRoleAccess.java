@@ -3,29 +3,29 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-public class UserDirectoryAccess {
+public class DirectoryRoleAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "directory_id")
     private Directory directory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public UserDirectoryAccess() {
+    public DirectoryRoleAccess() {
     }
 
-    public UserDirectoryAccess(User user, Directory directory, DirectoryPermission permission) {
-        this.user = user;
+    public DirectoryRoleAccess(Directory directory, Role role, DirectoryPermission permission) {
         this.directory = directory;
+        this.role = role;
         this.permission = permission;
     }
 
@@ -37,12 +37,12 @@ public class UserDirectoryAccess {
         this.id = id;
     }
 
-    public User getUser() {
-        return user;
+    public Role getRole() {
+        return role;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public Directory getDirectory() {
@@ -69,16 +69,16 @@ public class UserDirectoryAccess {
         if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        UserDirectoryAccess other = (UserDirectoryAccess) obj;
+        DirectoryRoleAccess other = (DirectoryRoleAccess) obj;
         // Compare fields for equality
         return this.id.equals(other.id);
     }
 
     @Override
     public String toString() {
-        return "UserDirectoryAccess{" +
+        return "DirectoryRoleAccess{" +
                 "id=" + id +
-                ", user=" + user +
+                ", role=" + role +
                 ", directory=" + directory +
                 ", permission=" + permission +
                 '}';

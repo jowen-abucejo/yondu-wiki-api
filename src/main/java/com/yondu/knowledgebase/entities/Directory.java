@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "parent_id"})})
@@ -33,10 +32,10 @@ public class Directory {
     private Set<Directory> subDirectories;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
+    private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<UserDirectoryAccess> userDirectoryAccesses;
+    private Set<DirectoryUserAccess> directoryUserAccesses;
 
     public Directory() {
     }
@@ -47,8 +46,8 @@ public class Directory {
         this.description = description;
         this.parent = null;
         this.subDirectories = new HashSet<>();
-        this.roleDirectoryAccesses = new HashSet<>();
-        this.userDirectoryAccesses = new HashSet<>();
+        this.directoryRoleAccesses = new HashSet<>();
+        this.directoryUserAccesses = new HashSet<>();
     }
 
     // creation of subdirectories
@@ -59,8 +58,8 @@ public class Directory {
         this.dateModified = LocalDate.now();
         this.parent = parent;
         this.subDirectories = new HashSet<>();
-        this.roleDirectoryAccesses = new HashSet<>();
-        this.userDirectoryAccesses = new HashSet<>();
+        this.directoryRoleAccesses = new HashSet<>();
+        this.directoryUserAccesses = new HashSet<>();
     }
 
     public Long getId() {
@@ -119,40 +118,40 @@ public class Directory {
         this.subDirectories = subDirectories;
     }
 
-    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
-        Set<RoleDirectoryAccess> rda = this.roleDirectoryAccesses;
+    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
+        Set<DirectoryRoleAccess> rda = this.directoryRoleAccesses;
         Directory current = this;
         while (rda == null || rda.isEmpty()) {
-            rda = current.getParent().roleDirectoryAccesses;
+            rda = current.getParent().directoryRoleAccesses;
             current = current.getParent();
         }
         return rda;
     }
 
-    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
-        this.roleDirectoryAccesses = roleDirectoryAccesses;
+    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
+        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
-    public Set<UserDirectoryAccess> getUserDirectoryAccesses() {
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
         Directory current = this;
-        Set<UserDirectoryAccess> uda;
+        Set<DirectoryUserAccess> uda;
         do {
-            uda = current.userDirectoryAccesses;
+            uda = current.directoryUserAccesses;
             current = current.getParent();
         } while ((uda == null || uda.isEmpty()) && current != null);
         return uda;
     }
 
-    public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
-        this.userDirectoryAccesses = userDirectoryAccesses;
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     public boolean userHasAccess(User user, DirectoryPermission permission) {
-        Set<UserDirectoryAccess> userDirectoryAccesses = getUserDirectoryAccesses();
-        if (userDirectoryAccesses != null) {
-            List<DirectoryPermission> userDirectoryPermission = userDirectoryAccesses.stream()
+        Set<DirectoryUserAccess> directoryUserAccesses = getDirectoryUserAccesses();
+        if (directoryUserAccesses != null) {
+            List<DirectoryPermission> userDirectoryPermission = directoryUserAccesses.stream()
                     .filter(uda -> uda.getUser().equals(user))
-                    .map(UserDirectoryAccess::getPermission)
+                    .map(DirectoryUserAccess::getPermission)
                     .toList();
 
             if (!userDirectoryPermission.isEmpty()) {
@@ -160,11 +159,11 @@ public class Directory {
             }
         }
 
-        Set<RoleDirectoryAccess> roleDirectoryAccesses = getRoleDirectoryAccesses();
-        if (roleDirectoryAccesses != null) {
+        Set<DirectoryRoleAccess> directoryRoleAccesses = getDirectoryRoleAccesses();
+        if (directoryRoleAccesses != null) {
             return user.getRole().stream()
                     .anyMatch(role ->
-                            roleDirectoryAccesses.stream()
+                            directoryRoleAccesses.stream()
                                     .anyMatch(rda -> rda.getRole().equals(role) && rda.getPermission().equals(permission)));
         }
 
