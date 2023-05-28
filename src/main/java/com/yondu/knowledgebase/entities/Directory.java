@@ -119,13 +119,13 @@ public class Directory {
     }
 
     public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
-        Set<DirectoryRoleAccess> rda = this.directoryRoleAccesses;
         Directory current = this;
-        while (rda == null || rda.isEmpty()) {
-            rda = current.getParent().directoryRoleAccesses;
+        Set<DirectoryRoleAccess> accesses;
+        do {
+            accesses = current.directoryRoleAccesses;
             current = current.getParent();
-        }
-        return rda;
+        } while ((accesses == null || accesses.isEmpty()) && current != null);
+        return accesses;
     }
 
     public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
@@ -134,12 +134,12 @@ public class Directory {
 
     public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
         Directory current = this;
-        Set<DirectoryUserAccess> uda;
+        Set<DirectoryUserAccess> accesses;
         do {
-            uda = current.directoryUserAccesses;
+            accesses = current.directoryUserAccesses;
             current = current.getParent();
-        } while ((uda == null || uda.isEmpty()) && current != null);
-        return uda;
+        } while ((accesses == null || accesses.isEmpty()) && current != null);
+        return accesses;
     }
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
@@ -150,7 +150,7 @@ public class Directory {
         Set<DirectoryUserAccess> directoryUserAccesses = getDirectoryUserAccesses();
         if (directoryUserAccesses != null) {
             List<DirectoryPermission> userDirectoryPermission = directoryUserAccesses.stream()
-                    .filter(uda -> uda.getUser().equals(user))
+                    .filter(access -> access.getUser().equals(user))
                     .map(DirectoryUserAccess::getPermission)
                     .toList();
 
@@ -164,7 +164,7 @@ public class Directory {
             return user.getRole().stream()
                     .anyMatch(role ->
                             directoryRoleAccesses.stream()
-                                    .anyMatch(rda -> rda.getRole().equals(role) && rda.getPermission().equals(permission)));
+                                    .anyMatch(access -> access.getRole().equals(role) && access.getPermission().equals(permission)));
         }
 
         return false;
