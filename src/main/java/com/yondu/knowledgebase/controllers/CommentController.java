@@ -18,8 +18,8 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId) {
-        Comment createdComment = commentService.createComment(commentRequest, userId);
+    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId, @RequestParam(required = false) Long commentParentId) {
+        Comment createdComment = commentService.createComment(commentRequest, userId, commentParentId);
 
         if (createdComment != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);

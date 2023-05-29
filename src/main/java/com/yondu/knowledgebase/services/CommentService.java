@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 
 
 public interface CommentService {
-    public Comment createComment(CommentRequestDTO comment, Long userId);
+    public Comment createComment(CommentRequestDTO comment, Long userId, Long commentParentId);
     public CommentResponseDTO getAllComments();
     public int getTotalComments();
     Comment getComment(Long commentId);

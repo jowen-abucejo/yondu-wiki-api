@@ -5,6 +5,8 @@ import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommentRequestDTO {
     private Long id;
@@ -14,6 +16,19 @@ public class CommentRequestDTO {
     private User user;
 
     private int totalCommentRating;
+
+    private List<CommentRequestDTO> commentParentList;
+
+    public List<CommentRequestDTO> getCommentParentList() {
+        return commentParentList;
+    }
+    public void addCommentParent(CommentRequestDTO commentParent) {
+        this.commentParentList.add(commentParent);
+    }
+
+    public void setCommentParentList(List<CommentRequestDTO> commentParentList) {
+        this.commentParentList = commentParentList;
+    }
 
     // Getter and Setter
     public LocalDateTime getDate() { return date;}
@@ -37,7 +52,9 @@ public class CommentRequestDTO {
     }
 
     // Constructor
-    public CommentRequestDTO() {}
+    public CommentRequestDTO() {
+        this.commentParentList = new ArrayList<>();
+    }
 
     public CommentRequestDTO(Comment comment) {
         this.id = comment.getId();
@@ -46,4 +63,5 @@ public class CommentRequestDTO {
         this.user = comment.getUser();
         this.totalCommentRating = comment.getTotalCommentRating();
     }
+
 }

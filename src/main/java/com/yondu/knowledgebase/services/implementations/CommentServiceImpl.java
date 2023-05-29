@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
@@ -24,7 +26,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment createComment(CommentRequestDTO commentRequestDTO, Long userId) {
+    public Comment createComment(CommentRequestDTO commentRequestDTO, Long userId, Long commentParentId) {
         User user = userRepository.findById(userId).orElse(null);
         LocalDateTime currentDate = LocalDateTime.now();
         Comment comment = new Comment();
@@ -40,6 +42,9 @@ public class CommentServiceImpl implements CommentService {
         }else{
             comment.setUser(user);
         }
+        if(commentParentId != null){
+            comment.setParentCommentId(commentParentId);
+        }
         return commentRepository.save(comment);
     }
 
@@ -47,17 +52,23 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDTO getAllComments() {
         List<Comment> comments = commentRepository.findAll();
 
-        List<CommentRequestDTO> commentDTOs = new ArrayList<>();
-        for (Comment comment : comments) {
-            CommentRequestDTO commentDTO = new CommentRequestDTO(comment);
-            commentDTOs.add(commentDTO);
-        }
+        List<CommentRequestDTO> commentDTOs = comments.stream()
+                .map(comment -> {
+                    CommentRequestDTO commentDTO = new CommentRequestDTO(comment);
+                    List<Comment> childComments = commentRepository.findAllByParentCommentId(comment.getId());
+                    List<CommentRequestDTO> childCommentDTOs = childComments.stream()
+                            .map(CommentRequestDTO::new)
+                            .collect(Collectors.toList());
+                    commentDTO.setCommentParentList(childCommentDTOs);
+                    return commentDTO;
+                })
+                .collect(Collectors.toList());
 
         CommentResponseDTO responseDTO = new CommentResponseDTO();
         responseDTO.setData(commentDTOs);
         responseDTO.setTotalComment(getTotalComments());
 
-//        Temp Response message
+        // Temp Response message
         Response response = new Response();
         response.setCode(200);
         response.setMessage("Success");
@@ -78,6 +89,4 @@ public class CommentServiceImpl implements CommentService {
         Comment retieveComment = commentRepository.findById(commentId).orElseThrow(null);
         return retieveComment;
     }
-
-
 }
