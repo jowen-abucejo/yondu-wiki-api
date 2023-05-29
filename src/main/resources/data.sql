@@ -136,3 +136,12 @@ INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(6, 1, 6, 1);
 
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(7, 1, 6, 2);
+
+-- Create a new page
+INSERT INTO page (date_created, author, is_active, is_deleted, lock_start, lock_end, locked_by, directory_id)
+VALUES (CURRENT_TIMESTAMP, 1, true, false, null, null, null, 1);
+
+-- Create a new page version
+INSERT INTO page_version (title, content, date_modified, modified_by, page_id)
+VALUES ('Page Version Title', 'Page Version Content', CURRENT_TIMESTAMP, 1, (SELECT id FROM page ORDER BY id DESC LIMIT 1));
+
