@@ -10,8 +10,6 @@ import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -54,40 +52,37 @@ public class Page {
     @Column(name = "lock_end", nullable = true)
     private LocalDateTime lockEnd;
 
-    @Column(name = "locked_by", nullable = true)
+    @ManyToOne
+    @JoinColumn(name = "locked_by", referencedColumnName = "id")
     private User lockedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    //@JsonBackReference
     @JoinColumn(name = "directory_id", referencedColumnName = "id")
     private Directory directory;
 
     @OneToMany(mappedBy = "page")
-    //@JsonBackReference
     @OrderBy(value = "modified_by DESC")
     private List<PageVersion> pageVersions = new ArrayList<>();
 
     @OneToMany(mappedBy = "page")
-    //@JsonBackReference
     private List<Comment> comments = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
-    //@JsonBackReference
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
-    //@JsonBackReference
     @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    //@JsonBackReference
     private Set<UserPagePermission> userPagePermissions = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    //@JsonBackReference
     private Set<UserPageRating> userPageRatings = new HashSet<>();
+
+    @OneToMany(mappedBy = "page")
+    private Set<RolePagePermission> rolePagePermissions = new HashSet<>();
 
     /**
      * 
@@ -111,11 +106,13 @@ public class Page {
      * @param tags
      * @param userPagePermissions
      * @param userPageRatings
+     * @param rolePagePermissions
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, List<Comment> comments, Set<Category> categories, Set<Tag> tags,
-            Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings) {
+            Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings,
+            Set<RolePagePermission> rolePagePermissions) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
@@ -131,6 +128,7 @@ public class Page {
         this.tags = tags;
         this.userPagePermissions = userPagePermissions;
         this.userPageRatings = userPageRatings;
+        this.rolePagePermissions = rolePagePermissions;
     }
 
     /**
@@ -236,6 +234,125 @@ public class Page {
      */
     public Set<UserPageRating> getUserPageRatings() {
         return userPageRatings;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * @param dateCreated the dateCreated to set
+     */
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    /**
+     * @param author the author to set
+     */
+    public void setAuthor(User author) {
+        this.author = author;
+    }
+
+    /**
+     * @param active the active to set
+     */
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+
+    /**
+     * @param deleted the deleted to set
+     */
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    /**
+     * @param lockStart the lockStart to set
+     */
+    public void setLockStart(LocalDateTime lockStart) {
+        this.lockStart = lockStart;
+    }
+
+    /**
+     * @param lockEnd the lockEnd to set
+     */
+    public void setLockEnd(LocalDateTime lockEnd) {
+        this.lockEnd = lockEnd;
+    }
+
+    /**
+     * @param lockedBy the lockedBy to set
+     */
+    public void setLockedBy(User lockedBy) {
+        this.lockedBy = lockedBy;
+    }
+
+    /**
+     * @param directory the directory to set
+     */
+    public void setDirectory(Directory directory) {
+        this.directory = directory;
+    }
+
+    /**
+     * @param pageVersions the pageVersions to set
+     */
+    public void setPageVersions(List<PageVersion> pageVersions) {
+        this.pageVersions = pageVersions;
+    }
+
+    /**
+     * @param comments the comments to set
+     */
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
+
+    /**
+     * @param categories the categories to set
+     */
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
+    }
+
+    /**
+     * @param tags the tags to set
+     */
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
+    }
+
+    /**
+     * @param userPagePermissions the userPagePermissions to set
+     */
+    public void setUserPagePermissions(Set<UserPagePermission> userPagePermissions) {
+        this.userPagePermissions = userPagePermissions;
+    }
+
+    /**
+     * @param userPageRatings the userPageRatings to set
+     */
+    public void setUserPageRatings(Set<UserPageRating> userPageRatings) {
+        this.userPageRatings = userPageRatings;
+    }
+
+    /**
+     * @return the rolePagePermissions
+     */
+    public Set<RolePagePermission> getRolePagePermissions() {
+        return rolePagePermissions;
+    }
+
+    /**
+     * @param rolePagePermissions the rolePagePermissions to set
+     */
+    public void setRolePagePermissions(Set<RolePagePermission> rolePagePermissions) {
+        this.rolePagePermissions = rolePagePermissions;
     }
 
 }
