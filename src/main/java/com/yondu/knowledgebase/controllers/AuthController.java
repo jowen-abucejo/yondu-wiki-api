@@ -32,14 +32,13 @@ public class AuthController {
     private TokenUtil tokenUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
+    public ResponseEntity<?> login(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
         log.info("AuthController.login()");
-        log.info("user : " + user);
-
+        log.info("user : " + request);
         ResponseEntity response = null;
 
         try{
-            User fetchedUser = authService.login(user);
+            User fetchedUser = authService.login(request);
             UserDTO userDTO = new UserDTO(fetchedUser);
             String token = tokenUtil.generateToken(fetchedUser);
 
