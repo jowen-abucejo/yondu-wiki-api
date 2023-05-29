@@ -1,13 +1,11 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
-import com.yondu.knowledgebase.DTO.directory.DirectoryResponseMapper;
+import com.yondu.knowledgebase.DTO.directory.*;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
-import com.yondu.knowledgebase.repositories.DirectoryPermissionRepository;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
+import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,20 +16,19 @@ import java.time.LocalDate;
 public class DirectoryService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
-    private final DirectoryPermissionRepository directoryPermissionRepository;
-    private final DirectoryResponseMapper directoryResponseMapper;
+    private final PermissionRepository permissionRepository;
 
-    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, DirectoryPermissionRepository directoryPermissionRepository) {
+    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
-        this.directoryPermissionRepository = directoryPermissionRepository;
-        this.directoryResponseMapper = new DirectoryResponseMapper();
+        this.permissionRepository = permissionRepository;
     }
 
-    public DirectoryResponse.Create createDirectory(Long parentId, DirectoryRequest.Create request) {
+    public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
         // get permission
-        String requiredPermissionName = "Create Directory";
-        DirectoryPermission permission = directoryPermissionRepository.findByNameAndIsDeletedFalse(requiredPermissionName).orElseThrow(() -> new NotFoundException("'Create Directory' permission not found"));
+        //palitan nalang yung value
+        Long permissionId = 1L;
+        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'Create Directory' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -47,13 +44,14 @@ public class DirectoryService {
 
         // save directory
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent));
-        return directoryResponseMapper.mapToCreateDirectory(savedDirectory);
+        return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
 
-    public DirectoryResponse.Rename renameDirectory(Long id, DirectoryRequest.Rename request) {
+    public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
         // get permission
-        String requiredPermissionName = "Edit Directory";
-        DirectoryPermission permission = directoryPermissionRepository.findByNameAndIsDeletedFalse(requiredPermissionName).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
+        //palitan nalang yung value
+        Long permissionId = 1L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -70,13 +68,14 @@ public class DirectoryService {
         directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
         Directory savedDirectory = directoryRepository.save(directory);
-        return directoryResponseMapper.mapToRenameDirectory(savedDirectory);
+        return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
 
     public void removeDirectory(Long id) {
         // get permission
-        String requiredPermissionName = "Delete Directory";
-        DirectoryPermission permission = directoryPermissionRepository.findByNameAndIsDeletedFalse(requiredPermissionName).orElseThrow(() -> new NotFoundException("'Delete Directory' permission not found"));
+        //palitan nalang yung value
+        Long permissionId = 1L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();

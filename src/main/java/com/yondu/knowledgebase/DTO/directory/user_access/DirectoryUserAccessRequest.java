@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.DTO.directory.user_access;
 
+import com.yondu.knowledgebase.entities.DirectoryUserAccess;
+
 public class DirectoryUserAccessRequest {
     private Long userId;
     private Long permissionId;
@@ -7,9 +9,9 @@ public class DirectoryUserAccessRequest {
     public DirectoryUserAccessRequest() {
     }
 
-    public DirectoryUserAccessRequest(Long userId, Long permissionId) {
-        this.userId = userId;
-        this.permissionId = permissionId;
+    public DirectoryUserAccessRequest(DirectoryUserAccess directoryUserAccess) {
+        this.userId = directoryUserAccess.getUser().getId() ;
+        this.permissionId = directoryUserAccess.getPermission().getId();
     }
 
     public Long getUserId() {
@@ -26,13 +28,5 @@ public class DirectoryUserAccessRequest {
 
     public void setPermissionId(Long permissionId) {
         this.permissionId = permissionId;
-    }
-
-    @Override
-    public String toString() {
-        return "DirectoryUserAccessRequest{" +
-                "userId=" + userId +
-                ", permissionId=" + permissionId +
-                '}';
     }
 }

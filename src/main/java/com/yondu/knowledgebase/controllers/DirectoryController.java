@@ -1,18 +1,17 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessRequest;
-import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessResponse;
+import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessRequest;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessResponse;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.BadRequestException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.DirectoryService;
-import com.yondu.knowledgebase.services.DirectoryRoleAccessService;
+import com.yondu.knowledgebase.services.DirectoryUserAccessService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -20,15 +19,15 @@ import java.util.List;
 @RequestMapping("/directories")
 public class DirectoryController {
     private final DirectoryService directoryService;
-    private final DirectoryRoleAccessService directoryRoleAccessService;
+    private final DirectoryUserAccessService directoryUserAccessService;
 
-    public DirectoryController(DirectoryService directoryService, DirectoryRoleAccessService directoryRoleAccessService) {
+    public DirectoryController(DirectoryService directoryService, DirectoryUserAccessService directoryUserAccessService) {
         this.directoryService = directoryService;
-        this.directoryRoleAccessService = directoryRoleAccessService;
+        this.directoryUserAccessService = directoryUserAccessService;
     }
 
     @PostMapping("/{parentId}")
-    public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryRequest.Create request) {
+    public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
         try {
             if (request.name().isEmpty() || request.description().isEmpty()) {
                 throw new BadRequestException("Invalid request body");
@@ -56,7 +55,7 @@ public class DirectoryController {
     }
 
     @PutMapping("/{id}/rename")
-    public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryRequest.Rename request) {
+    public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryDTO.RenameRequest request) {
         try {
             if (request.name().isEmpty()) {
                 throw new BadRequestException("Invalid request body");
@@ -96,16 +95,16 @@ public class DirectoryController {
     }
 
 
-//  DIRECTORY ROLE ACCESS
-    @PostMapping("/{id}/permissions")
-    public ResponseEntity<ApiResponse<DirectoryRoleAccessResponse>> addDirectoryRoleAccess(@PathVariable Long id, @RequestBody DirectoryRoleAccessRequest request){
+//  DIRECTORY USER ACCESS
+    @PostMapping("/{directoryId}/permissions")
+    public ResponseEntity<ApiResponse<DirectoryUserAccessResponse>> addDirectoryUserAccess(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessRequest request){
         try {
-            if (request.getRoleId() == null || request.getPermissionId() == null) {
-                throw new BadRequestException("Role ID and Permission ID are required");
+            if (request.getUserId() == null || request.getPermissionId() == null) {
+                throw new BadRequestException("User ID and Permission ID are required");
             }
 
-            DirectoryRoleAccessResponse addDirectoryRoleAccess = directoryRoleAccessService.addDirectoryRoleAccess(id, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addDirectoryRoleAccess, "Directory Role Access added successfully"));
+            DirectoryUserAccessResponse addDirectoryUserAccess = directoryUserAccessService.addDirectoryUserAccess(directoryId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addDirectoryUserAccess, "Directory User Access added successfully"));
 
         } catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
@@ -118,18 +117,33 @@ public class DirectoryController {
         }
     }
 
-    @GetMapping("/{id}/permissions")
-    public ResponseEntity<ApiResponse<List<DirectoryRoleAccessResponse>>> getAllDirectoryRoleAccess(@PathVariable Long id){
+    @GetMapping("/{directoryId}/permissions")
+    public ResponseEntity<ApiResponse<List<DirectoryUserAccessResponse>>> getAllDirectoryUserAccess(@PathVariable Long directoryId){
         try {
-            List<DirectoryRoleAccessResponse> roleAccesses = directoryRoleAccessService.getAllDirectoryRoleAccess(id);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleAccesses, "Data retrieved successfully"));
+            List<DirectoryUserAccessResponse> userAccesses = directoryUserAccessService.getAllDirectoryUserAccess(directoryId);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userAccesses, "Data retrieved successfully"));
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
-    //removeRoledirectoryaccess
 
+    @DeleteMapping("/{directoryId}/permissions/{id}")
+    public ResponseEntity<ApiResponse<DirectoryUserAccessResponse>> removeDirectoryUserAccess (@PathVariable Long directoryId, Long id){
+        try {
+            directoryUserAccessService.removeDirectoryUserAccess(directoryId, id);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Access removed successfully"));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
+        }
+    }
 
     private ResponseEntity<ApiResponse<?>> createErrorResponse(HttpStatus status, String errorMessage) {
         return ResponseEntity.status(status).body(ApiResponse.error(errorMessage));

@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.util.Set;
+
 @Entity
 public class Permission {
     @Id
@@ -11,6 +13,9 @@ public class Permission {
     private String name;
     private String description;
     private String category;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private Set<DirectoryUserAccess> directoryUserAccesses;
 
     public Permission() {
     }
@@ -42,6 +47,14 @@ public class Permission {
 
     public String getCategory() {
         return category;
+    }
+
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
+    }
+
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     @Override

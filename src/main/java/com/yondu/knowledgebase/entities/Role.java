@@ -1,6 +1,5 @@
 package com.yondu.knowledgebase.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -21,18 +20,14 @@ public class Role {
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<DirectoryRoleAccess> directoryRoleAccesses;
-
     public Role() {
     }
 
-    public Role(Long id, String roleName, Set<Permission> permissions, Set<RolePagePermission> rolePagePermisisons, Set<DirectoryRoleAccess> directoryRoleAccesses) {
+    public Role(Long id, String roleName, Set<Permission> permissions, Set<RolePagePermission> rolePagePermisisons) {
         this.id = id;
         this.roleName = roleName;
         this.permissions = permissions;
         this.rolePagePermisisons = rolePagePermisisons;
-        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
 
@@ -50,14 +45,6 @@ public class Role {
 
     public void setUserPermissions(Set<Permission> permissions) {
         this.permissions = permissions;
-    }
-
-    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
-        return directoryRoleAccesses;
-    }
-
-    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
-        this.directoryRoleAccesses = directoryRoleAccesses;
     }
 
     public Set<RolePagePermission> getRolePagePermisisons() {
@@ -84,7 +71,6 @@ public class Role {
                 ", name='" + roleName + '\'' +
                 ", permissions=" + permissions +
                 ", rolePagePermisisons=" + rolePagePermisisons +
-                ", directoryRoleAccesses=" + directoryRoleAccesses +
                 '}';
     }
 }

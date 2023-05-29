@@ -25,6 +25,9 @@ public class Directory {
     @Column(nullable = false)
     private LocalDate dateModified;
 
+    @Column(nullable = false, unique = true)
+    private String fullPath;
+
     @ManyToOne(fetch = FetchType.EAGER)
     private Directory parent;
 
@@ -32,22 +35,9 @@ public class Directory {
     private Set<Directory> subDirectories;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<DirectoryRoleAccess> directoryRoleAccesses;
-
-    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
     public Directory() {
-    }
-
-    // creation of root
-    public Directory(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.parent = null;
-        this.subDirectories = new HashSet<>();
-        this.directoryRoleAccesses = new HashSet<>();
-        this.directoryUserAccesses = new HashSet<>();
     }
 
     // creation of subdirectories
@@ -56,9 +46,9 @@ public class Directory {
         this.description = description;
         this.dateCreated = LocalDate.now();
         this.dateModified = LocalDate.now();
+        this.fullPath = traverseDirectory(parent) + "/" + this.name;
         this.parent = parent;
         this.subDirectories = new HashSet<>();
-        this.directoryRoleAccesses = new HashSet<>();
         this.directoryUserAccesses = new HashSet<>();
     }
 
@@ -110,6 +100,14 @@ public class Directory {
         this.parent = parent;
     }
 
+    public String getFullPath() {
+        return fullPath;
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath = fullPath;
+    }
+
     public Set<Directory> getSubDirectories() {
         return subDirectories;
     }
@@ -118,19 +116,6 @@ public class Directory {
         this.subDirectories = subDirectories;
     }
 
-    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
-        Directory current = this;
-        Set<DirectoryRoleAccess> accesses;
-        do {
-            accesses = current.directoryRoleAccesses;
-            current = current.getParent();
-        } while ((accesses == null || accesses.isEmpty()) && current != null);
-        return accesses;
-    }
-
-    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
-        this.directoryRoleAccesses = directoryRoleAccesses;
-    }
 
     public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
         Directory current = this;
@@ -146,10 +131,10 @@ public class Directory {
         this.directoryUserAccesses = directoryUserAccesses;
     }
 
-    public boolean userHasAccess(User user, DirectoryPermission permission) {
+    public boolean userHasAccess(User user, Permission permission) {
         Set<DirectoryUserAccess> userAccesses = getDirectoryUserAccesses();
         if (userAccesses != null) {
-            List<DirectoryPermission> userDirectoryPermission = userAccesses.stream()
+            List<Permission> userDirectoryPermission = userAccesses.stream()
                     .filter(access -> access.getUser().equals(user))
                     .map(DirectoryUserAccess::getPermission)
                     .toList();
@@ -158,16 +143,14 @@ public class Directory {
                 return userDirectoryPermission.contains(permission);
             }
         }
-
-        Set<DirectoryRoleAccess> roleAccesses = getDirectoryRoleAccesses();
-        if (roleAccesses != null) {
-            return user.getRole().stream()
-                    .anyMatch(role ->
-                            roleAccesses.stream()
-                                    .anyMatch(access -> access.getRole().equals(role) && access.getPermission().equals(permission)));
-        }
-
         return false;
+    }
+
+    public static String traverseDirectory(Directory directory) {
+        if (directory.getParent() == null) {
+            return directory.getName();
+        }
+        return traverseDirectory(directory.getParent()) + "/" + directory.getName();
     }
 
     @Override
