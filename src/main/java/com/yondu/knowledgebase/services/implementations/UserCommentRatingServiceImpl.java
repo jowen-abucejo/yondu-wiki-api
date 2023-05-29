@@ -47,7 +47,7 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
     }
 
     @Override
-    public int totalCommentRating(Long commentId){
+    public int getTotalCommentRating(Long commentId){
         int totalCommentRating = userCommentRatingRepository.totalCommentRating(commentId);
         Comment updatedComment = commentRepository.findById(commentId).orElseThrow();
         updatedComment.setTotalCommentRating(totalCommentRating);
