@@ -73,14 +73,4 @@ public class DirectoryRoleAccess {
         // Compare fields for equality
         return this.id.equals(other.id);
     }
-
-    @Override
-    public String toString() {
-        return "DirectoryRoleAccess{" +
-                "id=" + id +
-                ", role=" + role +
-                ", directory=" + directory +
-                ", permission=" + permission +
-                '}';
-    }
 }

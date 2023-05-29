@@ -2,35 +2,33 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.directory.DirectoryRequest;
 import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
-import com.yondu.knowledgebase.DTO.directory.request.CreateDirectoryRequest;
-import com.yondu.knowledgebase.DTO.directory.response.CreateDirectoryResponse;
-import com.yondu.knowledgebase.DTO.directory.response.RenameDirectoryResponse;
+import com.yondu.knowledgebase.DTO.directory.DirectoryResponseMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.repositories.DirectoryPermissionRepository;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 @Service
 public class DirectoryService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final DirectoryPermissionRepository directoryPermissionRepository;
+    private final DirectoryResponseMapper directoryResponseMapper;
 
     public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, DirectoryPermissionRepository directoryPermissionRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.directoryPermissionRepository = directoryPermissionRepository;
+        this.directoryResponseMapper = new DirectoryResponseMapper();
     }
 
-    public CreateDirectoryResponse createDirectory(Long parentId, CreateDirectoryRequest request) {
+    public DirectoryResponse.Create createDirectory(Long parentId, DirectoryRequest.Create request) {
         // get permission
         String requiredPermissionName = "Create Directory";
         DirectoryPermission permission = directoryPermissionRepository.findByNameAndIsDeletedFalse(requiredPermissionName).orElseThrow(() -> new NotFoundException("'Create Directory' permission not found"));
@@ -43,16 +41,16 @@ public class DirectoryService {
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException("Parent directory not found: " + parentId));
 
         if (!parent.userHasAccess(currentUser, permission)) {
-            //throw new AccessDeniedException();
             System.out.println("Access denied");
+            throw new AccessDeniedException();
         }
 
         // save directory
-        Directory savedDirectory = directoryRepository.save(new Directory(request.getName(), request.getDescription(), parent));
-        return new CreateDirectoryResponse(savedDirectory);
+        Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent));
+        return directoryResponseMapper.mapToCreateDirectory(savedDirectory);
     }
 
-    public RenameDirectoryResponse renameDirectory(Long id, String name) {
+    public DirectoryResponse.Rename renameDirectory(Long id, DirectoryRequest.Rename request) {
         // get permission
         String requiredPermissionName = "Edit Directory";
         DirectoryPermission permission = directoryPermissionRepository.findByNameAndIsDeletedFalse(requiredPermissionName).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
@@ -69,10 +67,10 @@ public class DirectoryService {
             System.out.println("Access denied");
         }
 
-        directory.setName(name);
+        directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
         Directory savedDirectory = directoryRepository.save(directory);
-        return new RenameDirectoryResponse(savedDirectory);
+        return directoryResponseMapper.mapToRenameDirectory(savedDirectory);
     }
 
     public void removeDirectory(Long id) {
