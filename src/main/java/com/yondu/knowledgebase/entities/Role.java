@@ -19,6 +19,7 @@ public class Role {
     private Set<UserPermission> userPermissions = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
