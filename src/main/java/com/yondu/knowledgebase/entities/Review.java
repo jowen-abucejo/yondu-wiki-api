@@ -1,12 +1,13 @@
 package com.yondu.knowledgebase.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
 @Entity
 public class Review {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,14 +21,13 @@ public class Review {
     private User user;
 
     private String comment;
-
     private LocalDate reviewDate;
     private String status;
 
-    public Review(){}
+    public Review() {
+    }
 
-    public Review(Long id, PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
-        this.id = id;
+    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
         this.pageVersion = pageVersion;
         this.user = user;
         this.comment = comment;
@@ -39,10 +39,12 @@ public class Review {
         return id;
     }
 
+    @JsonBackReference
     public PageVersion getPageVersion() {
         return pageVersion;
     }
 
+    @JsonBackReference
     public User getUser() {
         return user;
     }
@@ -90,4 +92,5 @@ public class Review {
     public void setStatus(String status) {
         this.status = status;
     }
+
 }

@@ -2,14 +2,9 @@ package com.yondu.knowledgebase.DTO;
 
 public class ReviewCreateDTO {
 
-    private Long pageVersionId;
     private String comment;
     private String status;
 
-    // Constructors, getters, and setters
-
-    public ReviewCreateDTO() {
-    }
 
     public String getComment() {
         return comment;

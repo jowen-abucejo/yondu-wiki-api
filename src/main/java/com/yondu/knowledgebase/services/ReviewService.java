@@ -40,15 +40,20 @@ public class ReviewService {
         return optionalReview.orElse(null);
     }
 
-    public Review createReview(Long pageId, Long versionId, ReviewCreateDTO reviewCreateDTO) {
+    public Review createReview(Long pageId, Long versionId) {
         PageVersion pageVersion = pageVersionRepository.findById(versionId)
                 .orElseThrow(() -> new NotFoundException("Page version not found"));
 
         Review review = new Review();
-        review.setComment(reviewCreateDTO.getComment());
-        review.setReviewDate(LocalDate.now());
-        review.setStatus("PENDING");
         review.setPageVersion(pageVersion);
+        review.setUser(null);
+        review.setComment(null);
+        review.setReviewDate(null);
+        review.setStatus("PENDING");
+
+        pageVersion.getReviews().add(review);
+
+        pageVersionRepository.save(pageVersion);
 
         return reviewRepository.save(review);
     }
@@ -67,15 +72,6 @@ public class ReviewService {
         }
 
         return user;
-    }
-
-    private PageVersion getPageVersionById(Long pageVersionId) {
-        Optional<PageVersion> pageVersion = pageVersionRepository.findById(pageVersionId);
-        if (pageVersion.isEmpty()) {
-            throw new NotFoundException("PageVersion not found");
-        }
-
-        return pageVersion.get();
     }
 
 }
