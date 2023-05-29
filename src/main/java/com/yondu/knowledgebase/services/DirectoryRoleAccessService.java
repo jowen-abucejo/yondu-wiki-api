@@ -1,10 +1,12 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessRequest;
 import com.yondu.knowledgebase.DTO.directory.role_access.DirectoryRoleAccessResponse;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.DirectoryPermission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.DirectoryRoleAccess;
+import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.repositories.DirectoryPermissionRepository;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
 import com.yondu.knowledgebase.repositories.DirectoryRoleAccessRepository;
@@ -29,14 +31,18 @@ public class DirectoryRoleAccessService {
         this.directoryPermissionRepository = directoryPermissionRepository;
     }
 
-    public DirectoryRoleAccessResponse addDirectoryRoleAccess(Long directoryId, Long roleId, Long permissionId) {
-        Directory directory = directoryRepository.findById(directoryId).orElseThrow(()-> new EntityNotFoundException("Directory not found with ID: "+directoryId));
-        Role role = roleRepository.findById(roleId).orElseThrow(()-> new EntityNotFoundException("Role not found with ID: "+roleId));
-        DirectoryPermission permission = directoryPermissionRepository.findByIdAndIsDeletedFalse(permissionId).orElseThrow(()-> new EntityNotFoundException("Directory permission not found with ID: "+permissionId));
+    public DirectoryRoleAccessResponse addDirectoryRoleAccess(Long directoryId, DirectoryRoleAccessRequest request) {
+        Directory directory = directoryRepository.findById(directoryId)
+                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+
+        Role role = roleRepository.findById(request.getRoleId())
+                .orElseThrow(()-> new NotFoundException("Role not found with ID: "+ request.getRoleId()));
+
+        DirectoryPermission permission = directoryPermissionRepository.findByIdAndIsDeletedFalse(request.getPermissionId())
+                .orElseThrow(()-> new NotFoundException("Directory permission not found with ID: "+ request.getPermissionId()));
 
         DirectoryRoleAccess newDirectoryRoleAccess = new DirectoryRoleAccess(directory, role, permission);
-        DirectoryRoleAccess savedDirectoryRoleAccess = directoryRoleAccessRepository.save(newDirectoryRoleAccess);
-        return new DirectoryRoleAccessResponse(savedDirectoryRoleAccess);
+        return new DirectoryRoleAccessResponse(directoryRoleAccessRepository.save(newDirectoryRoleAccess));
     }
 
     public List<DirectoryRoleAccessResponse> getAllDirectoryRoleAccess(Long directoryId) {

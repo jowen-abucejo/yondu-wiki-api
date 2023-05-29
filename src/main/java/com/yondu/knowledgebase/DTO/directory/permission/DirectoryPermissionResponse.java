@@ -6,7 +6,6 @@ public class DirectoryPermissionResponse {
     private Long id;
     private String name;
     private String description;
-    private String isDeleted;
 
     public DirectoryPermissionResponse() {
     }
@@ -39,14 +38,5 @@ public class DirectoryPermissionResponse {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    @Override
-    public String toString() {
-        return "DirectoryPermissionResponse{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                '}';
     }
 }
