@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
+import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.UserDTO;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.config.TokenUtil;
 import com.yondu.knowledgebase.entities.User;
@@ -38,13 +40,16 @@ public class AuthController {
 
         try{
             User fetchedUser = authService.login(user);
+            UserDTO userDTO = new UserDTO(fetchedUser);
             String token = tokenUtil.generateToken(fetchedUser);
 
             Map<String, Object> res = new HashMap<>();
-            res.put("user", fetchedUser);
+            res.put("user", userDTO);
             res.put("token", token);
 
-            response = ResponseEntity.ok(res);
+            ApiResponse r = ApiResponse.success(res, "success");
+
+            response = ResponseEntity.ok(r);
         }catch (MissingFieldException missingFieldException) {
             missingFieldException.printStackTrace();
 

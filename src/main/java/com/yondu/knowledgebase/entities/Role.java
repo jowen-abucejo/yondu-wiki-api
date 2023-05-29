@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -15,21 +16,23 @@ public class Role {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
-    private Set<UserPermission> userPermissions = new HashSet<>();
+    private Set<Permission> permissions = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+//    @JsonManagedReference
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonManagedReference
     private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     public Role() {
     }
 
-    public Role(Long id, String roleName, Set<UserPermission> userPermissions, Set<RolePagePermission> rolePagePermisisons, Set<DirectoryRoleAccess> directoryRoleAccesses) {
+    public Role(Long id, String roleName, Set<Permission> permissions, Set<RolePagePermission> rolePagePermisisons, Set<DirectoryRoleAccess> directoryRoleAccesses) {
         this.id = id;
         this.roleName = roleName;
-        this.userPermissions = userPermissions;
+        this.permissions = permissions;
         this.rolePagePermisisons = rolePagePermisisons;
         this.directoryRoleAccesses = directoryRoleAccesses;
     }
@@ -42,12 +45,12 @@ public class Role {
         return roleName;
     }
 
-    public Set<UserPermission> getUserPermissions() {
-        return userPermissions;
+    public Set<Permission> getUserPermissions() {
+        return permissions;
     }
 
-    public void setUserPermissions(Set<UserPermission> userPermissions) {
-        this.userPermissions = userPermissions;
+    public void setUserPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
     }
 
     public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
@@ -80,7 +83,7 @@ public class Role {
         return "Role{" +
                 "id=" + id +
                 ", name='" + roleName + '\'' +
-                ", userPermissions=" + userPermissions +
+                ", permissions=" + permissions +
                 ", rolePagePermisisons=" + rolePagePermisisons +
                 ", directoryRoleAccesses=" + directoryRoleAccesses +
                 '}';

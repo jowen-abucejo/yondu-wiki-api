@@ -1,6 +1,6 @@
 package com.yondu.knowledgebase.controllers;
 
-import com.yondu.knowledgebase.entities.UserPermission;
+import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.services.UserPermissionService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,12 +18,12 @@ public class UserPermissionController {
         this.userPermissionService = userPermissionService;
     }
     @GetMapping("/user-permission")
-    public List<UserPermission> getAllPermission(){
+    public List<Permission> getAllPermission(){
         return userPermissionService.getAllPermission();
     }
 
     @PostMapping("/user-permission")
-    public UserPermission addPermission(@RequestBody UserPermission userPermission){
-        return userPermissionService.addPermission(userPermission);
+    public Permission addPermission(@RequestBody Permission permission){
+        return userPermissionService.addPermission(permission);
     }
 }
