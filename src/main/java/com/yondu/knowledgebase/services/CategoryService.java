@@ -23,8 +23,9 @@ public class CategoryService {
 
 
     public Category editCategory(Category category){
-        return categoryRepository.save(category);
-
+        Category existingCategory = getCategory(category.getId());
+        existingCategory.setName(category.getName());
+        return categoryRepository.save(existingCategory);
     }
 
 
