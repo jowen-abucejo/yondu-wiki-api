@@ -1,9 +1,7 @@
 package com.yondu.knowledgebase.repositories;
 
-import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +24,6 @@ public interface PageRepository extends JpaRepository<Page, Long> {
         // @EntityGraph(attributePaths = { "pageVersions.modifiedBy", "author" })
         // public org.springframework.data.domain.Page<Page> findAll(String searchKey,
         // Pageable paging);
+
+        public Optional<Page> findByIdAndActive(Long id, Boolean isActive);
 }

@@ -1,6 +1,5 @@
 package com.yondu.knowledgebase.entities;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -19,7 +18,7 @@ public class RolePagePermission {
 
     @ManyToOne
     @JoinColumn(name = "permission_id")
-    private PagePermission pagePermission;
+    private Permission permission;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
@@ -32,9 +31,9 @@ public class RolePagePermission {
     public RolePagePermission() {
     }
 
-    public RolePagePermission(Long id, PagePermission pagePermission, Role role, Page page) {
+    public RolePagePermission(Long id, Permission permission, Role role, Page page) {
         this.id = id;
-        this.pagePermission = pagePermission;
+        this.permission = permission;
         this.role = role;
         this.page = page;
     }
@@ -43,8 +42,8 @@ public class RolePagePermission {
         return id;
     }
 
-    public PagePermission getPagePermission() {
-        return pagePermission;
+    public Permission getPermission() {
+        return permission;
     }
 
     public Role getRole() {
@@ -57,7 +56,7 @@ public class RolePagePermission {
 
     @Override
     public String toString() {
-        return "RolePagePermission [id=" + id + ", pagePermission=" + pagePermission + ", role=" + role + ", page="
+        return "RolePagePermission [id=" + id + ", permission=" + permission + ", role=" + role + ", page="
                 + page + "]";
     }
 

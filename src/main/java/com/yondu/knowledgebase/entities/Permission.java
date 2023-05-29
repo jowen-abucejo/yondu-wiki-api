@@ -17,6 +17,12 @@ public class Permission {
     @OneToMany(fetch = FetchType.LAZY)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    private Set<UserPagePermission> userPagePermission;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private Set<RolePagePermission> rolePagePermissions;
+
     public Permission() {
     }
 
@@ -51,6 +57,14 @@ public class Permission {
 
     public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
         return directoryUserAccesses;
+    }
+
+    public Set<UserPagePermission> getUserPagePermission() {
+        return userPagePermission;
+    }
+
+    public Set<RolePagePermission> getRolePagePermissions() {
+        return rolePagePermissions;
     }
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
