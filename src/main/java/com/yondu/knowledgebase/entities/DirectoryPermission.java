@@ -10,17 +10,18 @@ public class DirectoryPermission {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String name;
 
-    @Column(nullable = false)
     private String description;
 
-    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<RoleDirectoryAccess> roleDirectoryAccesses;
+    private Boolean isDeleted;
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<UserDirectoryAccess> userDirectoryAccesses;
+    private Set<DirectoryRoleAccess> directoryRoleAccesses;
+
+    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryUserAccess> directoryUserAccesses;
 
     public DirectoryPermission() {
     }
@@ -28,6 +29,7 @@ public class DirectoryPermission {
     public DirectoryPermission(String name, String description) {
         this.name = name;
         this.description = description;
+        this.isDeleted = false;
     }
 
     public Long getId() {
@@ -54,21 +56,43 @@ public class DirectoryPermission {
         this.description = description;
     }
 
-    public Set<RoleDirectoryAccess> getRoleDirectoryAccesses() {
-        return roleDirectoryAccesses;
+    public Boolean getDeleted() {
+        return isDeleted;
     }
 
-    public void setRoleDirectoryAccesses(Set<RoleDirectoryAccess> roleDirectoryAccesses) {
-        this.roleDirectoryAccesses = roleDirectoryAccesses;
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 
-    public Set<UserDirectoryAccess> getUserDirectoryAccesses() {
-        return userDirectoryAccesses;
+    public Set<DirectoryRoleAccess> getDirectoryRoleAccesses() {
+        return directoryRoleAccesses;
     }
 
-    public void setUserDirectoryAccesses(Set<UserDirectoryAccess> userDirectoryAccesses) {
-        this.userDirectoryAccesses = userDirectoryAccesses;
+    public void setDirectoryRoleAccesses(Set<DirectoryRoleAccess> directoryRoleAccesses) {
+        this.directoryRoleAccesses = directoryRoleAccesses;
     }
+
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
+    }
+
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryPermission other = (DirectoryPermission) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
 
     @Override
     public String toString() {
@@ -76,8 +100,9 @@ public class DirectoryPermission {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", roleDirectoryAccesses=" + roleDirectoryAccesses +
-                ", userDirectoryAccesses=" + userDirectoryAccesses +
+                ", isDeleted=" + isDeleted +
+                ", directoryRoleAccesses=" + directoryRoleAccesses +
+                ", DirectoryUserAccesses=" + directoryUserAccesses +
                 '}';
     }
 }
