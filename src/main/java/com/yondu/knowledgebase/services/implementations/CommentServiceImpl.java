@@ -1,4 +1,4 @@
-package com.yondu.knowledgebase.services.implementations;
+package com.yondu.knowledgebase.services.implimentations;
 
 import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
 import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private  final UserRepository userRepository;
 
     public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
@@ -24,21 +26,24 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment createComment(CommentRequestDTO commentRequestDTO, Long userId) {
+    public Comment createComment(CommentRequestDTO commentRequestDTO, Long userId, Long commentParentId) {
         User user = userRepository.findById(userId).orElse(null);
         LocalDateTime currentDate = LocalDateTime.now();
         Comment comment = new Comment();
         comment.setDateCreated(currentDate);
         comment.setComment(commentRequestDTO.getComment());
+        comment.setTotalCommentRating(0);
 
-        // TO DO ---- Need PageRepository and Rating
-        // comment.setPage(commentReqDTO.getPageId());
-        // comment.setRatingId(commentReqDTO.getRatingId());
+//        TO DO ---- Need PageRepository and  Rating
+//        comment.setPage(commentReqDTO.getPageId());
 
         if (user == null) {
             throw new RuntimeException("User not found");
-        } else {
+        }else{
             comment.setUser(user);
+        }
+        if(commentParentId != null){
+            comment.setParentCommentId(commentParentId);
         }
         return commentRepository.save(comment);
     }
@@ -47,11 +52,17 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDTO getAllComments() {
         List<Comment> comments = commentRepository.findAll();
 
-        List<CommentRequestDTO> commentDTOs = new ArrayList<>();
-        for (Comment comment : comments) {
-            CommentRequestDTO commentDTO = new CommentRequestDTO(comment);
-            commentDTOs.add(commentDTO);
-        }
+        List<CommentRequestDTO> commentDTOs = comments.stream()
+                .map(comment -> {
+                    CommentRequestDTO commentDTO = new CommentRequestDTO(comment);
+                    List<Comment> childComments = commentRepository.findAllByParentCommentId(comment.getId());
+                    List<CommentRequestDTO> childCommentDTOs = childComments.stream()
+                            .map(CommentRequestDTO::new)
+                            .collect(Collectors.toList());
+                    commentDTO.setCommentParentList(childCommentDTOs);
+                    return commentDTO;
+                })
+                .collect(Collectors.toList());
 
         CommentResponseDTO responseDTO = new CommentResponseDTO();
         responseDTO.setData(commentDTOs);
@@ -71,5 +82,11 @@ public class CommentServiceImpl implements CommentService {
     public int getTotalComments() {
         System.out.println(Math.toIntExact(commentRepository.count()));
         return Math.toIntExact(commentRepository.count());
+    }
+
+    @Override
+    public Comment getComment (Long commentId){
+        Comment retieveComment = commentRepository.findById(commentId).orElseThrow(null);
+        return retieveComment;
     }
 }

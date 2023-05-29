@@ -19,9 +19,7 @@ public class UserCommentRatingController {
 
     @PostMapping
     public ResponseEntity<?> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO){
-
         String ratingValue = userCommentRatingDTO.getRating();
-        System.out.println(ratingValue);
 
         if(!(ratingValue.equals("UP") || ratingValue.equals("DOWN"))){
             userCommentRatingDTO.setMessage("Invalid rating value");
@@ -31,16 +29,15 @@ public class UserCommentRatingController {
         UserCommentRating userCommentRating = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
 
         if(userCommentRating == null){
-            userCommentRatingDTO.setMessage("User/Comment ID Not Found");
+            userCommentRatingDTO.setMessage("User / Comment ID Not Found");
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userCommentRatingDTO);
         }
 
         int totalCommentRating = userCommentRatingService.totalCommentRating(userCommentRatingDTO.getCommentId());
 
-        userCommentRatingDTO.setMessage("Rating Successfully Added");
+        userCommentRatingDTO.setMessage("Rating Successful");
         UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRatingDTO.getUserId(),userCommentRatingDTO.getCommentId(),ratingValue,totalCommentRating,userCommentRatingDTO.getMessage());
 
         return ResponseEntity.status(HttpStatus.OK).body(userCommentRatingResponse);
     }
-
 }

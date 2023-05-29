@@ -6,10 +6,17 @@ import com.yondu.knowledgebase.entities.Directory;
 public class DirectoryResponseMapper {
 
     public DirectoryResponse.Create mapToCreateDirectory(Directory directory) {
-        return new DirectoryResponse.Create(directory.getId(), directory.getName(), directory.getDescription(), directory.getDateCreated(), directory.getDateModified());
+        return new DirectoryResponse.Create(directory.getId(), directory.getName(), directory.getDescription(), directory.getDateCreated(), directory.getDateModified(), getFullPath(directory));
     }
 
     public DirectoryResponse.Rename mapToRenameDirectory(Directory directory) {
-        return new DirectoryResponse.Rename(directory.getId(), directory.getName(), directory.getDescription(), directory.getDateCreated(), directory.getDateModified());
+        return new DirectoryResponse.Rename(directory.getId(), directory.getName(), directory.getDescription(), directory.getDateCreated(), directory.getDateModified(), getFullPath(directory));
+    }
+
+    public static String getFullPath(Directory directory) {
+        if (directory.getParent() == null) {
+            return directory.getName();
+        }
+        return getFullPath(directory.getParent()) + "/" + directory.getName();
     }
 }

@@ -9,6 +9,6 @@ import java.util.List;
 public class DirectoryResponse {
     public DirectoryResponse(Directory directory) {
     }
-    public record Create(Long id, String name, String description, LocalDate dateCreated, LocalDate dateModified){}
-    public record Rename(Long id, String name, String description, LocalDate dateCreated, LocalDate dateModified){}
+    public record Create(Long id, String name, String description, LocalDate dateCreated, LocalDate dateModified, String fullPath){}
+    public record Rename(Long id, String name, String description, LocalDate dateCreated, LocalDate dateModified, String fullPath){}
 }

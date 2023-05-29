@@ -35,7 +35,7 @@ public class DirectoryController {
             }
 
             Object data = directoryService.createDirectory(parentId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("success", data, "Directory created successfully"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
 
         } catch (BadRequestException e) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -63,7 +63,7 @@ public class DirectoryController {
             }
 
             Object data = directoryService.renameDirectory(id, request);
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", data, "Directory renamed successfully"));
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory renamed successfully"));
 
         } catch (BadRequestException e) {
             return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -85,7 +85,7 @@ public class DirectoryController {
     public ResponseEntity<ApiResponse<?>> deleteDirectory(@PathVariable("id") Long id) {
         try {
             directoryService.removeDirectory(id);
-            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>("success", null, "Directory deleted successfully"));
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
         } catch (NotFoundException e) {
             return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
 
@@ -132,6 +132,6 @@ public class DirectoryController {
 
 
     private ResponseEntity<ApiResponse<?>> createErrorResponse(HttpStatus status, String errorMessage) {
-        return ResponseEntity.status(status).body(new ApiResponse<>("error", null, errorMessage));
+        return ResponseEntity.status(status).body(ApiResponse.error(errorMessage));
     }
 }
