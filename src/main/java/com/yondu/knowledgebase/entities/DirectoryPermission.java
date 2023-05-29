@@ -92,17 +92,4 @@ public class DirectoryPermission {
         // Compare fields for equality
         return this.id.equals(other.id);
     }
-
-
-    @Override
-    public String toString() {
-        return "DirectoryPermission{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", isDeleted=" + isDeleted +
-                ", directoryRoleAccesses=" + directoryRoleAccesses +
-                ", DirectoryUserAccesses=" + directoryUserAccesses +
-                '}';
-    }
 }
