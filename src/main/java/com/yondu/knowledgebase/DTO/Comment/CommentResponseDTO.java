@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.DTO.Comment;
 
 import com.yondu.knowledgebase.DTO.Response;
+import com.yondu.knowledgebase.entities.Comment;
 
 import java.util.List;
 
@@ -9,6 +10,7 @@ public class CommentResponseDTO {
     private Response response;
 
     private int totalComment;
+    
 
     // Getter and Setter
     public List<CommentRequestDTO> getData() { return data; }

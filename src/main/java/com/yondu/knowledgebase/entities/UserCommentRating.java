@@ -18,6 +18,8 @@ public class UserCommentRating {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    private boolean isVoted = true;
+
     public UserCommentRating() {
     }
 
@@ -25,6 +27,7 @@ public class UserCommentRating {
      * @param rating
      * @param comment
      * @param user
+     * @param isVoted
      */
     public UserCommentRating(String rating, Comment comment, User user) {
         this.rating = rating;
@@ -79,5 +82,13 @@ public class UserCommentRating {
      */
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public boolean isVoted() {
+        return isVoted;
+    }
+
+    public void setVoted(boolean voted) {
+        isVoted = voted;
     }
 }

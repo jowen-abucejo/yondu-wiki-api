@@ -18,8 +18,8 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId) {
-        Comment createdComment = commentService.createComment(commentRequest, userId);
+    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId, @RequestParam(required = false) Long commentParentId) {
+        Comment createdComment = commentService.createComment(commentRequest, userId, commentParentId);
 
         if (createdComment != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
@@ -31,5 +31,10 @@ public class CommentController {
     @GetMapping
     public CommentResponseDTO getAllComments() {
         return commentService.getAllComments();
+    }
+
+    @GetMapping ("/{commentId}")
+    public Comment getComment (@PathVariable Long commentId) {
+        return commentService.getComment(commentId);
     }
 }
