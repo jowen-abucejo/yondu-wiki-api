@@ -12,6 +12,7 @@ import com.yondu.knowledgebase.services.DirectoryRoleAccessService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -96,38 +97,35 @@ public class DirectoryController {
 
 
 //  DIRECTORY ROLE ACCESS
-    @PostMapping("/{directoryId}/manage-permissions")
-    public ResponseEntity<ApiResponse<DirectoryRoleAccessResponse>> addDirectoryRoleAccess(@PathVariable Long directoryId, @RequestBody DirectoryRoleAccessRequest request){
-        //api response
-        ApiResponse<DirectoryRoleAccessResponse> response = new ApiResponse<>();
+    @PostMapping("/{id}/permissions")
+    public ResponseEntity<ApiResponse<DirectoryRoleAccessResponse>> addDirectoryRoleAccess(@PathVariable Long id, @RequestBody DirectoryRoleAccessRequest request){
         try {
             if (request.getRoleId() == null || request.getPermissionId() == null) {
-                throw new NullPointerException("One or more required parameters are missing or null");
+                throw new BadRequestException("Role ID and Permission ID are required");
             }
-            DirectoryRoleAccessResponse addDirectoryRoleAccess = directoryRoleAccessService.addDirectoryRoleAccess(directoryId, request.getRoleId(), request.getPermissionId());
-            response.setStatus("success");
-            response.setData(addDirectoryRoleAccess);
-            return ResponseEntity.ok(response);
-        } catch (Exception e){
-            response.setStatus("error");
-            response.setErrorMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+
+            DirectoryRoleAccessResponse addDirectoryRoleAccess = directoryRoleAccessService.addDirectoryRoleAccess(id, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addDirectoryRoleAccess, "Directory Role Access added successfully"));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 
-    @GetMapping("/{directoryId}/manage-permissions")
-    public ResponseEntity<ApiResponse<List<DirectoryRoleAccessResponse>>> getAllDirectoryRoleAccess(@PathVariable Long directoryId){
-        //api response
-        ApiResponse<List<DirectoryRoleAccessResponse>> response = new ApiResponse<>();
+    @GetMapping("/{id}/permissions")
+    public ResponseEntity<ApiResponse<List<DirectoryRoleAccessResponse>>> getAllDirectoryRoleAccess(@PathVariable Long id){
         try {
-            List<DirectoryRoleAccessResponse> roleAccesses = directoryRoleAccessService.getAllDirectoryRoleAccess(directoryId);
-            response.setStatus("success");
-            response.setData(roleAccesses);
-            return ResponseEntity.ok(response);
+            List<DirectoryRoleAccessResponse> roleAccesses = directoryRoleAccessService.getAllDirectoryRoleAccess(id);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleAccesses, "Data retrieved successfully"));
+
         } catch (Exception e) {
-            response.setStatus("error");
-            response.setErrorMessage("Failed to retrieve list of directory role accesses");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
     //removeRoledirectoryaccess

@@ -1,15 +1,16 @@
 package com.yondu.knowledgebase.DTO.directory.role_access;
 
+import com.yondu.knowledgebase.DTO.directory.DirectoryResponse;
+import com.yondu.knowledgebase.DTO.directory.permission.DirectoryPermissionResponse;
 import com.yondu.knowledgebase.entities.DirectoryRoleAccess;
+import com.yondu.knowledgebase.entities.Role;
 
 public class DirectoryRoleAccessResponse {
     private Long id;
     private Long directoryId;
-    private String directoryName;
-    private Long roleId;
-    private String roleName;
-    private Long permissionId;
-    private String permissionName;
+    private Role role;
+    private DirectoryResponse directoryResponse;
+    private DirectoryPermissionResponse directoryPermissionResponse;
 
     public DirectoryRoleAccessResponse() {
     }
@@ -17,11 +18,9 @@ public class DirectoryRoleAccessResponse {
     public DirectoryRoleAccessResponse(DirectoryRoleAccess directoryRoleAccess) {
         this.id = directoryRoleAccess.getId();
         this.directoryId = directoryRoleAccess.getDirectory().getId();
-        this.directoryName = directoryRoleAccess.getDirectory().getName();
-        this.roleId = directoryRoleAccess.getRole().getId();
-        this.roleName = directoryRoleAccess.getRole().getRoleName();
-        this.permissionId = directoryRoleAccess.getPermission().getId();
-        this.permissionName = directoryRoleAccess.getPermission().getName();
+        this.role = directoryRoleAccess.getRole();
+        this.directoryResponse = new DirectoryResponse(directoryRoleAccess.getDirectory());
+        this.directoryPermissionResponse = new DirectoryPermissionResponse(directoryRoleAccess.getPermission());
     }
 
     public Long getId() {
@@ -40,56 +39,27 @@ public class DirectoryRoleAccessResponse {
         this.directoryId = directoryId;
     }
 
-    public String getDirectoryName() {
-        return directoryName;
+    public Role getRole() {
+        return role;
     }
 
-    public void setDirectoryName(String directoryName) {
-        this.directoryName = directoryName;
+    public void setRole(Role role) {
+        this.role = role;
     }
 
-    public Long getRoleId() {
-        return roleId;
+    public DirectoryResponse getDirectoryResponse() {
+        return directoryResponse;
     }
 
-    public void setRoleId(Long roleId) {
-        this.roleId = roleId;
+    public void setDirectoryResponse(DirectoryResponse directoryResponse) {
+        this.directoryResponse = directoryResponse;
     }
 
-    public String getRoleName() {
-        return roleName;
+    public DirectoryPermissionResponse getDirectoryPermissionResponse() {
+        return directoryPermissionResponse;
     }
 
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
-
-    public Long getPermissionId() {
-        return permissionId;
-    }
-
-    public void setPermissionId(Long permissionId) {
-        this.permissionId = permissionId;
-    }
-
-    public String getPermissionName() {
-        return permissionName;
-    }
-
-    public void setPermissionName(String permissionName) {
-        this.permissionName = permissionName;
-    }
-
-    @Override
-    public String toString() {
-        return "DirectoryRoleAccessResponse{" +
-                "id=" + id +
-                ", directoryId=" + directoryId +
-                ", directoryName='" + directoryName + '\'' +
-                ", roleId=" + roleId +
-                ", roleName='" + roleName + '\'' +
-                ", permissionId=" + permissionId +
-                ", permissionName='" + permissionName + '\'' +
-                '}';
+    public void setDirectoryPermissionResponse(DirectoryPermissionResponse directoryPermissionResponse) {
+        this.directoryPermissionResponse = directoryPermissionResponse;
     }
 }
