@@ -24,24 +24,17 @@ public class RoleController {
 
     @GetMapping("/role")
     public ResponseEntity<ApiResponse<List<Role>>> getAllRoles() {
-
-        ApiResponse<List<Role>> response = new ApiResponse<>();
-
         try {
-            response.setStatus("Success");
-            response.setData(roleService.getAllRoles());
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(), "Success retrieving list of roles"));
         } catch (Exception e) {
             // Handle the exception, log the error, and return an appropriate response
-            response.setStatus("error");
-            response.setErrorMessage("Failed to retrieve list of roles");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Failed to retrieve list of roles!"));
+
         }
     }
 
     @PostMapping("/role")
     public ResponseEntity<ApiResponse<Role>> addRole(@RequestBody Role role) {
-
         try {
             // Perform validation on the role object
             if (role.getRoleName() == null || role.getRoleName().isEmpty()) {
@@ -49,42 +42,28 @@ public class RoleController {
             }
 
             Role addedRole = roleService.addRole(role);
-            return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("success", addedRole, "Role created successfully"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addedRole, "Role created successfully"));
 
         } catch (BadRequestException e) {
-        return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
 
         } catch (Exception e) {
-            e.printStackTrace();
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred!"));
+
         }
     }
     @GetMapping("/role/{id}")
     public ResponseEntity<ApiResponse<Role>> getRoleByID(@PathVariable Long id) {
-
-        ApiResponse<Role> response = new ApiResponse<>();
-
         try {
             Role role = roleService.getRole(id);
             if (role != null) {
-                response.setStatus("Success");
-                response.setData(role);
-                return ResponseEntity.ok(response);
+                return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role,"Role with id: " + id + " found"));
             } else {
-                response.setStatus("error");
-                response.setErrorMessage("Role not found!");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Role with id: " + id + "not found"));
             }
         } catch (Exception e) {
             // Handle the exception, log the error, and return an appropriate response
-            e.printStackTrace();
-            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred!"));
         }
     }
-
-    private ResponseEntity<ApiResponse<Role>> createErrorResponse(HttpStatus status, String errorMessage) {
-        return ResponseEntity.status(status).body(new ApiResponse<>("error", null, errorMessage));
-    }
-
-
 }
