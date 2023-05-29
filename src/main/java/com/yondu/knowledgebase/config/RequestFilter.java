@@ -64,12 +64,7 @@ public class RequestFilter extends OncePerRequestFilter {
                 ex.printStackTrace();
             }
 
-            // Get the permissions
-            // allowed for the roles of the user
-            // then append it to this list.
-            Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
-            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(email, null, authorities);
+            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(email, null, user.getAuthorities());
             userToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(userToken);
         }

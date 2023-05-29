@@ -1,7 +1,9 @@
 package com.yondu.knowledgebase.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.sql.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -171,7 +174,15 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAuthorities'");
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        Set<Role> roles = getRole();
+        roles.stream()
+                        .forEach(role ->
+                                role.getUserPermissions()
+                                        .forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getName())))
+                        );
+        return authorities;
+//        throw new UnsupportedOperationException("Unimplemented method 'getAuthorities'");
     }
 
     @JsonIgnore

@@ -3,21 +3,29 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-public class UserPermission {
+public class Permission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
     private String description;
+    private String category;
 
-    public UserPermission() {
+    public Permission() {
     }
 
-    public UserPermission(Long id, String name, String description) {
+    public Permission(Long id, String name, String description) {
         this.id = id;
         this.name = name;
         this.description = description;
+    }
+
+    public Permission(Long id, String name, String description, String category) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.category = category;
     }
 
     public Long getId() {
@@ -32,12 +40,17 @@ public class UserPermission {
         return description;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
     @Override
     public String toString() {
-        return "UserPermission{" +
+        return "Permission{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", category='" + category + '\'' +
                 '}';
     }
 }

@@ -1,15 +1,33 @@
 package com.yondu.knowledgebase.DTO;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.yondu.knowledgebase.entities.User;
+import org.springframework.cglib.core.Local;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserDTO {
     private Long id;
     private String username;
     private String email;
+    @JsonIgnore
     private String password;
     private String firstName;
+    private String lastName;
     private String status;
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
+
+    public UserDTO(User entity) {
+        this.id = entity.getId();
+        this.username = entity.getUsername();
+        this.email = entity.getEmail();
+        this.firstName = entity.getFirstName();
+        this.lastName = entity.getLastName();
+        this.status = entity.getStatus();
+        this.createdAt = entity.getCreatedAt();
+    }
 
 
     // Getter and Setter
@@ -37,15 +55,15 @@ public class UserDTO {
 
     public void setStatus(String status) { this.status = status; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDate getCreatedAt() { return createdAt; }
 
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setCreatedAt(LocalDate createdAt) { this.createdAt = createdAt; }
 
 
     // Constructor
     public UserDTO() { }
 
-    public UserDTO(Long id, String username, String email, String password, String firstName, String status, LocalDateTime createdAt) {
+    public UserDTO(Long id, String username, String email, String password, String firstName, String status, LocalDate createdAt) {
         this.id = id;
         this.username = username;
         this.email = email;

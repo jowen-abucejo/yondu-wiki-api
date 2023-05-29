@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
+import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.UserDTO;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidEmailException;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -42,6 +45,7 @@ public class UserController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('CREATE_USERS')")
     public ResponseEntity<?> createNewUser(@RequestBody User user) {
         log.info("UserController.createNewUser()");
         log.info("user : " + user.toString());
@@ -50,7 +54,11 @@ public class UserController {
 
         try{
             User createdUser = userService.createNewUser(user);
-            response = ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+
+            UserDTO userDTO = new UserDTO(createdUser);
+            ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+
+            response = ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
         }catch (InvalidEmailException invalidEmailException) {
             invalidEmailException.printStackTrace();
 
@@ -81,6 +89,7 @@ public class UserController {
     }
 
     @PostMapping("/deactivate")
+    @PreAuthorize("hasAuthority('DEACTIVATE_USERS')")
     public ResponseEntity<?> deactivateUser(@RequestBody User user) {
         log.info("UserController.deactivateUser()");
         log.info("user : " + user.toString());
@@ -90,7 +99,11 @@ public class UserController {
 
         try{
             User deactivatedUser = userService.deactivateUser(user);
-            response = ResponseEntity.ok(deactivatedUser);
+
+            UserDTO userDTO = new UserDTO(deactivatedUser);
+            ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+
+            response = ResponseEntity.ok(apiResponse);
         }catch(UserException userException) {
             userException.printStackTrace();
 
