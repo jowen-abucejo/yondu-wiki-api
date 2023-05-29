@@ -1,7 +1,7 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessRequest;
-import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessResponse;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTO;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTOMapper;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.DirectoryUserAccess;
 import com.yondu.knowledgebase.entities.Permission;
@@ -27,23 +27,23 @@ public class DirectoryUserAccessService {
         this.permissionRepository = permissionRepository;
     }
 
-    public DirectoryUserAccessResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessRequest request) {
+    public DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
         Directory directory = directoryRepository.findById(directoryId)
                 .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
 
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(()-> new NotFoundException("User not found with ID: "+ request.getUserId()));
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(()-> new NotFoundException("User not found with ID: "+ request.userId()));
 
-        Permission permission = permissionRepository.findById(request.getPermissionId())
-                .orElseThrow(()-> new NotFoundException("Directory Permission not found with ID: "+ request.getPermissionId()));
+        Permission permission = permissionRepository.findById(request.permissionId())
+                .orElseThrow(()-> new NotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
 
         DirectoryUserAccess newDirectoryUserAccess = new DirectoryUserAccess(directory, user, permission);
-        return new DirectoryUserAccessResponse(directoryUserAccessRepository.save(newDirectoryUserAccess));
+        return DirectoryUserAccessDTOMapper.mapToBaseResponse(directoryUserAccessRepository.save(newDirectoryUserAccess));
     }
 
-    public List<DirectoryUserAccessResponse> getAllDirectoryUserAccess(Long directoryId) {
+    public List<DirectoryUserAccessDTO.BaseResponse> getAllDirectoryUserAccess(Long directoryId) {
         List<DirectoryUserAccess> directoryUserAccesses = directoryUserAccessRepository.findAll();
-        return directoryUserAccesses.stream().filter((data)->data.getDirectory().getId().equals(directoryId)).map(DirectoryUserAccessResponse::new)
+        return directoryUserAccesses.stream().filter((data)->data.getDirectory().getId().equals(directoryId)).map(DirectoryUserAccessDTOMapper::mapToBaseResponse)
                 .collect(Collectors.toList());
     }
 

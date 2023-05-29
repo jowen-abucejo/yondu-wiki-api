@@ -56,14 +56,4 @@ public class Permission {
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
         this.directoryUserAccesses = directoryUserAccesses;
     }
-
-    @Override
-    public String toString() {
-        return "Permission{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", category='" + category + '\'' +
-                '}';
-    }
 }
