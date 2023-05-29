@@ -17,6 +17,6 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             Long id, boolean isDeleted, String status);
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-    @Query("SELECT v FROM PageVersion v JOIN Page p WHERE p.deleted=false AND (FUNCTION('REGEXP_REPLACE', v.title, '<[^>]+>', '') LIKE %:searchKey% OR FUNCTION('REGEXP_REPLACE', v.content, '<[^>]+>', '') LIKE %:searchKey%)")
+    @Query("SELECT v FROM PageVersion v JOIN v.page p LEFT JOIN v.reviews r  WHERE p.deleted=false AND r.status='approved' AND (FUNCTION('REGEXP_REPLACE', v.title, '<[^>]+>', '') LIKE %:searchKey% OR FUNCTION('REGEXP_REPLACE', v.content, '<[^>]+>', '') LIKE %:searchKey%)")
     Optional<Page<PageVersion>> findByTitleOrContent(String searchKey, Pageable paging);
 }

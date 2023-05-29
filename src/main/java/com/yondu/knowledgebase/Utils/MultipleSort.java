@@ -7,23 +7,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 
 public class MultipleSort {
-    public static List<Order> sortWithOrders(String[] sort) {
+    public static List<Order> sortWithOrders(String[] sort, String[] additionalSortingOrders) {
         List<Order> orders = new ArrayList<Order>();
 
-        if (sort.length == 0)
-            return orders;
-
-        if (sort[0].contains(",")) {
-            // will sort more than 2 columns
-            for (String sortOrder : sort) {
-                // sortOrder="column, direction"
-                String[] _sort = sortOrder.split(",");
-                orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
-            }
-        } else {
-            // sort=[column, direction]
-            orders.add(new Order(getSortDirection(sort[1]), sort[0]));
-        }
+        populateSortOrders(orders, sort);
+        populateSortOrders(orders, additionalSortingOrders);
 
         return orders;
     }
@@ -36,5 +24,21 @@ public class MultipleSort {
         }
 
         return Sort.Direction.ASC;
+    }
+
+    private static void populateSortOrders(List<Order> orders, String[] sort) {
+        if (sort.length == 0)
+            return;
+        if (sort[0].contains(",")) {
+            // will sort more than 2 columns
+            for (String sortOrder : sort) {
+                // sortOrder="column, direction"
+                String[] _sort = sortOrder.split(",");
+                orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+            }
+        } else {
+            // sort=[column, direction]
+            orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+        }
     }
 }
