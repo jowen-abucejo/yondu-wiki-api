@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -13,7 +14,7 @@ public class Role {
     private Long id;
     private String roleName;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<UserPermission> userPermissions = new HashSet<>();
 
@@ -21,6 +22,7 @@ public class Role {
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     public Role() {
