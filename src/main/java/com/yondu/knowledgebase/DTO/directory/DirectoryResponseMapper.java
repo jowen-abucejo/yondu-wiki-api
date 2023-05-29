@@ -4,7 +4,6 @@ import com.yondu.knowledgebase.entities.Directory;
 
 
 public class DirectoryResponseMapper {
-
     public DirectoryResponse.Create mapToCreateDirectory(Directory directory) {
         return new DirectoryResponse.Create(directory.getId(), directory.getName(), directory.getDescription(), directory.getDateCreated(), directory.getDateModified(), getFullPath(directory));
     }
