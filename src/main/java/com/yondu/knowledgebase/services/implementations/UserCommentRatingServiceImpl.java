@@ -1,6 +1,5 @@
-package com.yondu.knowledgebase.services.implimentations;
+package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.UserCommentRatingDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.entities.UserCommentRating;
@@ -9,8 +8,6 @@ import com.yondu.knowledgebase.repositories.UserCommentRatingRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.UserCommentRatingService;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class UserCommentRatingServiceImpl implements UserCommentRatingService {
