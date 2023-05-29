@@ -2,8 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
-import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessRequest;
-import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessResponse;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTO;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.BadRequestException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
@@ -97,13 +96,13 @@ public class DirectoryController {
 
 //  DIRECTORY USER ACCESS
     @PostMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<DirectoryUserAccessResponse>> addDirectoryUserAccess(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessRequest request){
+    public ResponseEntity<ApiResponse<?>> addDirectoryUserAccess(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessDTO.AddRequest request){
         try {
-            if (request.getUserId() == null || request.getPermissionId() == null) {
+            if (request.userId() == null || request.permissionId() == null) {
                 throw new BadRequestException("User ID and Permission ID are required");
             }
 
-            DirectoryUserAccessResponse addDirectoryUserAccess = directoryUserAccessService.addDirectoryUserAccess(directoryId, request);
+            DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess = directoryUserAccessService.addDirectoryUserAccess(directoryId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addDirectoryUserAccess, "Directory User Access added successfully"));
 
         } catch (BadRequestException e) {
@@ -118,9 +117,9 @@ public class DirectoryController {
     }
 
     @GetMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<List<DirectoryUserAccessResponse>>> getAllDirectoryUserAccess(@PathVariable Long directoryId){
+    public ResponseEntity<ApiResponse<List<?>>> getAllDirectoryUserAccess(@PathVariable Long directoryId){
         try {
-            List<DirectoryUserAccessResponse> userAccesses = directoryUserAccessService.getAllDirectoryUserAccess(directoryId);
+            List<DirectoryUserAccessDTO.BaseResponse> userAccesses = directoryUserAccessService.getAllDirectoryUserAccess(directoryId);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userAccesses, "Data retrieved successfully"));
 
         } catch (Exception e) {
@@ -129,7 +128,7 @@ public class DirectoryController {
     }
 
     @DeleteMapping("/{directoryId}/permissions/{id}")
-    public ResponseEntity<ApiResponse<DirectoryUserAccessResponse>> removeDirectoryUserAccess (@PathVariable Long directoryId, Long id){
+    public ResponseEntity<ApiResponse<?>> removeDirectoryUserAccess (@PathVariable Long directoryId, Long id){
         try {
             directoryUserAccessService.removeDirectoryUserAccess(directoryId, id);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Access removed successfully"));

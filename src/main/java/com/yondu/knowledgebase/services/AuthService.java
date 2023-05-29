@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidCredentialsException;
@@ -22,23 +23,23 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User login(User user) throws MissingFieldException, InvalidCredentialsException, Exception{
+    public User login(UserDTO.LoginRequest request) throws MissingFieldException, InvalidCredentialsException, Exception{
         log.info("AuthService.login()");
-        log.info("user : " + user.toString());
+        log.info("user : " + request);
 
         // Check data
-        if(Util.isNullOrWhiteSpace(user.getEmail())){
+        if(Util.isNullOrWhiteSpace(request.email())){
             throw new MissingFieldException("email");
-        }else if(Util.isNullOrWhiteSpace(user.getPassword())){
+        }else if(Util.isNullOrWhiteSpace(request.password())){
             throw new MissingFieldException("password");
         }
 
-        User fetchedUser = userRepository.getUserByEmail(user.getEmail());
+        User fetchedUser = userRepository.getUserByEmail(request.email());
         if(fetchedUser == null){
             throw new InvalidCredentialsException();
         }
 
-        if(passwordEncoder.matches(user.getPassword(), fetchedUser.getPassword())){
+        if(passwordEncoder.matches(request.password(), fetchedUser.getPassword())){
             fetchedUser.setPassword("");
             return fetchedUser;
         }else{
