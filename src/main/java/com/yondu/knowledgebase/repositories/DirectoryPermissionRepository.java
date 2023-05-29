@@ -3,8 +3,12 @@ package com.yondu.knowledgebase.repositories;
 import com.yondu.knowledgebase.entities.DirectoryPermission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface DirectoryPermissionRepository extends JpaRepository<DirectoryPermission, Long> {
-    Optional<DirectoryPermission> findById (Long id);
+    List<DirectoryPermission> findByIsDeletedFalse();
+    Optional<DirectoryPermission> findByIdAndIsDeletedFalse(Long id);
+
+    Optional<DirectoryPermission> findByNameAndIsDeletedFalse(String requiredPermissionName);
 }

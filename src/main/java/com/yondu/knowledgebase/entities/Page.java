@@ -58,35 +58,35 @@ public class Page {
     private User lockedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JsonBackReference
+    //@JsonBackReference
     @JoinColumn(name = "directory_id", referencedColumnName = "id")
     private Directory directory;
 
     @OneToMany(mappedBy = "page")
-    @JsonBackReference
+    //@JsonBackReference
     @OrderBy(value = "modified_by DESC")
     private List<PageVersion> pageVersions = new ArrayList<>();
 
     @OneToMany(mappedBy = "page")
-    @JsonBackReference
+    //@JsonBackReference
     private List<Comment> comments = new ArrayList<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JsonBackReference
+    //@JsonBackReference
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JsonBackReference
+    //@JsonBackReference
     @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    @JsonBackReference
+    //@JsonBackReference
     private Set<UserPagePermission> userPagePermissions = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    @JsonBackReference
+    //@JsonBackReference
     private Set<UserPageRating> userPageRatings = new HashSet<>();
 
     /**
