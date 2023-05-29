@@ -25,7 +25,7 @@ public class Directory {
     @Column(nullable = false)
     private LocalDate dateModified;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     private Directory parent;
 
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -147,9 +147,9 @@ public class Directory {
     }
 
     public boolean userHasAccess(User user, DirectoryPermission permission) {
-        Set<DirectoryUserAccess> directoryUserAccesses = getDirectoryUserAccesses();
-        if (directoryUserAccesses != null) {
-            List<DirectoryPermission> userDirectoryPermission = directoryUserAccesses.stream()
+        Set<DirectoryUserAccess> userAccesses = getDirectoryUserAccesses();
+        if (userAccesses != null) {
+            List<DirectoryPermission> userDirectoryPermission = userAccesses.stream()
                     .filter(access -> access.getUser().equals(user))
                     .map(DirectoryUserAccess::getPermission)
                     .toList();
@@ -159,11 +159,11 @@ public class Directory {
             }
         }
 
-        Set<DirectoryRoleAccess> directoryRoleAccesses = getDirectoryRoleAccesses();
-        if (directoryRoleAccesses != null) {
+        Set<DirectoryRoleAccess> roleAccesses = getDirectoryRoleAccesses();
+        if (roleAccesses != null) {
             return user.getRole().stream()
                     .anyMatch(role ->
-                            directoryRoleAccesses.stream()
+                            roleAccesses.stream()
                                     .anyMatch(access -> access.getRole().equals(role) && access.getPermission().equals(permission)));
         }
 
