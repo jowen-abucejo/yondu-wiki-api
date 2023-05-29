@@ -9,23 +9,23 @@ public class DirectoryUserAccess {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "directory_id")
     private Directory directory;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "directory_permission_id")
-    private DirectoryPermission permission;
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "permission_id")
+    private Permission permission;
 
     public DirectoryUserAccess() {
     }
 
-    public DirectoryUserAccess(User user, Directory directory, DirectoryPermission permission) {
-        this.user = user;
+    public DirectoryUserAccess(Directory directory, User user, Permission permission) {
         this.directory = directory;
+        this.user = user;
         this.permission = permission;
     }
 
@@ -53,11 +53,11 @@ public class DirectoryUserAccess {
         this.directory = directory;
     }
 
-    public DirectoryPermission getPermission() {
+    public Permission getPermission() {
         return permission;
     }
 
-    public void setPermission(DirectoryPermission permission) {
+    public void setPermission(Permission permission) {
         this.permission = permission;
     }
 

@@ -1,7 +1,7 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.entities.Permission;
-import com.yondu.knowledgebase.repositories.UserPermissionRepository;
+import com.yondu.knowledgebase.repositories.PermissionRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,19 +9,19 @@ import java.util.List;
 @Service
 public class UserPermissionService {
 
-    private final UserPermissionRepository userPermissionRepository;
+    private final PermissionRepository permissionRepository;
 
-    public UserPermissionService(UserPermissionRepository userPermissionRepository) {
-        this.userPermissionRepository = userPermissionRepository;
+    public UserPermissionService(PermissionRepository permissionRepository) {
+        this.permissionRepository = permissionRepository;
     }
 
     public List<Permission> getAllPermission(){
-        return userPermissionRepository.findAll();
+        return permissionRepository.findAll();
     }
 
     public Permission addPermission(Permission permission) {
 
-        userPermissionRepository.save(permission);
+        permissionRepository.save(permission);
         return permission;
     }
 }

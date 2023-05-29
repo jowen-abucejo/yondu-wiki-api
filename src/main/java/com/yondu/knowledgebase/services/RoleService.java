@@ -24,7 +24,7 @@ public class RoleService {
         List<Role> roles = roleRepository.findAll();
 
         return roles.stream()
-                .map(role -> new RoleDTO(role.getId(), role.getRoleName(), role.getUserPermissions(), role.getRolePagePermisisons(), role.getDirectoryRoleAccesses()))
+                .map(role -> new RoleDTO(role.getId(), role.getRoleName(), role.getUserPermissions(), role.getRolePagePermisisons()))
                 .collect(Collectors.toList());
     }
 
@@ -34,7 +34,7 @@ public class RoleService {
         System.out.println(optionalRole);
 
         Role role = optionalRole.orElseThrow(() -> new NotFoundException("Role not found"));
-        return new RoleDTO(role.getId(), role.getRoleName(), role.getUserPermissions(), role.getRolePagePermisisons(), role.getDirectoryRoleAccesses());
+        return new RoleDTO(role.getId(), role.getRoleName(), role.getUserPermissions(), role.getRolePagePermisisons());
     }
 
     public RoleDTO addRole(RoleDTO roleDTO) {
@@ -45,10 +45,10 @@ public class RoleService {
         }
 
         // Save the role object directly
-        Role role = new Role(roleDTO.getId(), roleDTO.getRoleName(), roleDTO.getPermission(), roleDTO.getRolePagePermissions(), roleDTO.getDirectoryRoleAccesses());
+        Role role = new Role(roleDTO.getId(), roleDTO.getRoleName(), roleDTO.getPermission(), roleDTO.getRolePagePermissions());
         Role newRole = roleRepository.save(role);
 
-        RoleDTO newRoleDTO = new RoleDTO(newRole.getId(), newRole.getRoleName(), newRole.getUserPermissions(), newRole.getRolePagePermisisons(), newRole.getDirectoryRoleAccesses());
+        RoleDTO newRoleDTO = new RoleDTO(newRole.getId(), newRole.getRoleName(), newRole.getUserPermissions(), newRole.getRolePagePermisisons());
 
         // Return the same roleDTO object
         return newRoleDTO;
