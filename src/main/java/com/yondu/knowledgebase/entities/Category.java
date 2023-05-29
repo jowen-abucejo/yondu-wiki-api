@@ -47,4 +47,8 @@ public class Category {
     public List<Page> getPages(){
         return pages;
     }
+
+    public void setName(String name){
+        this.name = name;
+    }
 }
