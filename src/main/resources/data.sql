@@ -21,11 +21,11 @@ INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUE
 INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(6, 'Manage Permissions', 'Allows users to manage permissions for a directory, including assigning roles and users', 0);
 
 -- INITIALIZE DIRECTORY ROLE ACCESS
-INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(1, 1, 2, 1);
+INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(1, 1, 1, 1);
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(2, 1, 2, 1);
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(3, 1, 3, 1);
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(4, 1, 4, 1);
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(5, 1, 5, 1);
 INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(6, 1, 6, 1);
 
-INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(7, 1, 3, 2);
+INSERT IGNORE INTO DIRECTORY_ROLE_ACCESS(id, directory_id, directory_permission_id, role_id) VALUES(7, 1, 6, 2);
