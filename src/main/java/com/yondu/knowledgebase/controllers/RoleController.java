@@ -1,15 +1,11 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.entities.Role;
-import com.yondu.knowledgebase.exceptions.AccessDeniedException;
+import com.yondu.knowledgebase.DTO.role.RoleDTO;
 import com.yondu.knowledgebase.exceptions.BadRequestException;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.RoleService;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,7 +20,7 @@ public class RoleController {
     }
 
     @GetMapping("/role")
-    public ResponseEntity<ApiResponse<List<Role>>> getAllRoles() {
+    public ResponseEntity<ApiResponse<List<RoleDTO>>> getAllRoles() {
         try {
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(), "Success retrieving list of roles"));
         } catch (Exception e) {
@@ -35,14 +31,14 @@ public class RoleController {
     }
 
     @PostMapping("/role")
-    public ResponseEntity<ApiResponse<Role>> addRole(@RequestBody Role role) {
+    public ResponseEntity<ApiResponse<RoleDTO>> addRole(@RequestBody RoleDTO roleDTO) {
         try {
-            // Perform validation on the role object
-            if (role.getRoleName() == null || role.getRoleName().isEmpty()) {
+            // Perform validation on the roleDTO object
+            if (roleDTO.getRoleName() == null || roleDTO.getRoleName().isEmpty()) {
                 throw new BadRequestException("Role name is required");
             }
 
-            Role addedRole = roleService.addRole(role);
+            RoleDTO addedRole = roleService.addRole(roleDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addedRole, "Role created successfully"));
 
         } catch (BadRequestException e) {
@@ -54,9 +50,9 @@ public class RoleController {
         }
     }
     @GetMapping("/role/{id}")
-    public ResponseEntity<ApiResponse<Role>> getRoleByID(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<RoleDTO>> getRoleByID(@PathVariable Long id) {
         try {
-            Role role = roleService.getRole(id);
+            RoleDTO role = roleService.getRole(id);
             if (role != null) {
                 return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role,"Role with id: " + id + " found"));
             } else {

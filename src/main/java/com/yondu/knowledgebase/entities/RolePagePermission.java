@@ -18,17 +18,14 @@ public class RolePagePermission {
     private Long id;
 
     @ManyToOne
-//    @JsonBackReference
     @JoinColumn(name = "permission_id")
     private PagePermission pagePermission;
 
     @ManyToOne
-//    @JsonBackReference
     @JoinColumn(name = "role_id")
     private Role role;
 
     @ManyToOne
-//    @JsonBackReference
     @JoinColumn(name = "page_id")
     private Page page;
 

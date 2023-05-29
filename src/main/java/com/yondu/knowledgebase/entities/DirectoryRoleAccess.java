@@ -10,17 +10,14 @@ public class DirectoryRoleAccess {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-//    @JsonBackReference
     @JoinColumn(name = "directory_id")
     private Directory directory;
 
     @ManyToOne(fetch = FetchType.EAGER)
-//    @JsonBackReference
     @JoinColumn(name = "role_id")
     private Role role;
 
     @ManyToOne(fetch = FetchType.EAGER)
-//    @JsonBackReference
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
