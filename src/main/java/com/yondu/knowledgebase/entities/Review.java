@@ -24,6 +24,8 @@ public class Review {
     private LocalDate reviewDate;
     private String status;
 
+    public Review(){}
+
     public Review(Long id, PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
         this.id = id;
         this.pageVersion = pageVersion;
@@ -67,5 +69,25 @@ public class Review {
                 ", reviewDate=" + reviewDate +
                 ", status='" + status + '\'' +
                 '}';
+    }
+
+    public void setPageVersion(PageVersion pageVersion) {
+        this.pageVersion = pageVersion;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public void setReviewDate(LocalDate reviewDate) {
+        this.reviewDate = reviewDate;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

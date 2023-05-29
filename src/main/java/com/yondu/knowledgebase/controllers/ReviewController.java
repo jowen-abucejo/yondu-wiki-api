@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
+import com.yondu.knowledgebase.DTO.ReviewCreateDTO;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.yondu.knowledgebase.entities.Review;
@@ -10,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/reviews")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -20,19 +21,12 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping
-    public List<Review> getAllReviews() {
-        return reviewService.getAllReviews();
+    @PostMapping("/pages/{pageid}/versions/{versionid}/reviews")
+    public ResponseEntity<Review> createReview(
+            @PathVariable("pageid") Long pageId,
+            @PathVariable("versionid") Long versionId,
+            @RequestBody ReviewCreateDTO reviewCreateDTO) {
+        Review review = reviewService.createReview(pageId, versionId, reviewCreateDTO);
+        return ResponseEntity.ok(review);
     }
-
-    @GetMapping("/{id}")
-    public Review getReviewById(@PathVariable Long id) {
-        return reviewService.getReviewById(id);
-    }
-
-  //  @PostMapping
-  //  public Review createReview(@RequestBody Review review) {
-  //      return reviewService.createReview(review);
-  //  }
-
 }
