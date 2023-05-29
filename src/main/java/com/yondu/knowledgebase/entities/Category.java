@@ -2,7 +2,7 @@ package com.yondu.knowledgebase.entities;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,6 +21,9 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    @Column(name = "is_deleted")
+    private Boolean deleted;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
@@ -44,11 +47,20 @@ public class Category {
         return name; 
     }
 
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+
     public List<Page> getPages(){
         return pages;
     }
 
     public void setName(String name){
         this.name = name;
+    }
+
+    public void setDeleted(Boolean deleted){
+        this.deleted = deleted;
     }
 }
