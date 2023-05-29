@@ -3,7 +3,10 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.permission.DirectoryPermissionRequest;
 import com.yondu.knowledgebase.DTO.directory.permission.DirectoryPermissionResponse;
+import com.yondu.knowledgebase.exceptions.BadRequestException;
+import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.DirectoryPermissionService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,88 +23,86 @@ public class DirectoryPermissionController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> createDirectoryPermission(@RequestBody DirectoryPermissionRequest directoryPermissionRequest){
-        //api response
-        ApiResponse<DirectoryPermissionResponse> response = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> createDirectoryPermission(@RequestBody DirectoryPermissionRequest request) {
         try {
-            if (directoryPermissionRequest.getName().isEmpty() || directoryPermissionRequest.getDescription().isEmpty()){
-                throw new NullPointerException("One or more required parameters are missing or null.");
+            if (request.getName().isEmpty() || request.getDescription().isEmpty() || request.getName() == null || request.getDescription() == null) {
+                throw new BadRequestException("Name and description are required.");
             }
-            DirectoryPermissionResponse createdPermission = directoryPermissionService.createDirectoryPermission(directoryPermissionRequest);
-            response.setStatus("success");
-            response.setData(createdPermission);
-            return ResponseEntity.ok(response);
+
+            DirectoryPermissionResponse createdPermission = directoryPermissionService.createDirectoryPermission(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdPermission, "Directory Permission created successfully"));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Directory Permission name already exists"));
+
         } catch (Exception e) {
-            response.setStatus("error");
-            response.setErrorMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<DirectoryPermissionResponse>>> getAllDirectoryPermissions(){
-        //api response
-        ApiResponse<List<DirectoryPermissionResponse>> response = new ApiResponse<>();
         try {
             List<DirectoryPermissionResponse> permissions = directoryPermissionService.getAllDirectoryPermissions();
-            response.setStatus("success");
-            response.setData(permissions);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permissions, "Data retrieved successfully"));
+
         } catch (Exception e){
-            response.setStatus("error");
-            response.setErrorMessage("Failed to retrieve list of directory permissions");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> getDirectoryPermissionById(@PathVariable Long id){
-        //api response
-        ApiResponse<DirectoryPermissionResponse> response = new ApiResponse<>();
+    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> getDirectoryPermissionById(@PathVariable Long id) {
         try {
             DirectoryPermissionResponse permission = directoryPermissionService.getDirectoryPermissionByID(id);
-            response.setStatus("success");
-            response.setData(permission);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permission, "Data retrieved successfully"));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+
         } catch (Exception e) {
-            response.setStatus("error");
-            response.setErrorMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 
-    @PutMapping("/{id}/update")
-    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> updateDirectoryPermission(@PathVariable Long id, @RequestBody DirectoryPermissionRequest directoryPermissionRequest){
-        //api response
-        ApiResponse<DirectoryPermissionResponse> response = new ApiResponse<>();
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> updateDirectoryPermission(@PathVariable Long id, @RequestBody DirectoryPermissionRequest request){
         try {
-            if (directoryPermissionRequest.getName().isEmpty() || directoryPermissionRequest.getDescription().isEmpty()){
-                throw new NullPointerException("One or more required parameters are missing or null.");
+            if (request.getName().isEmpty() || request.getDescription().isEmpty() || request.getName() == null || request.getDescription() == null) {
+                throw new BadRequestException("Name and description are required.");
             }
-            DirectoryPermissionResponse updatedPermission = directoryPermissionService.updateDirectoryPermission(id, directoryPermissionRequest);
-            response.setStatus("success");
-            response.setData(updatedPermission);
-            return ResponseEntity.ok(response);
+
+            DirectoryPermissionResponse updatedPermission = directoryPermissionService.updateDirectoryPermission(id, request);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(updatedPermission, "Directory Permission updated successfully"));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+
+        } catch (DataIntegrityViolationException e ){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Directory Permission name already exists"));
+
         } catch (Exception e) {
-            response.setStatus("error");
-            response.setErrorMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 
-    @PutMapping("/{id}/delete")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<DirectoryPermissionResponse>> deleteDirectoryPermission(@PathVariable Long id){
-        //api response
-        ApiResponse<DirectoryPermissionResponse> response = new ApiResponse<>();
         try {
             DirectoryPermissionResponse deletedPermission = directoryPermissionService.deleteDirectoryPermission(id);
-            response.setStatus("success");
-            response.setData(deletedPermission);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(deletedPermission, "Directory Permission deleted successfully"));
+
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+
         } catch (Exception e){
-            response.setStatus("error");
-            response.setErrorMessage(e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
 }

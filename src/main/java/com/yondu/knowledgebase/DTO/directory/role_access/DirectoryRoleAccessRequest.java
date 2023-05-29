@@ -29,12 +29,4 @@ public class DirectoryRoleAccessRequest {
     public void setPermissionId(Long permissionId) {
         this.permissionId = permissionId;
     }
-
-    @Override
-    public String toString() {
-        return "DirectoryRoleAccessRequest{" +
-                "roleId=" + roleId +
-                ", permissionId=" + permissionId +
-                '}';
-    }
 }
