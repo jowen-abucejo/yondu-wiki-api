@@ -3,7 +3,7 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-public class UserDirectoryAccess {
+public class DirectoryUserAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,10 +20,10 @@ public class UserDirectoryAccess {
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public UserDirectoryAccess() {
+    public DirectoryUserAccess() {
     }
 
-    public UserDirectoryAccess(User user, Directory directory, DirectoryPermission permission) {
+    public DirectoryUserAccess(User user, Directory directory, DirectoryPermission permission) {
         this.user = user;
         this.directory = directory;
         this.permission = permission;
@@ -62,8 +62,21 @@ public class UserDirectoryAccess {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryUserAccess other = (DirectoryUserAccess) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
+    @Override
     public String toString() {
-        return "UserDirectoryAccess{" +
+        return "DirectoryUserAccess{" +
                 "id=" + id +
                 ", user=" + user +
                 ", directory=" + directory +

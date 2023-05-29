@@ -41,7 +41,7 @@ public class User implements UserDetails {
     private List<Comment> comment = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<UserDirectoryAccess> userDirectoryAccesses;
+    private Set<DirectoryUserAccess> directoryUserAccesses;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -129,6 +129,27 @@ public class User implements UserDetails {
 
     public Set<Role> getRole() {
         return role;
+    }
+
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
+    }
+
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        User other = (User) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
     }
 
     @Override

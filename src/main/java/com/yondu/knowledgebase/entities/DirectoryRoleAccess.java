@@ -3,29 +3,29 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-public class RoleDirectoryAccess {
+public class DirectoryRoleAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
-    private Role role;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "directory_id")
     private Directory directory;
 
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
+    private Role role;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public RoleDirectoryAccess() {
+    public DirectoryRoleAccess() {
     }
 
-    public RoleDirectoryAccess(Role role, Directory directory, DirectoryPermission permission) {
-        this.role = role;
+    public DirectoryRoleAccess(Directory directory, Role role, DirectoryPermission permission) {
         this.directory = directory;
+        this.role = role;
         this.permission = permission;
     }
 
@@ -62,8 +62,21 @@ public class RoleDirectoryAccess {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryRoleAccess other = (DirectoryRoleAccess) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
+    @Override
     public String toString() {
-        return "RoleDirectoryAccess{" +
+        return "DirectoryRoleAccess{" +
                 "id=" + id +
                 ", role=" + role +
                 ", directory=" + directory +

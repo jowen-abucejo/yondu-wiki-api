@@ -3,15 +3,15 @@ package com.yondu.knowledgebase.DTO;
 public class ApiResponse<T> {
     private String status;
     private T data;
-    private String errorMessage;
+    private String message;
 
     public ApiResponse() {
     }
 
-    public ApiResponse(String status, T data, String errorMessage) {
+    public ApiResponse(String status, T data, String message) {
         this.status = status;
         this.data = data;
-        this.errorMessage = errorMessage;
+        this.message = message;
     }
 
     public String getStatus() {
@@ -30,11 +30,11 @@ public class ApiResponse<T> {
         this.data = data;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getMessage() {
+        return message;
     }
 
     public void setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
+        this.message = errorMessage;
     }
 }
