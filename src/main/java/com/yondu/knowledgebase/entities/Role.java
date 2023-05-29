@@ -19,11 +19,9 @@ public class Role {
     private Set<Permission> permissions = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JsonManagedReference
     private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @JsonManagedReference
     private Set<DirectoryRoleAccess> directoryRoleAccesses;
 
     public Role() {
@@ -36,6 +34,7 @@ public class Role {
         this.rolePagePermisisons = rolePagePermisisons;
         this.directoryRoleAccesses = directoryRoleAccesses;
     }
+
 
     public Long getId() {
         return id;
