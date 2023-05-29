@@ -4,17 +4,15 @@ public class UserCommentRatingDTO {
     private String rating;
     private Long userId;
     private Long commentId;
-    private String message;
-    private int totalRating;
+    private int totalCommentRating;
 
     public UserCommentRatingDTO(){};
 
-    public UserCommentRatingDTO(Long userId, Long commentId, String ratingValue, int totalCommentRating, String message) {
+    public UserCommentRatingDTO(Long userId, Long commentId, String ratingValue, int totalCommentRating) {
         this.userId = userId;
         this.commentId = commentId;
         this.rating = ratingValue;
-        this.totalRating = totalCommentRating;
-        this.message = message;
+        this.totalCommentRating = totalCommentRating;
     }
 
     public String getRating() {
@@ -41,19 +39,11 @@ public class UserCommentRatingDTO {
         this.commentId = commentId;
     }
 
-    public String getMessage() {
-        return message;
+    public int getTotalCommentRating() {
+        return totalCommentRating;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public int getTotalRating() {
-        return totalRating;
-    }
-
-    public void setTotalRating(int totalRating) {
-        this.totalRating = totalRating;
+    public void setTotalCommentRating(int totalCommentRating) {
+        this.totalCommentRating = totalCommentRating;
     }
 }

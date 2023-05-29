@@ -1,7 +1,10 @@
 package com.yondu.knowledgebase.controllers;
 
+import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.UserCommentRatingDTO;
 import com.yondu.knowledgebase.entities.UserCommentRating;
+import com.yondu.knowledgebase.exceptions.BadRequestException;
+import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.UserCommentRatingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,26 +21,32 @@ public class UserCommentRatingController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO){
-        String ratingValue = userCommentRatingDTO.getRating();
+    public ResponseEntity<ApiResponse<?>> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO) {
+        try {
+            String ratingValue = userCommentRatingDTO.getRating();
 
-        if(!(ratingValue.equals("UP") || ratingValue.equals("DOWN"))){
-            userCommentRatingDTO.setMessage("Invalid rating value");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(userCommentRatingDTO);
+            if (!(ratingValue.equals("UP") || ratingValue.equals("DOWN"))) {
+                throw new BadRequestException("Invalid rating value");
+            }
+
+            UserCommentRating userCommentRating = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
+
+            if (userCommentRating == null) {
+                throw new NotFoundException("User / Comment ID Not Found");
+            }
+
+            int totalCommentRating = userCommentRatingService.getTotalCommentRating(userCommentRatingDTO.getCommentId());
+
+            UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRatingDTO.getUserId(), userCommentRatingDTO.getCommentId(), ratingValue,totalCommentRating);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatingResponse, "Rating successful"));
+
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
-
-        UserCommentRating userCommentRating = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
-
-        if(userCommentRating == null){
-            userCommentRatingDTO.setMessage("User / Comment ID Not Found");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(userCommentRatingDTO);
-        }
-
-        int totalCommentRating = userCommentRatingService.totalCommentRating(userCommentRatingDTO.getCommentId());
-
-        userCommentRatingDTO.setMessage("Rating Successful");
-        UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRatingDTO.getUserId(),userCommentRatingDTO.getCommentId(),ratingValue,totalCommentRating,userCommentRatingDTO.getMessage());
-
-        return ResponseEntity.status(HttpStatus.OK).body(userCommentRatingResponse);
     }
 }

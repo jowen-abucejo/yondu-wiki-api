@@ -9,6 +9,6 @@ public interface UserCommentRatingService {
 
     public UserCommentRating rateComment (Long commentId, Long userId, String ratingValue);
 
-    public int totalCommentRating(Long commentId);
+    public int getTotalCommentRating(Long commentId);
 
 }
