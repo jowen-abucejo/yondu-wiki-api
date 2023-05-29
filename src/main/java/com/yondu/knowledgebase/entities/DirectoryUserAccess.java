@@ -3,14 +3,14 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-public class RoleDirectoryAccess {
+public class DirectoryUserAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id")
-    private Role role;
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "directory_id")
@@ -20,11 +20,11 @@ public class RoleDirectoryAccess {
     @JoinColumn(name = "directory_permission_id")
     private DirectoryPermission permission;
 
-    public RoleDirectoryAccess() {
+    public DirectoryUserAccess() {
     }
 
-    public RoleDirectoryAccess(Role role, Directory directory, DirectoryPermission permission) {
-        this.role = role;
+    public DirectoryUserAccess(User user, Directory directory, DirectoryPermission permission) {
+        this.user = user;
         this.directory = directory;
         this.permission = permission;
     }
@@ -37,12 +37,12 @@ public class RoleDirectoryAccess {
         this.id = id;
     }
 
-    public Role getRole() {
-        return role;
+    public User getUser() {
+        return user;
     }
 
-    public void setRole(Role role) {
-        this.role = role;
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public Directory getDirectory() {
@@ -62,12 +62,15 @@ public class RoleDirectoryAccess {
     }
 
     @Override
-    public String toString() {
-        return "RoleDirectoryAccess{" +
-                "id=" + id +
-                ", role=" + role +
-                ", directory=" + directory +
-                ", permission=" + permission +
-                '}';
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryUserAccess other = (DirectoryUserAccess) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
     }
 }

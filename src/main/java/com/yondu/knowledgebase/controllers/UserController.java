@@ -36,6 +36,11 @@ public class UserController {
         return userService.getAllUser();
     }
 
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id){
+        return userService.getUserById(id);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createNewUser(@RequestBody User user) {
         log.info("UserController.createNewUser()");
