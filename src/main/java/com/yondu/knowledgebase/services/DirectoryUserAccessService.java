@@ -47,8 +47,11 @@ public class DirectoryUserAccessService {
                 .collect(Collectors.toList());
     }
 
-    public void removeDirectoryUserAccess(Long directoryId, Long directoryUserAccessId) {
-        DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findByDirectoryIdAndId(directoryId, directoryUserAccessId)
+    public void removeDirectoryUserAccess(Long directoryId, Long id) {
+        Directory directory = directoryRepository.findById(directoryId)
+                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+
+        DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findById(id)
                 .orElseThrow(()-> new NotFoundException("Directory User Access not found"));
 
         directoryUserAccessRepository.delete(directoryUserAccess);
