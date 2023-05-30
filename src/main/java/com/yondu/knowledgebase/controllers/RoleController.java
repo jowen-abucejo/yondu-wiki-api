@@ -82,7 +82,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/role/{id}")
-    public ResponseEntity<ApiResponse<Long>> editRoleById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Long>> deleteRoleById(@PathVariable Long id) {
         try {
             roleService.deleteRoleById(id);
             return ResponseEntity.status(HttpStatus.OK)
