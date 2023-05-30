@@ -2,7 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page_permission.user_access.UserPagePermissionDTO;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.UserPagePermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +32,7 @@ public class PagePermissionController {
 
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userPagePermissionService.addUserToPageAccess(permissionId, userPagePermission), "User has been successfully added in page permission."));
-        } catch (NotFoundException e ){
+        } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot add user to page permission."));
@@ -47,7 +47,7 @@ public class PagePermissionController {
 
         try {
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.removeUserToPageAccess(permissionId, userPagePermission), "User has been successfully removed in page permission."));
-        } catch (NotFoundException e ){
+        } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot add user to page permission."));
@@ -59,7 +59,7 @@ public class PagePermissionController {
     public ResponseEntity<ApiResponse<?>> getAllPagePermissionOfUser(@PathVariable Long id){
         try {
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllPagePermissionOfUser(id), "All page access of user has been fetched."));
-        } catch (NotFoundException e ){
+        } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot fetch list."));

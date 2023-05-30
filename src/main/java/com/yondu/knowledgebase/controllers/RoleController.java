@@ -2,8 +2,8 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
-import com.yondu.knowledgebase.exceptions.BadRequestException;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.RequestValidationException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.RoleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,13 +36,13 @@ public class RoleController {
         try {
             // Perform validation on the roleDTO object
             if (roleDTO.getRoleName() == null || roleDTO.getRoleName().isEmpty()) {
-                throw new BadRequestException("Role name is required");
+                throw new RequestValidationException("Role name is required");
             }
 
             RoleDTO addedRole = roleService.addRole(roleDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addedRole, "Role created successfully"));
 
-        } catch (BadRequestException e) {
+        } catch (RequestValidationException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
 
         } catch (Exception e) {
@@ -57,7 +57,7 @@ public class RoleController {
             RoleDTO role = roleService.getRole(id);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role, "Role with id: " + id + " found"));
 
-        } catch (NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             // Handle the exception, log the error, and return an appropriate response
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Role with id: " + id + "not found"));
         } catch (Exception e) {
@@ -72,7 +72,7 @@ public class RoleController {
             RoleDTO updatedRole = roleService.editRoleById(id, roleDTO);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(ApiResponse.success(updatedRole, "Edit Successfully"));
-        } catch (NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
@@ -87,10 +87,10 @@ public class RoleController {
             roleService.deleteRoleById(id);
             return ResponseEntity.status(HttpStatus.OK)
                     .body(ApiResponse.success(id, "Role with " +id+ " has been delete successfully"));
-        } catch (NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.error(e.getMessage()));
-        } catch (BadRequestException e) {
+        } catch (RequestValidationException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {

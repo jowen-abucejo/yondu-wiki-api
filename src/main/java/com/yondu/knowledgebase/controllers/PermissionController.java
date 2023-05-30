@@ -2,7 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.PermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +36,7 @@ public class PermissionController {
         try {
             PermissionDTO.BaseResponse permission = permissionService.getPermission(id);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permission, "Permission with id: " + id + " found"));
-        } catch (NotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             // Handle the exception, log the error, and return an appropriate response
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         }

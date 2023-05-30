@@ -3,8 +3,8 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
-import com.yondu.knowledgebase.exceptions.BadRequestException;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.RequestValidationException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
@@ -41,7 +41,7 @@ public class RoleService {
     public RoleDTO getRole(Long id) {
         Optional<Role> optionalRole = roleRepository.findById(id);
 
-        Role role = optionalRole.orElseThrow(() -> new NotFoundException("Role with id: " + id + " not found"));
+        Role role = optionalRole.orElseThrow(() -> new ResourceNotFoundException("Role with id: " + id + " not found"));
         return new RoleDTO(role);
     }
 
@@ -49,7 +49,7 @@ public class RoleService {
         // Check if a role with the same name already exists
         boolean roleExists = roleRepository.existsByRoleName(roleDTO.getRoleName());
         if (roleExists) {
-            throw new BadRequestException("Role already exists");
+            throw new RequestValidationException("Role already exists");
         }
 
         Set<Permission> permissions = roleDTO.getPermission().stream()
@@ -68,7 +68,7 @@ public class RoleService {
     public RoleDTO editRoleById(Long id, RoleDTO roleDTO) {
 
         Optional<Role> optionalRole = roleRepository.findById(id);
-        Role role = optionalRole.orElseThrow(() -> new NotFoundException("Role not found"));
+        Role role = optionalRole.orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
         role.setRoleName(roleDTO.getRoleName());
 
@@ -87,7 +87,7 @@ public class RoleService {
         Optional<Role> optionalRole = roleRepository.findById(id);
 
         if (optionalRole.isEmpty()) {
-            throw new NotFoundException("Role not found");
+            throw new ResourceNotFoundException("Role not found");
         }
 
         // Perform any additional validations or checks before deleting the role
@@ -97,7 +97,7 @@ public class RoleService {
                 .anyMatch(user -> user.getRole().stream().anyMatch(roleMap -> roleMap.getId().equals(id)));
 
         if (isRoleAssociatedWithUsers) {
-            throw new BadRequestException("Cannot delete role. It is associated with users.");
+            throw new RequestValidationException("Cannot delete role. It is associated with users.");
         }
 
         // If all validations pass, proceed with deleting the role

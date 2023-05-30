@@ -6,7 +6,7 @@ import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.DirectoryUserAccess;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.*;
 import org.springframework.stereotype.Service;
 
@@ -29,13 +29,13 @@ public class DirectoryUserAccessService {
 
     public DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
         Directory directory = directoryRepository.findById(directoryId)
-                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory not found with ID: "+ directoryId));
 
         User user = userRepository.findById(request.userId())
-                .orElseThrow(()-> new NotFoundException("User not found with ID: "+ request.userId()));
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with ID: "+ request.userId()));
 
         Permission permission = permissionRepository.findById(request.permissionId())
-                .orElseThrow(()-> new NotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
 
         DirectoryUserAccess newDirectoryUserAccess = new DirectoryUserAccess(directory, user, permission);
         return DirectoryUserAccessDTOMapper.mapToBaseResponse(directoryUserAccessRepository.save(newDirectoryUserAccess));
@@ -49,10 +49,10 @@ public class DirectoryUserAccessService {
 
     public void removeDirectoryUserAccess(Long directoryId, Long id) {
         Directory directory = directoryRepository.findById(directoryId)
-                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory not found with ID: "+ directoryId));
 
         DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findById(id)
-                .orElseThrow(()-> new NotFoundException("Directory User Access not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory User Access not found"));
 
         directoryUserAccessRepository.delete(directoryUserAccess);
     }
