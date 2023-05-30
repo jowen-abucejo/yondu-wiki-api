@@ -13,6 +13,12 @@ public class CategoryMapper {
         return category;
     }
 
+    public CategoryDTO toDto(Category category) {
+        CategoryDTO categoryDto = new CategoryDTO();
+        categoryDto.setName(category.getName());
+        return categoryDto;
+    }
+
     public void updateCategory(CategoryDTO dto, Category category) {
         category.setName(dto.getName());
     }
