@@ -17,17 +17,13 @@ public class Role {
     @JoinTable(name = "role_permission", joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions = new HashSet<>();
 
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePagePermission> rolePagePermisisons = new HashSet<>();
-
     public Role() {
     }
 
-    public Role(Long id, String roleName, Set<Permission> permissions, Set<RolePagePermission> rolePagePermisisons) {
+    public Role(Long id, String roleName, Set<Permission> permissions) {
         this.id = id;
         this.roleName = roleName;
         this.permissions = permissions;
-        this.rolePagePermisisons = rolePagePermisisons;
     }
 
 
@@ -45,10 +41,6 @@ public class Role {
 
     public void setUserPermissions(Set<Permission> permissions) {
         this.permissions = permissions;
-    }
-
-    public Set<RolePagePermission> getRolePagePermisisons() {
-        return rolePagePermisisons;
     }
 
     @Override
@@ -70,7 +62,6 @@ public class Role {
                 "id=" + id +
                 ", name='" + roleName + '\'' +
                 ", permissions=" + permissions +
-                ", rolePagePermisisons=" + rolePagePermisisons +
                 '}';
     }
 }
