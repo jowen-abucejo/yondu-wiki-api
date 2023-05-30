@@ -13,14 +13,12 @@ public class DirectoryDTO {
                                String description,
                                UserDTO.GeneralResponse createdBy,
                                LocalDate dateCreated,
-                               LocalDate dateModified,
-                               String fullPath){}
+                               LocalDate dateModified){}
     public record GetResponse(Long id,
                               String name,
                               String description,
                               UserDTO.GeneralResponse createdBy,
                               LocalDate dateCreated,
                               LocalDate dateModified,
-                              String fullPath,
                               Set<BaseResponse> subdirectories){}
 }
