@@ -5,8 +5,6 @@ import com.yondu.knowledgebase.DTO.ReviewCreateDTO;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
-import com.yondu.knowledgebase.exceptions.BadRequestException;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
