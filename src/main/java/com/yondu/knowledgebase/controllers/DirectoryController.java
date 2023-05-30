@@ -25,6 +25,25 @@ public class DirectoryController {
         this.directoryUserAccessService = directoryUserAccessService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> getDirectory(@PathVariable("id") Long id) {
+        try {
+
+            Object data = directoryService.getDirectory(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory found"));
+
+        } catch (NotFoundException e) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+
+        } catch (AccessDeniedException e) {
+            return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
+        }
+    }
+
     @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
         try {

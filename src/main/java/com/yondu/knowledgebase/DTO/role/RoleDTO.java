@@ -12,8 +12,8 @@ public class RoleDTO {
     private Long id;
     private String roleName;
     private Set<Permission> permission;
-    @JsonIgnore
 
+    @JsonIgnore
     private Set<RolePagePermission> rolePagePermissions;
 
     public RoleDTO(Long id, String roleName, Set<Permission> permission, Set<RolePagePermission> rolePagePermissions) {
