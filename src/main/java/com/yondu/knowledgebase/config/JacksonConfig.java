@@ -9,8 +9,9 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 public class JacksonConfig {
 
     @Bean
-    public Jackson2ObjectMapperBuilder jackson2ObjectMapperBuilder() {
-        return new Jackson2ObjectMapperBuilder()
-                .propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+    public Jackson2ObjectMapperBuilder jacksonBuilder() {
+        Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
+        builder.propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        return builder;
     }
 }

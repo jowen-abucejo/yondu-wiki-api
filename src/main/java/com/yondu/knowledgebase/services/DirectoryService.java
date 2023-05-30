@@ -24,6 +24,27 @@ public class DirectoryService {
         this.permissionRepository = permissionRepository;
     }
 
+    public DirectoryDTO.GetResponse getDirectory(Long parentId) {
+        // get permission
+        //palitan nalang yung value
+//        Long permissionId = 1L;
+//        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'Read Directory' permission not found"));
+//
+//        // get current user
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+
+        // get parent directory
+        Directory directory = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException("Parent directory not found: " + parentId));
+
+//        if (!directory.userHasAccess(currentUser, permission)) {
+//            System.out.println("Access denied");
+//            throw new AccessDeniedException();
+//        }
+
+        return DirectoryDTOMapper.mapToGetResponse(directory);
+    }
+
     public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
         // get permission
         //palitan nalang yung value
@@ -91,5 +112,6 @@ public class DirectoryService {
 
         directoryRepository.delete(directory);
     }
+
 
 }
