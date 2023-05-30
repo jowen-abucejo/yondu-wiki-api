@@ -1,6 +1,8 @@
 package com.yondu.knowledgebase.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -17,23 +19,22 @@ public class CategoryService {
         return category;
     }
 
+
     public Category getCategory(Long id){
         return categoryRepository.findById(id).orElseThrow();
     }
 
-
+   
     public Category editCategory(Category category){
         Category existingCategory = getCategory(category.getId());
         existingCategory.setName(category.getName());
         return categoryRepository.save(existingCategory);
     }
 
+     
     public Category deleteCategory(Category category){
        category.setDeleted(true);
        categoryRepository.save(category);
         return category;
     }
-
-
-
 }

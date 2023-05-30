@@ -1,7 +1,13 @@
 package com.yondu.knowledgebase.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.yondu.knowledgebase.DTO.category.CategoryDTO;
+import com.yondu.knowledgebase.DTO.category.CategoryMapper;
 import com.yondu.knowledgebase.entities.Category;
+import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.services.CategoryService;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,25 +18,34 @@ public class CategoryController {
     private CategoryService categoryService;
 
 
+    private final CategoryMapper categoryMapper;
+    private final CategoryRepository categoryRepository;
+
+    public CategoryController(CategoryMapper categoryMapper, CategoryRepository categoryRepository) {
+        this.categoryMapper = categoryMapper;
+        this.categoryRepository = categoryRepository;
+    }
+
     @PostMapping("/category")
-    public Category addCategory(@RequestBody Category category){
-        return categoryService.addCategory(category);
+    public ResponseEntity<Category> createCategory(@RequestBody CategoryDTO categoryDto) {
+        Category category = categoryMapper.toEntity(categoryDto);
+        Category createdCategory = categoryRepository.save(category);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCategory);
     }
 
     @PutMapping("/category/{id}/edit")
-    public Category editCategory (@RequestBody Category newName, @PathVariable Long id){
-        Category newCategory = categoryService.getCategory(id);
-        newCategory.setName(newName.getName());
-        return categoryService.editCategory(newCategory);
+    public ResponseEntity<Category> editCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long id) {
+        Category category = categoryService.getCategory(id);
+        categoryMapper.updateCategory(categoryDto, category);
+        Category updatedCategory = categoryService.editCategory(category);
+        return ResponseEntity.ok(updatedCategory);
     }
 
     @PutMapping("/category/{id}/delete")
-    public Category deleteCategory (@PathVariable Long id){
+    public ResponseEntity<Category> deleteCategory(@PathVariable Long id) {
         Category category = categoryService.getCategory(id);
-        return categoryService.deleteCategory(category);
+        Category updatedCategory = categoryService.deleteCategory(category);
+        return ResponseEntity.ok(updatedCategory);
     }
 
-
-
-    
 }
