@@ -54,6 +54,11 @@ public class UserService implements UserDetailsService {
         else if (!Util.isEmailValid(user.email()))
             throw new InvalidEmailException();
 
+        User checkUser = userRepository.findByEmail(user.email()).orElse(null);
+        if(checkUser != null){
+            throw new UserException("The user " + user.email() + " is already existing in the system.");
+        }
+
         User newUser = new User(user);
 
         // Encrypt password
@@ -104,7 +109,7 @@ public class UserService implements UserDetailsService {
         log.info("size : " + size);
 
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<User> userPages = userRepository.findAll(pageRequest);
+        Page<User> userPages = userRepository.findAll(searchKey, pageRequest);
         List<User> users = userPages.getContent();
 
         List<UserDTO.GeneralResponse> userDTOs = users.stream()
