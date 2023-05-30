@@ -24,21 +24,18 @@ public class DirectoryService {
         this.permissionRepository = permissionRepository;
     }
 
-    public DirectoryDTO.GetResponse getDirectory(Long parentId) {
+    public DirectoryDTO.GetResponse getDirectory(Long id) {
         // get permission
-        //palitan nalang yung value
-//        Long permissionId = 1L;
-//        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'Read Directory' permission not found"));
-//
-//        // get current user
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+        Long permissionId = 19L;
+        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'VIEW_DIRECTORY' permission not found"));
 
-        // get parent directory
-        Directory directory = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException("Parent directory not found: " + parentId));
+        // get current user
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
 
 //        if (!directory.userHasAccess(currentUser, permission)) {
-//            System.out.println("Access denied");
 //            throw new AccessDeniedException();
 //        }
 
@@ -47,9 +44,8 @@ public class DirectoryService {
 
     public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
         // get permission
-        //palitan nalang yung value
-        Long permissionId = 1L;
-        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'Create Directory' permission not found"));
+        Long permissionId = 16L;
+        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'CREATE_DIRECTORY' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -58,10 +54,9 @@ public class DirectoryService {
         // get parent directory
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException("Parent directory not found: " + parentId));
 
-        if (!parent.userHasAccess(currentUser, permission)) {
-            System.out.println("Access denied");
-            throw new AccessDeniedException();
-        }
+//        if (!parent.userHasAccess(currentUser, permission)) {
+//            throw new AccessDeniedException();
+//        }
 
         // save directory
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent));
@@ -70,9 +65,8 @@ public class DirectoryService {
 
     public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
         // get permission
-        //palitan nalang yung value
-        Long permissionId = 1L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
+        Long permissionId = 17L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'UPDATE_DIRECTORY' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -81,10 +75,9 @@ public class DirectoryService {
         // get directory
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
 
-        if (!directory.userHasAccess(currentUser, permission)) {
-            //throw new AccessDeniedException();
-            System.out.println("Access denied");
-        }
+//        if (!directory.userHasAccess(currentUser, permission)) {
+//            //throw new AccessDeniedException();
+//        }
 
         directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
@@ -94,9 +87,8 @@ public class DirectoryService {
 
     public void removeDirectory(Long id) {
         // get permission
-        //palitan nalang yung value
-        Long permissionId = 1L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'Edit Directory' permission not found"));
+        Long permissionId = 18L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'DELETE_DIRECTORY' permission not found"));
 
         // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -105,10 +97,9 @@ public class DirectoryService {
         // get directory
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
 
-        if (!directory.userHasAccess(currentUser, permission)) {
-            //throw new AccessDeniedException();
-            System.out.println("Access denied");
-        }
+//        if (!directory.userHasAccess(currentUser, permission)) {
+////            //throw new AccessDeniedException();
+////        }
 
         directoryRepository.delete(directory);
     }
