@@ -1,5 +1,8 @@
 package com.yondu.knowledgebase.controllers;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +49,14 @@ public class CategoryController {
         Category category = categoryService.getCategory(id);
         Category updatedCategory = categoryService.deleteCategory(category);
         return ResponseEntity.ok(updatedCategory);
+    }
+
+    @GetMapping("/category")
+    public List<CategoryDTO> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        return categories.stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
     }
 
 }

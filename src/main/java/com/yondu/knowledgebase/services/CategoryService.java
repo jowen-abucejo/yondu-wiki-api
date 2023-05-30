@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.services;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
@@ -36,5 +38,9 @@ public class CategoryService {
        category.setDeleted(true);
        categoryRepository.save(category);
         return category;
+    }
+
+    public List<Category> getAllCategories() {
+        return categoryRepository.findAll();
     }
 }
