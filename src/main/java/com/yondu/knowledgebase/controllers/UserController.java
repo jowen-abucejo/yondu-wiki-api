@@ -46,10 +46,9 @@ public class UserController {
         ResponseEntity response = null;
 
         searchKey = "%" + searchKey + "%";
-        int offset = page * size;
 
         try{
-            PaginatedResponse<UserDTO.GeneralResponse> fetchedUsers = userService.getAllUser(searchKey, page, offset);
+            PaginatedResponse<UserDTO.GeneralResponse> fetchedUsers = userService.getAllUser(searchKey, page, size);
 
             ApiResponse apiResponse = ApiResponse.success(fetchedUsers, "success");
             response = ResponseEntity.ok(apiResponse);
@@ -118,6 +117,11 @@ public class UserController {
             errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
 
             response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
+        }catch (UserException userException) {
+            userException.printStackTrace();
+
+            ApiResponse apiResponse = ApiResponse.error(userException.getMessage());
+            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
         }catch (Exception exception){
             exception.printStackTrace();
 

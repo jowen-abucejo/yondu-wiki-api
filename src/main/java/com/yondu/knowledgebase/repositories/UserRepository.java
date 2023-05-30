@@ -20,5 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Page<User> findAll(Pageable pageable);
 
+    @Query("SELECT u FROM users u WHERE u.email LIKE ?1 OR u.username LIKE ?1")
+    Page<User> findAll(String searchKey, Pageable pageable);
+
     Optional<User> findByEmail(String email);
 }
