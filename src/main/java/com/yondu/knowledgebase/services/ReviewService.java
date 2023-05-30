@@ -1,9 +1,8 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.ReviewCreateDTO;
 import com.yondu.knowledgebase.entities.PageVersion;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -13,7 +12,6 @@ import com.yondu.knowledgebase.entities.Review;
 import com.yondu.knowledgebase.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +40,7 @@ public class ReviewService {
 
     public Review createReview(Long pageId, Long versionId) {
         PageVersion pageVersion = pageVersionRepository.findById(versionId)
-                .orElseThrow(() -> new NotFoundException("Page version not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
 
         Review review = new Review();
         review.setPageVersion(pageVersion);
@@ -68,7 +66,7 @@ public class ReviewService {
         // Load the User entity based on the email
         User user = userService.loadUserByUsername(email);
         if (user == null) {
-            throw new NotFoundException("User not found");
+            throw new ResourceNotFoundException("User not found");
         }
 
         return user;
