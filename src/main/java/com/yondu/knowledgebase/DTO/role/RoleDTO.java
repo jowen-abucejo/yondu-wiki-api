@@ -1,19 +1,24 @@
 package com.yondu.knowledgebase.DTO.role;
 
-import com.yondu.knowledgebase.entities.Permission;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTOMapper;
+import com.yondu.knowledgebase.entities.Role;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class RoleDTO {
 
     private Long id;
     private String roleName;
-    private Set<Permission> permission;
+    private Set<PermissionDTO.BaseResponse> permission;
 
-    public RoleDTO(Long id, String roleName, Set<Permission> permission) {
-        this.id = id;
-        this.roleName = roleName;
-        this.permission = permission;
+    public RoleDTO(Role role) {
+        this.id = role.getId();
+        this.roleName = role.getRoleName();
+        this.permission = role.getUserPermissions().stream()
+                .map(PermissionDTOMapper::mapToBaseResponse)
+                .collect(Collectors.toSet());
     }
 
     public RoleDTO() {
@@ -35,21 +40,12 @@ public class RoleDTO {
         this.roleName = roleName;
     }
 
-    public Set<Permission> getPermission() {
+    public Set<PermissionDTO.BaseResponse> getPermission() {
         return permission;
     }
 
-    public void setPermission(Set<Permission> permission) {
+    public void setPermission(Set<PermissionDTO.BaseResponse> permission) {
         this.permission = permission;
-    }
-
-    @Override
-    public String toString() {
-        return "RoleDTO{" +
-                "id=" + id +
-                ", roleName='" + roleName + '\'' +
-                ", permission=" + permission +
-                '}';
     }
 
 

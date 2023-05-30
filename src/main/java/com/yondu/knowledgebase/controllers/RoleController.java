@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
 import com.yondu.knowledgebase.exceptions.BadRequestException;
+import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.services.RoleService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,7 @@ import java.util.List;
 @RestController
 public class RoleController {
 
-    private RoleService roleService;
+    private final RoleService roleService;
 
     public RoleController(RoleService roleService) {
         this.roleService = roleService;
@@ -49,18 +50,52 @@ public class RoleController {
 
         }
     }
+
     @GetMapping("/role/{id}")
     public ResponseEntity<ApiResponse<RoleDTO>> getRoleByID(@PathVariable Long id) {
         try {
             RoleDTO role = roleService.getRole(id);
-            if (role != null) {
-                return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role,"Role with id: " + id + " found"));
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Role with id: " + id + "not found"));
-            }
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role, "Role with id: " + id + " found"));
+
+        } catch (NotFoundException e) {
+            // Handle the exception, log the error, and return an appropriate response
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("Role with id: " + id + "not found"));
         } catch (Exception e) {
             // Handle the exception, log the error, and return an appropriate response
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred!"));
+        }
+    }
+
+    @PostMapping("/role/{id}")
+    public ResponseEntity<ApiResponse<RoleDTO>> editRoleById(@RequestBody RoleDTO roleDTO, @PathVariable Long id) {
+        try {
+            RoleDTO updatedRole = roleService.editRoleById(id, roleDTO);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(updatedRole, "Edit Successfully"));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("An error occurred!"));
+        }
+    }
+
+    @DeleteMapping("/role/{id}")
+    public ResponseEntity<ApiResponse<Long>> editRoleById(@PathVariable Long id) {
+        try {
+            roleService.deleteRoleById(id);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(ApiResponse.success(id, "Role with " +id+ " has been delete successfully"));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("An error occurred!"));
         }
     }
 }
