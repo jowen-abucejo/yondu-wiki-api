@@ -14,4 +14,6 @@ public interface UserCommentRatingService {
     List<UserCommentRating> getAllCommentRating();
 
     UserCommentRating getCommentRating(Long ratingId);
+
+    UserCommentRating updateRating(String rating, Long ratingId);
 }

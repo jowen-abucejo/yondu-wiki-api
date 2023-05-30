@@ -68,4 +68,19 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
     public UserCommentRating getCommentRating (Long ratingId){
         return userCommentRatingRepository.findById(ratingId).orElse(null);
     }
+
+    @Override
+    public UserCommentRating updateRating (String rating, Long ratingId){
+        UserCommentRating userCommentRating = userCommentRatingRepository.findById(ratingId).orElse(null);
+        if(userCommentRating!=null){
+            if (userCommentRating.getRating().equals(rating)){
+                userCommentRating.setVoted(false);
+                userCommentRating.setRating("");
+            }else{
+                userCommentRating.setVoted(true);
+                userCommentRating.setRating(rating);
+            }
+        }
+        return userCommentRatingRepository.save(userCommentRating);
+    }
 }
