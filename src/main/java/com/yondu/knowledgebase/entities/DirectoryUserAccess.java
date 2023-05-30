@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
+@Table (uniqueConstraints = @UniqueConstraint(columnNames = {"directory_id", "user_id", "permission_id"}))
 public class DirectoryUserAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
