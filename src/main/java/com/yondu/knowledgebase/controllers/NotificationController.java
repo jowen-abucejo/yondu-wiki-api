@@ -26,25 +26,13 @@ public class NotificationController {
         log.info("NotificationController.createNewNotification()");
         log.info("notification : " + notification.toString());
 
-        ResponseEntity response = null;
-        ApiResponse apiResponse = null;
+        NotificationDTO.Base newNotification = notificationService.createNotification(notification);
 
-        try{
-             NotificationDTO.Base newNotification = notificationService.createNotification(notification);
-
-            apiResponse = ApiResponse.success(newNotification, "success");
-            response = ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-        }catch (Exception ex){
-            ex.printStackTrace();
-
-            apiResponse = ApiResponse.error(ex.getMessage());
-            response = ResponseEntity.internalServerError().body(apiResponse);
-        }
-
-        return response;
+        ApiResponse apiResponse = ApiResponse.success(newNotification, "success");
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/user/{userId}")
     public ResponseEntity<?> getUserNotifications(@PathVariable long userId,
                                                   @RequestParam(defaultValue = "1") int page,
                                                   @RequestParam(defaultValue = "15") int size) {
@@ -53,25 +41,18 @@ public class NotificationController {
         log.info("page : " + page);
         log.info("size : " + size);
 
-        ResponseEntity response = null;
-        ApiResponse apiResponse = null;
+        PaginatedResponse<NotificationDTO.Base> notifications = notificationService.getUserNotifications(userId, page, size);
+        ApiResponse apiResponse = ApiResponse.success(notifications, "success");
 
-        try{
-            PaginatedResponse<NotificationDTO.Base> notifications = notificationService.getUserNotifications(userId, page, size);
-            if(notifications.getTotal() <= 0){
-                apiResponse = ApiResponse.success(notifications, "no content");
-                response = ResponseEntity.status(HttpStatus.NO_CONTENT).body(apiResponse);
-            }else{
-                apiResponse = ApiResponse.success(notifications, "success");
-                response = ResponseEntity.ok(apiResponse);
-            }
-        }catch (Exception ex) {
-            ex.printStackTrace();
+        return ResponseEntity.ok(apiResponse);
+    }
 
-            apiResponse = ApiResponse.error(ex.getMessage());
-            response = ResponseEntity.internalServerError().body(apiResponse);
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> readNotification(@PathVariable long id) {
+        log.info("NotificationController.readNotification()");
+        log.info("id : " + id);
 
-        return response;
+        NotificationDTO.Base notification = notificationService.readNotification(id);
+        return ResponseEntity.ok(notification);
     }
 }

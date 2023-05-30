@@ -49,6 +49,7 @@ public class RequestFilter extends OncePerRequestFilter {
                 Jwt builtToken = tokenUtil.readJwt(token);
                 email = (String)builtToken.getHeader().get("email");
             }catch (JwtException jwtException){
+                log.error(jwtException.getMessage());
                 log.error("JWT Token must be expired.");
             }
         }else{
