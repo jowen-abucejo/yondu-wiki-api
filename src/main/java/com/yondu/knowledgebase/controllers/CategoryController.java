@@ -24,6 +24,12 @@ public class CategoryController {
         return categoryService.editCategory(newCategory);
     }
 
+    @PutMapping("/category/{id}/delete")
+    public Category deleteCategory (@PathVariable Long id){
+        Category category = categoryService.getCategory(id);
+        return categoryService.deleteCategory(category);
+    }
+
 
 
     
