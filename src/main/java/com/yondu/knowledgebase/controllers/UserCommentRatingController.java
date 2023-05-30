@@ -10,9 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
-@RequestMapping("/comment-rating")
+@RequestMapping("/comment-ratings")
 public class UserCommentRatingController {
     private final UserCommentRatingService userCommentRatingService;
 
@@ -46,6 +48,32 @@ public class UserCommentRatingController {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<?>> getAllCommentRating (){
+        try{
+            List <UserCommentRating> userCommentRatings = userCommentRatingService.getAllCommentRating();
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatings, "All ratings retrieved"));
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping ("/{ratingId}")
+    public ResponseEntity<ApiResponse<?>> getCommentRatingById (@PathVariable Long ratingId){
+        try{
+            UserCommentRating userCommentRating = userCommentRatingService.getCommentRating(ratingId);
+            if(userCommentRating == null)
+                throw new NotFoundException("Rating not found");
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRating, "Rating retrieved successfully"));
+        }catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+        }catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
