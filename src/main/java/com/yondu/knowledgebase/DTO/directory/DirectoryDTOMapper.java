@@ -15,8 +15,7 @@ public class DirectoryDTOMapper {
                 directory.getDescription(),
                 UserDTOMapper.mapToGeneralResponse(directory.getCreatedBy()),
                 directory.getDateCreated(),
-                directory.getDateModified(),
-                directory.getFullPath());
+                directory.getDateModified());
     }
 
     public static DirectoryDTO.GetResponse mapToGetResponse(Directory directory) {
@@ -27,7 +26,6 @@ public class DirectoryDTOMapper {
                 UserDTOMapper.mapToGeneralResponse(directory.getCreatedBy()),
                 directory.getDateCreated(),
                 directory.getDateModified(),
-                directory.getFullPath(),
                 directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToBaseResponse).collect(Collectors.toSet())
         );
     }
