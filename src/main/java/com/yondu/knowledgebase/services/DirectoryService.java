@@ -2,7 +2,7 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.directory.*;
 import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.exceptions.AccessDeniedException;
+import com.yondu.knowledgebase.exceptions.AlreadyExistException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
@@ -25,15 +25,13 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
-        // get permission
         Long permissionId = 19L;
-        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'VIEW_DIRECTORY' permission not found"));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-        // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
 
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", id)));
 
 //        if (!directory.userHasAccess(currentUser, permission)) {
 //            throw new AccessDeniedException();
@@ -43,41 +41,46 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
-        // get permission
+        System.out.println("umabot");
         Long permissionId = 16L;
-        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException("'CREATE_DIRECTORY' permission not found"));
+        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-        // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
 
-        // get parent directory
-        Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException("Parent directory not found: " + parentId));
+        Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
 //        if (!parent.userHasAccess(currentUser, permission)) {
 //            throw new AccessDeniedException();
 //        }
 
-        // save directory
-        Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent));
+        if (parent.subDirectoryNameAlreadyExist(request.name())) {
+            throw new AlreadyExistException(String.format("Directory name '%s' already exists", request.name()));
+        }
+
+        Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser));
         return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
 
     public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
-        // get permission
         Long permissionId = 17L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'UPDATE_DIRECTORY' permission not found"));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-        // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
 
-        // get directory
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", id)));
 
 //        if (!directory.userHasAccess(currentUser, permission)) {
 //            //throw new AccessDeniedException();
 //        }
+
+        Directory parentDirectory = directory.getParent(); // if parent is null meaning root
+
+
+        if(parentDirectory != null && parentDirectory.subDirectoryNameAlreadyExist(request.name())) {
+            throw new AlreadyExistException(String.format("Directory name '%s' already exists", request.name()));
+        }
 
         directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
@@ -86,20 +89,22 @@ public class DirectoryService {
     }
 
     public void removeDirectory(Long id) {
-        // get permission
         Long permissionId = 18L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException("'DELETE_DIRECTORY' permission not found"));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-        // get current user
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
 
-        // get directory
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
 
 //        if (!directory.userHasAccess(currentUser, permission)) {
 ////            //throw new AccessDeniedException();
 ////        }
+
+        if (directory.hasContents()) {
+            System.out.println("paano ko ihahandle if may laman");
+            // may constraint na sa page na bawal sya i delete
+        }
 
         directoryRepository.delete(directory);
     }
