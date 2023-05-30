@@ -8,6 +8,15 @@ import java.util.List;
 public class CommentResponseDTO {
     private List<CommentRequestDTO> data;
     private Response response;
+    private Long pageId;
+
+    public Long getPageId() {
+        return pageId;
+    }
+
+    public void setPageId(Long pageId) {
+        this.pageId = pageId;
+    }
 
     private int totalComment;
     

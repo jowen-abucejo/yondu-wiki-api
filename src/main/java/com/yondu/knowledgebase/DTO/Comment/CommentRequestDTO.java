@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.DTO.Comment;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yondu.knowledgebase.DTO.UserDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.User;
 
@@ -13,7 +14,7 @@ public class CommentRequestDTO {
     private LocalDateTime date;
     private String comment;
     private Long pageId;
-    private User user;
+    private UserDTO user;
 
     private int totalCommentRating;
 
@@ -38,8 +39,8 @@ public class CommentRequestDTO {
     public Long getPageId() { return pageId; }
     public void setPageId(Long pageId) { this.pageId = pageId; }
 
-    public User getUser() { return user;}
-    public void setUser(User user) { this.user = user;}
+    public UserDTO getUser() { return user;}
+    public void setUser(UserDTO user) { this.user = user;}
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -60,7 +61,7 @@ public class CommentRequestDTO {
         this.id = comment.getId();
         this.date = comment.getDateCreated();
         this.comment = comment.getComment();
-        this.user = comment.getUser();
+        this.user = new UserDTO(comment.getUser());
         this.totalCommentRating = comment.getTotalCommentRating();
     }
 
