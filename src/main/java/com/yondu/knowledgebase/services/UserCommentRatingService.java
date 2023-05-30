@@ -11,4 +11,7 @@ public interface UserCommentRatingService {
 
     public int getTotalCommentRating(Long commentId);
 
+    List<UserCommentRating> getAllCommentRating();
+
+    UserCommentRating getCommentRating(Long ratingId);
 }

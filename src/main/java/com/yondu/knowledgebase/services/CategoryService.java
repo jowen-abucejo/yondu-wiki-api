@@ -28,6 +28,12 @@ public class CategoryService {
         return categoryRepository.save(existingCategory);
     }
 
+    public Category deleteCategory(Category category){
+       category.setDeleted(true);
+       categoryRepository.save(category);
+        return category;
+    }
+
 
 
 }

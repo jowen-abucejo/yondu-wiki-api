@@ -81,9 +81,6 @@ public class Page {
     @OneToMany(mappedBy = "page")
     private Set<UserPageRating> userPageRatings = new HashSet<>();
 
-    @OneToMany(mappedBy = "page")
-    private Set<RolePagePermission> rolePagePermissions = new HashSet<>();
-
     /**
      * 
      */
@@ -106,13 +103,11 @@ public class Page {
      * @param tags
      * @param userPagePermissions
      * @param userPageRatings
-     * @param rolePagePermissions
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, List<Comment> comments, Set<Category> categories, Set<Tag> tags,
-            Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings,
-            Set<RolePagePermission> rolePagePermissions) {
+            Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
@@ -128,7 +123,6 @@ public class Page {
         this.tags = tags;
         this.userPagePermissions = userPagePermissions;
         this.userPageRatings = userPageRatings;
-        this.rolePagePermissions = rolePagePermissions;
     }
 
     /**
@@ -339,20 +333,6 @@ public class Page {
      */
     public void setUserPageRatings(Set<UserPageRating> userPageRatings) {
         this.userPageRatings = userPageRatings;
-    }
-
-    /**
-     * @return the rolePagePermissions
-     */
-    public Set<RolePagePermission> getRolePagePermissions() {
-        return rolePagePermissions;
-    }
-
-    /**
-     * @param rolePagePermissions the rolePagePermissions to set
-     */
-    public void setRolePagePermissions(Set<RolePagePermission> rolePagePermissions) {
-        this.rolePagePermissions = rolePagePermissions;
     }
 
 }

@@ -8,6 +8,7 @@ public class UserCommentRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String rating;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -27,7 +28,6 @@ public class UserCommentRating {
      * @param rating
      * @param comment
      * @param user
-     * @param isVoted
      */
     public UserCommentRating(String rating, Comment comment, User user) {
         this.rating = rating;

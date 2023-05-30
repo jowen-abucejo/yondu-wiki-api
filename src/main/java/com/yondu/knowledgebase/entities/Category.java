@@ -33,9 +33,10 @@ public class Category {
 
     }
 
-    public Category(Long id, String name, List<Page> pages){
+    public Category(Long id, String name, Boolean deleted, List<Page> pages){
         this.id= id;
         this.name = name;
+        this.deleted = deleted;
         this.pages = pages;
     }
 

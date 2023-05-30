@@ -7,7 +7,11 @@ import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.UserCommentRatingRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.UserCommentRatingService;
+import org.hibernate.annotations.DialectOverride;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
+
+import java.util.List;
 
 @Service
 public class UserCommentRatingServiceImpl implements UserCommentRatingService {
@@ -53,5 +57,15 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
         updatedComment.setTotalCommentRating(totalCommentRating);
         commentRepository.save(updatedComment);
         return totalCommentRating;
+    }
+
+    @Override
+    public List<UserCommentRating> getAllCommentRating(){
+        return userCommentRatingRepository.findAll();
+    }
+
+    @Override
+    public UserCommentRating getCommentRating (Long ratingId){
+        return userCommentRatingRepository.findById(ratingId).orElse(null);
     }
 }

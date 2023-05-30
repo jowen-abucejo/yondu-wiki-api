@@ -25,6 +25,25 @@ public class DirectoryController {
         this.directoryUserAccessService = directoryUserAccessService;
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<?>> getDirectory(@PathVariable("id") Long id) {
+        try {
+
+            Object data = directoryService.getDirectory(id);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory found"));
+
+        } catch (NotFoundException e) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, e.getMessage());
+
+        } catch (AccessDeniedException e) {
+            return createErrorResponse(HttpStatus.FORBIDDEN, e.getMessage());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An error occurred");
+        }
+    }
+
     @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
         try {
@@ -111,7 +130,10 @@ public class DirectoryController {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
 
-        } catch (Exception e) {
+        } catch (DataIntegrityViolationException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error("Directory User Access already exists"));
+        }
+        catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
         }
     }
@@ -128,7 +150,7 @@ public class DirectoryController {
     }
 
     @DeleteMapping("/{directoryId}/permissions/{id}")
-    public ResponseEntity<ApiResponse<?>> removeDirectoryUserAccess (@PathVariable Long directoryId, Long id){
+    public ResponseEntity<ApiResponse<?>> removeDirectoryUserAccess (@PathVariable Long directoryId, @PathVariable Long id){
         try {
             directoryUserAccessService.removeDirectoryUserAccess(directoryId, id);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Access removed successfully"));
