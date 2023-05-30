@@ -3,8 +3,9 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.directory.*;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
-import com.yondu.knowledgebase.exceptions.AlreadyExistException;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
+import com.yondu.knowledgebase.exceptions.RequestValidationException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
@@ -30,14 +31,14 @@ public class DirectoryService {
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
         Long permissionId = 19L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
 
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", id)));
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
 
-        if (hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -45,20 +46,26 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
+
+        if (request.name() == null || request.description() == null ||
+                request.name().isEmpty() || request.description().isEmpty()) {
+            throw new RequestValidationException("Invalid request body");
+        }
+
         Long permissionId = 16L;
-        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
+        Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
 
-        Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", parentId)));
+        Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
-        if (hasDirectoryUserAccess(currentUser, parent, permission)) {
+        if (!hasDirectoryUserAccess(currentUser, parent, permission)) {
             throw new AccessDeniedException();
         }
 
         if (isDirectoryExists(request.name(), parent)) {
-            throw new AlreadyExistException(String.format("Directory name '%s' already exists", request.name()));
+            throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
         }
 
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser));
@@ -66,16 +73,21 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
+
+        if (request.name() == null ||request.name().isEmpty()) {
+            throw new RequestValidationException("Invalid request body");
+        }
+
         Long permissionId = 17L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
 
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Directory 'id' not found: %d", id)));
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
         Directory parent = directory.getParent();
 
-        if (hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -84,7 +96,7 @@ public class DirectoryService {
         }
 
         if (isDirectoryExists(request.name(), parent)) {
-            throw new AlreadyExistException(String.format("Directory name '%s' already exists", request.name()));
+            throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
         }
 
         directory.setName(request.name());
@@ -95,14 +107,14 @@ public class DirectoryService {
 
     public void removeDirectory(Long id) {
         Long permissionId = 18L;
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new NotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found: " + email));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
 
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new NotFoundException("Directory not found: " + id));
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Directory not found: " + id));
 
-        if (hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -134,12 +146,12 @@ public class DirectoryService {
 
     public boolean hasDirectoryUserAccess(User user, Directory directory, Permission desiredPermission) {
         Set<Permission> userPermissions = getUserPermissions(user, directory);
+        System.out.println(userPermissions.contains(desiredPermission));
         return userPermissions.contains(desiredPermission);
     }
 
     private Set<Permission> getUserPermissions(User user, Directory directory) {
-        return getDirectoryUserAccess(directory)
-                .stream()
+        return getDirectoryUserAccess(directory).stream()
                 .map(access -> access.getUser().equals(user) ? access.getPermission(): null)
                 .collect(Collectors.toSet());
     }

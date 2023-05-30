@@ -63,4 +63,18 @@ public class Permission {
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
         this.directoryUserAccesses = directoryUserAccesses;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Permission other = (Permission) obj;
+        // Compare fields for equality
+        return this.id.equals(other.id);
+    }
+
 }
