@@ -6,9 +6,7 @@ import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Status;
-import com.yondu.knowledgebase.exceptions.InvalidEmailException;
-import com.yondu.knowledgebase.exceptions.MissingFieldException;
-import com.yondu.knowledgebase.exceptions.UserException;
+import com.yondu.knowledgebase.exceptions.*;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +34,7 @@ public class UserService implements UserDetailsService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    public User createNewUser(UserDTO.GeneralInfo user) throws MissingFieldException, InvalidEmailException, Exception {
+    public User createNewUser(UserDTO.GeneralInfo user) {
         log.info("UserService.createNewUser()");
         log.info("user : " + user.toString());
 
@@ -72,7 +70,7 @@ public class UserService implements UserDetailsService {
         return createdUser;
     }
 
-    public User deactivateUser(UserDTO.GeneralInfo user) throws UserException, MissingFieldException, Exception {
+    public User deactivateUser(UserDTO.GeneralInfo user) {
         log.info("UserService.deactivateUser()");
         log.info("user : " + user.toString());
 
@@ -80,10 +78,7 @@ public class UserService implements UserDetailsService {
         if (Util.isNullOrWhiteSpace(user.email()))
             throw new MissingFieldException("email");
 
-        User oldUser = userRepository.getUserByEmail(user.email());
-        if (oldUser == null) {
-            throw new UserException("User not found.");
-        }
+        User oldUser = userRepository.fetchUserByEmail(user.email()).orElseThrow(() -> new UserException("User not found"));
         oldUser.setStatus(Status.INACTIVE.getCode());
 
         User updatedUser = userRepository.save(oldUser);
@@ -98,11 +93,7 @@ public class UserService implements UserDetailsService {
                 String.format("Active user with email of %s not found", email)));
     }
 
-//    public List<User> getAllUser() {
-//        return userRepository.findAll();
-//    }
-
-    public PaginatedResponse<UserDTO.GeneralResponse> getAllUser(String searchKey, int page, int size) throws Exception {
+    public PaginatedResponse<UserDTO.GeneralResponse> getAllUser(String searchKey, int page, int size) {
         log.info("UserService.getAllUser()");
         log.info("searchKey : " + searchKey);
         log.info("page : " + page);
@@ -111,6 +102,10 @@ public class UserService implements UserDetailsService {
         PageRequest pageRequest = PageRequest.of(page - 1, size);
         Page<User> userPages = userRepository.findAll(searchKey, pageRequest);
         List<User> users = userPages.getContent();
+
+        if(users.isEmpty()){
+            throw new NoContentException("No content found");
+        }
 
         List<UserDTO.GeneralResponse> userDTOs = users.stream()
                 .map(user -> UserDTOMapper.mapToGeneralResponse(user))
@@ -122,11 +117,6 @@ public class UserService implements UserDetailsService {
     }
 
     public User getUserById(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if(user.isEmpty()){
-            throw new UserException("User Not Found");
-        }else{
-            return user.get();
-        }
+        return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
     }
 }

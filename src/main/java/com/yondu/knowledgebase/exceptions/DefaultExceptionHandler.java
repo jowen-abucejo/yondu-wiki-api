@@ -19,12 +19,19 @@ public class DefaultExceptionHandler {
         HttpStatus httpStatus;
         if (e instanceof AccessDeniedException) {
             httpStatus = HttpStatus.UNAUTHORIZED;
-        } else if (e instanceof DuplicateResourceException) {
+        } else if (e instanceof DuplicateResourceException ||
+                    e instanceof InvalidEmailException
+        ) {
             httpStatus = HttpStatus.CONFLICT;
-        } else if (e instanceof RequestValidationException) {
+        } else if (e instanceof RequestValidationException ||
+                e instanceof MissingFieldException ||
+                e instanceof UserException
+        ) {
             httpStatus = HttpStatus.BAD_REQUEST;
         } else if (e instanceof ResourceNotFoundException) {
             httpStatus = HttpStatus.NOT_FOUND;
+        } else if(e instanceof NoContentException) {
+            httpStatus = HttpStatus.NO_CONTENT;
         } else {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }
