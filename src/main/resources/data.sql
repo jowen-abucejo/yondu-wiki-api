@@ -33,16 +33,17 @@ VALUES
 -- PAGE EDITORS
 (15, 'UPDATE_PAGE_EDITOR', 'Allow user to add/remove page editors in a page', 'Page Editor'),
 -- DIRECTORY ACCESS
-(16, 'CREATE_DIRECTORY', 'Allows users to create new directories within the specified directory', 'Directory'),
-(17, 'UPDATE_DIRECTORY', 'Allows users to update the directory properties of the specified directory', 'Directory'),
-(18, 'DELETE_DIRECTORY', 'Allows users to delete the directory and its contents', 'Directory'),
- (19, 'VIEW_DIRECTORY', 'Allows users to view the content and metadata of a directory', 'Directory'),
- -- ROLES
- (20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
- (21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
- (22, 'DELETE_ROLES', 'Allow user to delete roles', 'Roles'),
- (23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
- (24, 'READ_ROLES', 'Allow user to view roles', 'Roles');
+(16, 'CREATE_DIRECTORY', 'Allow user to create directory', 'Directory'),
+(17, 'UPDATE_DIRECTORY', 'Allow user to create directory', 'Directory'),
+(18, 'DELETE_DIRECTORY', 'Allow user to create directory', 'Directory'),
+(19, 'VIEW_DIRECTORY', 'Allow user to create directory', 'Directory'),
+(25, 'MANAGE_DIRECTOR_PERMISSIONS', 'Allow user to manage the directory permissions', 'Directory'),
+-- ROLES
+(20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
+(21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
+(22, 'DELETE_ROLES', 'Allow user to delete roles', 'Roles'),
+(23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
+(24, 'READ_ROLES', 'Allow user to view roles', 'Roles');
 
 -- INITIALIZE ROLE PERMISSION
  INSERT INTO role_permission(role_id, permission_id)
@@ -76,6 +77,7 @@ VALUES
  (1, 22),
  (1, 23),
  (1, 24),
+ (1, 25),
  -- Moderator
  (2, 2),
  (2, 3),
@@ -105,6 +107,7 @@ VALUES
  (3, 18),
  (3, 19),
  (3, 24),
+ (3, 25),
  -- Users (Readers)
  (4, 4),
  (4, 8),

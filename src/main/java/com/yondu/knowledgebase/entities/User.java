@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.entities;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
 
 import java.sql.Array;
@@ -49,6 +50,17 @@ public class User implements UserDetails {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> role = new HashSet<>();
+
+    public User(UserDTO.GeneralInfo user) {
+        this.id = user.id();
+        this.username = user.username();
+        this.email = user.email();
+        this.password = user.password();
+        this.firstName = user.firstName();
+        this.lastName = user.lastName();
+        this.status = user.status();
+        this.createdAt = user.createdAt();
+    }
 
     public User(Long id, String username, String email, String password, String firstName, String lastName,
             String status, LocalDate createdAt, Set<Role> role) {

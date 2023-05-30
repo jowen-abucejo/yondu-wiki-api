@@ -1,7 +1,9 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.UserDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.user.UserDTO;
+import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidEmailException;
@@ -35,18 +37,60 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("")
-    public List<User> getAllUser(){
-        return userService.getAllUser();
+    public ResponseEntity<?> getAllUser(@RequestParam(defaultValue = "") String searchKey, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "30") int size){
+        log.info("UserController.getAllUser()");
+        log.info("searchKey : " + searchKey);
+        log.info("page : " + page);
+        log.info("size : " + size);
+
+        ResponseEntity response = null;
+
+        searchKey = "%" + searchKey + "%";
+        int offset = page * size;
+
+        try{
+            PaginatedResponse<UserDTO.GeneralResponse> fetchedUsers = userService.getAllUser(searchKey, page, offset);
+
+            ApiResponse apiResponse = ApiResponse.success(fetchedUsers, "success");
+            response = ResponseEntity.ok(apiResponse);
+        }catch (Exception ex) {
+            ex.printStackTrace();
+            response = ResponseEntity.internalServerError().build();
+        }
+
+        return response;
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id){
-        return userService.getUserById(id);
+    public ResponseEntity<?> getUserById(@PathVariable Long id){
+        log.info("UserController.getUserById()");
+        log.info("id : " + id);
+
+        ResponseEntity response = null;
+
+        try{
+            User user = userService.getUserById(id);
+
+            if(user==null){
+                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }else{
+                UserDTO.GeneralResponse userDTO = UserDTOMapper.mapToGeneralResponse(user);
+
+                ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+                response = ResponseEntity.ok(apiResponse);
+            }
+
+        }catch (Exception ex){
+            ex.printStackTrace();
+            response = ResponseEntity.internalServerError().build();
+        }
+
+        return response;
     }
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_USERS')")
-    public ResponseEntity<?> createNewUser(@RequestBody User user) {
+    public ResponseEntity<?> createNewUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
         log.info("UserController.createNewUser()");
         log.info("user : " + user.toString());
 
@@ -54,9 +98,8 @@ public class UserController {
 
         try{
             User createdUser = userService.createNewUser(user);
-
-            UserDTO userDTO = new UserDTO(createdUser);
-            ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+            com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(createdUser);
+            ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
 
             response = ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
         }catch (InvalidEmailException invalidEmailException) {
@@ -90,7 +133,7 @@ public class UserController {
 
     @PostMapping("/deactivate")
     @PreAuthorize("hasAuthority('DEACTIVATE_USERS')")
-    public ResponseEntity<?> deactivateUser(@RequestBody User user) {
+    public ResponseEntity<?> deactivateUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
         log.info("UserController.deactivateUser()");
         log.info("user : " + user.toString());
 
@@ -100,8 +143,8 @@ public class UserController {
         try{
             User deactivatedUser = userService.deactivateUser(user);
 
-            UserDTO userDTO = new UserDTO(deactivatedUser);
-            ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+            com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(deactivatedUser);
+            ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
 
             response = ResponseEntity.ok(apiResponse);
         }catch(UserException userException) {
