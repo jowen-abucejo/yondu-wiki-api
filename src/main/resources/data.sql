@@ -36,13 +36,14 @@ VALUES
 (16, 'CREATE_DIRECTORY', 'Allow user to create directory', 'Directory'),
 (17, 'UPDATE_DIRECTORY', 'Allow user to create directory', 'Directory'),
 (18, 'DELETE_DIRECTORY', 'Allow user to create directory', 'Directory'),
- (19, 'VIEW_DIRECTORY', 'Allow user to create directory', 'Directory'),
- -- ROLES
- (20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
- (21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
- (22, 'DELETE_ROLES', 'Allow user to delete roles', 'Roles'),
- (23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
- (24, 'READ_ROLES', 'Allow user to view roles', 'Roles');
+(19, 'VIEW_DIRECTORY', 'Allow user to create directory', 'Directory'),
+(25, 'MANAGE_DIRECTOR_PERMISSIONS', 'Allow user to manage the directory permissions', 'Directory'),
+-- ROLES
+(20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
+(21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
+(22, 'DELETE_ROLES', 'Allow user to delete roles', 'Roles'),
+(23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
+(24, 'READ_ROLES', 'Allow user to view roles', 'Roles');
 
 -- INITIALIZE ROLE PERMISSION
  INSERT INTO role_permission(role_id, permission_id)
@@ -76,6 +77,7 @@ VALUES
  (1, 22),
  (1, 23),
  (1, 24),
+ (1, 25),
  -- Moderator
  (2, 2),
  (2, 3),
@@ -105,6 +107,7 @@ VALUES
  (3, 18),
  (3, 19),
  (3, 24),
+ (3, 25),
  -- Users (Readers)
  (4, 4),
  (4, 8),
