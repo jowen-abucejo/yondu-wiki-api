@@ -12,6 +12,15 @@ public class ReviewDTOMapper {
                 review.getComment(),
                 review.getReviewDate(),
    //             UserDTOMapper.mapToGeneralResponse(review.getUser()),
-                review.getComment());
+                review.getStatus());
+    }
+
+    public static ReviewDTO.UpdatedResponse mapToUpdatedResponse(Review review) {
+        return new ReviewDTO.UpdatedResponse(
+                review.getId(),
+                review.getComment(),
+                review.getReviewDate(),
+                UserDTOMapper.mapToGeneralResponse(review.getUser()),
+                review.getStatus());
     }
 }

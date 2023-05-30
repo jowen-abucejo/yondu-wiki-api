@@ -1,10 +1,14 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
+import com.yondu.knowledgebase.DTO.directory.DirectoryDTOMapper;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTOMapper;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.exceptions.AlreadyExistException;
+import com.yondu.knowledgebase.exceptions.BadRequestException;
 import com.yondu.knowledgebase.exceptions.NotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
@@ -15,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.yondu.knowledgebase.repositories.ReviewRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,14 +28,12 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final PageVersionRepository pageVersionRepository;
-    private final UserService userService;
     private  final UserRepository userRepository;
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, UserService userService, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, UserRepository userRepository) {
         this.reviewRepository = reviewRepository;
         this.pageVersionRepository = pageVersionRepository;
-        this.userService = userService;
         this.userRepository = userRepository;
     }
 
@@ -61,20 +64,28 @@ public class ReviewService {
         return ReviewDTOMapper.mapToBaseResponse(review);
     }
 
-    private User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
+    public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException(String.format("User 'email' not found: %s", email)));
+        Review review = reviewRepository.findById(id).orElseThrow(() -> new NotFoundException(String.format("Review id not found: %s", id)));
+
+        if (review.getStatus().toUpperCase().contains("APPROVED") || review.getStatus().toUpperCase().contains("DISAPPROVE")) {
+            throw new BadRequestException("Content is already reviewed.");
         }
 
-        String email = authentication.getName();
-        // Load the User entity based on the email
-        User user = userService.loadUserByUsername(email);
-        if (user == null) {
-            throw new NotFoundException("User not found");
+        if (request.status().toUpperCase().contains("APPROVED") || request.status().toUpperCase().contains("DISAPPROVE")) {
+
+            review.setUser(currentUser);
+            review.setComment(request.comment());
+            review.setReviewDate(LocalDate.now());
+            review.setStatus(request.status());
+            Review updatedReview = reviewRepository.save(review);
+            return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
+        } else {
+            throw new BadRequestException("Invalid Status, try APPROVED or DISAPPROVE");
         }
 
-        return user;
     }
 
 }
