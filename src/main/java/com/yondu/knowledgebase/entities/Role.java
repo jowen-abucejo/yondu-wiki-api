@@ -43,6 +43,14 @@ public class Role {
         this.permissions = permissions;
     }
 
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public void setPermissions(Set<Permission> permissions) {
+        this.permissions = permissions;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
