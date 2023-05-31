@@ -21,7 +21,7 @@ public class RoleController {
     }
 
     @GetMapping("/role")
-    public ResponseEntity<ApiResponse<Object>> getAllRoles(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<ApiResponse<List<RoleDTO>>> getAllRoles(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(page, size), "Success retrieving list of roles"));
     }
 
