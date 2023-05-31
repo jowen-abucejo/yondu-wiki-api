@@ -48,6 +48,7 @@ public class RoleService {
     public RoleDTO addRole(RoleDTO roleDTO) {
         // Check if a role with the same name already exists
         boolean roleExists = roleRepository.existsByRoleName(roleDTO.getRoleName());
+
         if (roleExists) {
             throw new RequestValidationException("Role already exists");
         }
@@ -87,7 +88,7 @@ public class RoleService {
         Optional<Role> optionalRole = roleRepository.findById(id);
 
         if (optionalRole.isEmpty()) {
-            throw new ResourceNotFoundException("Role not found");
+            throw new ResourceNotFoundException("Role with id: " + id+ " not found");
         }
 
         // Perform any additional validations or checks before deleting the role
