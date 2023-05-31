@@ -7,5 +7,9 @@ import jakarta.persistence.*;
 public abstract class Rights {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
+
+    public Long getId() {
+        return id;
+    }
 }

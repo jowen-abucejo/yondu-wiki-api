@@ -12,6 +12,18 @@ public class DirectoryRights extends Rights{
 
     @ManyToOne
     @JoinColumn(name = "permission_id")
-    private Permission permisison;
+    private Permission permission;
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        DirectoryRights other = (DirectoryRights) obj;
+        //Compare fields for equality
+        return this.id.equals(other.id);
+    }
 }
