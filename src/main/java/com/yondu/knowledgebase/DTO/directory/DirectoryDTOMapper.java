@@ -30,4 +30,11 @@ public class DirectoryDTOMapper {
         );
     }
 
+    public static DirectoryDTO.ShortResponse mapToShortResponse(Directory directory) {
+        return new DirectoryDTO.ShortResponse(
+                directory.getId(),
+                directory.getName(),
+                directory.getDescription());
+    }
+
 }
