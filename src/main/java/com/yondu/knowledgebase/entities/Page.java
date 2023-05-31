@@ -33,18 +33,22 @@ public class Page {
     private Long id;
 
     @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime dateCreated;
 
     @CreatedBy
     @ManyToOne
-    @JoinColumn(name = "author", referencedColumnName = "id")
+    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
     private User author;
 
-    @Column(name = "is_active")
-    private Boolean active;
+    @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean active = true;
 
-    @Column(name = "is_deleted")
-    private Boolean deleted;
+    @Column(name = "is_deleted", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean deleted = false;
+
+    @Column(name = "allow_comment", columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean allowComment = true;
 
     @Column(name = "lock_start", nullable = true)
     private LocalDateTime lockStart;
@@ -60,7 +64,7 @@ public class Page {
     @JoinColumn(name = "directory_id", referencedColumnName = "id")
     private Directory directory;
 
-    @OneToMany(mappedBy = "page")
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL)
     @OrderBy(value = "modified_by DESC")
     private List<PageVersion> pageVersions = new ArrayList<>();
 
@@ -93,6 +97,7 @@ public class Page {
      * @param author
      * @param active
      * @param deleted
+     * @param allowComment
      * @param lockStart
      * @param lockEnd
      * @param lockedBy
@@ -104,7 +109,7 @@ public class Page {
      * @param userPagePermissions
      * @param userPageRatings
      */
-    public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted,
+    public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, List<Comment> comments, Set<Category> categories, Set<Tag> tags,
             Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings) {
@@ -113,6 +118,7 @@ public class Page {
         this.author = author;
         this.active = active;
         this.deleted = deleted;
+        this.allowComment = allowComment;
         this.lockStart = lockStart;
         this.lockEnd = lockEnd;
         this.lockedBy = lockedBy;
@@ -158,6 +164,13 @@ public class Page {
      */
     public Boolean getDeleted() {
         return deleted;
+    }
+
+    /**
+     * @return the allowComment
+     */
+    public Boolean getAllowComment() {
+        return allowComment;
     }
 
     /**
@@ -231,13 +244,6 @@ public class Page {
     }
 
     /**
-     * @param id the id to set
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
      * @param dateCreated the dateCreated to set
      */
     public void setDateCreated(LocalDateTime dateCreated) {
@@ -263,6 +269,13 @@ public class Page {
      */
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    /**
+     * @param allowComment the allowComment to set
+     */
+    public void setAllowComment(Boolean allowComment) {
+        this.allowComment = allowComment;
     }
 
     /**

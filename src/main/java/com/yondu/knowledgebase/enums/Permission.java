@@ -22,11 +22,12 @@ public enum Permission {
 
     UPDATE_PAGE_EDITOR(15, "UPDATE_PAGE_EDITOR", "Allow user to add/remove page editors in a page", "Page Editor"),
 
-    CREATE_DIRECTOR(16, "CREATE_DIRECTORY", "Allow user to create directory", "Directory"),
+    CREATE_DIRECTORY(16, "CREATE_DIRECTORY", "Allow user to create directory", "Directory"),
     UPDATE_DIRECTORY(17, "UPDATE_DIRECTORY", "Allow user to create directory", "Directory"),
     DELETE_DIRECTORY(18, "DELETE_DIRECTORY", "Allow user to create directory", "Directory"),
     VIEW_DIRECTORY(19, "VIEW_DIRECTORY", "Allow user to create directory", "Directory"),
-    MANAGE_DIRECTORY_PERMISSION(25, "MANAGE_DIRECTOR_PERMISSIONS", "Allow user to manage the directory permissions", "Directory"),
+    MANAGE_DIRECTORY_PERMISSION(25, "MANAGE_DIRECTOR_PERMISSIONS", "Allow user to manage the directory permissions",
+            "Directory"),
 
     CREATE_ROLES(20, "CREATE_ROLES", "Allow user to create new roles", "Roles"),
     UPDATE_ROLES(21, "UPDATE_ROLES", "Allow user to update roles", "Roles"),
