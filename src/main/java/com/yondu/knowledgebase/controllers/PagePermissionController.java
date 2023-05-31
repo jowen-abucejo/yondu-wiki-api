@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page_permission.user_access.UserPagePermissionDTO;
+import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.UserPagePermissionService;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,8 @@ public class PagePermissionController {
 
         try {
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userPagePermissionService.addUserToPageAccess(permissionId, userPagePermission), "User has been successfully added in page permission."));
+        } catch(DuplicateResourceException e){
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(e.getMessage()));
         } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){

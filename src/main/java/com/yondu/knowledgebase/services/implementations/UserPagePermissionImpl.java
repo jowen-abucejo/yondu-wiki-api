@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.services.implementations;
 import com.yondu.knowledgebase.DTO.page_permission.user_access.UserPagePermissionDTO;
 import com.yondu.knowledgebase.DTO.page_permission.user_access.UserPagePermissionDTOMapper;
 import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
@@ -19,7 +20,6 @@ import java.util.stream.Collectors;
 public class UserPagePermissionImpl implements UserPagePermissionService {
 
     private final UserPagePermissionRepository userPagePermissionRepository;
-
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
     private final PageRepository pageRepository;
@@ -41,9 +41,13 @@ public class UserPagePermissionImpl implements UserPagePermissionService {
 
         Page page = pageRepository.findByIdAndActive(userPagePermission.pageId(), true).orElseThrow(()-> new ResourceNotFoundException("Page not found."));
 
-        UserPagePermission savedUserPagePermission = userPagePermissionRepository.save(new UserPagePermission(permission, user, page, true, LocalDateTime.now(), LocalDateTime.now()));
+        if(userPagePermissionRepository.findByPageAndPermissionAndUserAndIsActive(page, permission, user, true).orElse(null) == null){
+            UserPagePermission savedUserPagePermission = userPagePermissionRepository.save(new UserPagePermission(permission, user, page, true, LocalDateTime.now(), LocalDateTime.now()));
+            return UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission);
+        } else {
+            throw new DuplicateResourceException("User "+user.getEmail()+" already has this permission on page " +page.getId());
+        }
 
-        return UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission);
     }
 
     @Override
