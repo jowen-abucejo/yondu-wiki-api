@@ -14,16 +14,24 @@ public class PageRights extends Rights{
     @JoinColumn(name = "permission_id")
     private Permission permission;
 
+    public Page getPage() {
+        return page;
+    }
+
+    public void setPage(Page page) {
+        this.page = page;
+    }
+
+    public Permission getPermission() {
+        return permission;
+    }
+
+    public void setPermission(Permission permission) {
+        this.permission = permission;
+    }
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        PageRights other = (PageRights) obj;
-        //Compare fields for equality
-        return this.id.equals(other.id);
+        return super.equals(obj);
     }
 }

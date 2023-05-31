@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 import java.time.LocalDate;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,10 +34,10 @@ public class Directory {
     private Set<Directory> subDirectories;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<DirectoryUserAccess> directoryUserAccesses;
+    private Set<Page> pages;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<Page> pages;
+    private Set<DirectoryRights> rights;
 
     public Directory() {}
 
@@ -50,8 +49,8 @@ public class Directory {
         this.dateCreated = LocalDate.now();
         this.dateModified = LocalDate.now();
         this.parent = parent;
+        this.rights = new HashSet<>();
         this.subDirectories = new HashSet<>();
-        this.directoryUserAccesses = new HashSet<>();
         this.pages = new HashSet<>();
     }
 
@@ -128,12 +127,12 @@ public class Directory {
         this.createdBy = createdBy;
     }
 
-    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
-        return this.directoryUserAccesses;
+    public Set<DirectoryRights> getRights() {
+        return rights;
     }
 
-    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
-        this.directoryUserAccesses = directoryUserAccesses;
+    public void setRights(Set<DirectoryRights> rights) {
+        this.rights = rights;
     }
 
     @Override
