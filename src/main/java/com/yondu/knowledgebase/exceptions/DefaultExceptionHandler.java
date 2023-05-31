@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class DefaultExceptionHandler {
-    @ExceptionHandler({AccessDeniedException.class, DuplicateResourceException.class, RequestValidationException.class, ResourceNotFoundException.class, InvalidEmailException.class, MissingFieldException.class, UserException.class, NoContentException.class})
+    @ExceptionHandler({AccessDeniedException.class, DuplicateResourceException.class, RequestValidationException.class, ResourceNotFoundException.class, InvalidRatingException.class})
     public ResponseEntity<?> handleException(Exception e,
                                                     HttpServletRequest request) {
         HttpStatus httpStatus;
@@ -25,7 +25,8 @@ public class DefaultExceptionHandler {
             httpStatus = HttpStatus.CONFLICT;
         } else if (e instanceof RequestValidationException ||
                 e instanceof MissingFieldException ||
-                e instanceof UserException
+                e instanceof UserException ||
+                e instanceof InvalidRatingException
         ) {
             httpStatus = HttpStatus.BAD_REQUEST;
         } else if (e instanceof ResourceNotFoundException) {
