@@ -8,6 +8,7 @@ import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.yondu.knowledgebase.entities.Review;
@@ -50,6 +51,7 @@ public class ReviewController {
 
 }
     @PutMapping("/reviews/update/{id}")
+    @PreAuthorize("hasAuthority('CONTENT_APPROVAL')")
     public ResponseEntity<ApiResponse<?>> updateReview(@PathVariable("id") Long id, @RequestBody ReviewDTO.UpdateRequest request) {
         try {
             Object data = reviewService.updateReview(id, request);

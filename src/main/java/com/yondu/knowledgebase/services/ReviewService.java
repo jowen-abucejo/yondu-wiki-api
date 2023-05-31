@@ -1,18 +1,11 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
-import com.yondu.knowledgebase.DTO.directory.DirectoryDTOMapper;
-import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
-import com.yondu.knowledgebase.DTO.permission.PermissionDTOMapper;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
-import com.yondu.knowledgebase.repositories.UserRepository;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +21,13 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final PageVersionRepository pageVersionRepository;
-    private  final UserRepository userRepository;
+
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, UserRepository userRepository) {
+    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository) {
         this.reviewRepository = reviewRepository;
         this.pageVersionRepository = pageVersionRepository;
-        this.userRepository = userRepository;
     }
-
-//    public List<Review> getAllReviews() {
-//        return reviewRepository.findAll();
-//    }
 
     public List<ReviewDTO.BaseResponse> getAllReviews(){
         return reviewRepository.findAll().stream().map(ReviewDTOMapper::mapToBaseResponse).toList();
@@ -52,7 +40,7 @@ public class ReviewService {
         Review review = new Review();
         review.setPageVersion(pageVersion);
         review.setUser(null);
-        review.setComment(null);
+        review.setComment("");
         review.setReviewDate(null);
         review.setStatus("PENDING");
 
@@ -66,8 +54,6 @@ public class ReviewService {
 
     public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
 
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
 
