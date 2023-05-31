@@ -7,13 +7,12 @@ import java.util.List;
 
 public interface UserCommentRatingService {
 
-    public UserCommentRating rateComment (Long commentId, Long userId, String ratingValue);
+    public UserCommentRatingDTO rateComment (Long commentId, Long userId, String ratingValue);
 
-    public int getTotalCommentRating(Long commentId);
+    List<UserCommentRatingDTO> getAllCommentRating();
 
-    List<UserCommentRating> getAllCommentRating();
+    UserCommentRatingDTO getCommentRating(Long ratingId);
 
-    UserCommentRating getCommentRating(Long ratingId);
+    UserCommentRatingDTO updateRating(String rating, Long ratingId);
 
-    UserCommentRating updateRating(String rating, Long ratingId);
 }

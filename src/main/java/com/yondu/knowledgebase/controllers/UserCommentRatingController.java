@@ -23,35 +23,25 @@ public class UserCommentRatingController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> addCommentRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO) {
-        UserCommentRating userCommentRating = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
-        int totalCommentRating = userCommentRatingService.getTotalCommentRating(userCommentRatingDTO.getCommentId());
-        UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRating.getUser().getId(), userCommentRating.getComment().getId(), userCommentRatingDTO.getRating(),totalCommentRating);
+        UserCommentRatingDTO userCommentRatingResponse = userCommentRatingService.rateComment(userCommentRatingDTO.getCommentId(), userCommentRatingDTO.getUserId(), userCommentRatingDTO.getRating());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatingResponse, "Rating successful"));
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<?>> getAllCommentRating (){
-        List <UserCommentRating> userCommentRatings = userCommentRatingService.getAllCommentRating();
-        List<UserCommentRatingDTO> userCommentRatingResponse = new ArrayList<>();
-        for (UserCommentRating userCommentRating:userCommentRatings){
-            UserCommentRatingDTO userCommentRatingDTO = new UserCommentRatingDTO(userCommentRating.getUser().getId(), userCommentRating.getComment().getId(), userCommentRating.getRating(),userCommentRating.getComment().getTotalCommentRating());
-            userCommentRatingResponse.add(userCommentRatingDTO);
-        }
+        List <UserCommentRatingDTO> userCommentRatingResponse = userCommentRatingService.getAllCommentRating();
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatingResponse, "All ratings retrieved"));
     }
 
     @GetMapping ("/{ratingId}")
     public ResponseEntity<ApiResponse<?>> getCommentRatingById (@PathVariable Long ratingId){
-        UserCommentRating userCommentRating = userCommentRatingService.getCommentRating(ratingId);
-        UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRating.getUser().getId(), userCommentRating.getComment().getId(), userCommentRating.getRating(),userCommentRating.getComment().getTotalCommentRating());
+        UserCommentRatingDTO userCommentRatingResponse = userCommentRatingService.getCommentRating(ratingId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatingResponse, "Rating retrieved successfully"));
     }
 
     @PutMapping ("/update/{ratingId}")
     public ResponseEntity <ApiResponse<?>> updateRating (@RequestBody UserCommentRatingDTO userCommentRatingDTO, @PathVariable Long ratingId){
-        UserCommentRating userCommentRating = userCommentRatingService.updateRating(userCommentRatingDTO.getRating(), ratingId);
-        int totalCommentRating = userCommentRatingService.getTotalCommentRating(userCommentRating.getComment().getId());
-        UserCommentRatingDTO userCommentRatingResponse = new UserCommentRatingDTO(userCommentRating.getUser().getId(), userCommentRating.getComment().getId(), userCommentRatingDTO.getRating(),totalCommentRating);
+        UserCommentRatingDTO userCommentRatingResponse = userCommentRatingService.updateRating(userCommentRatingDTO.getRating(), ratingId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRatingResponse,"Rating successfully updated"));
     }
 }

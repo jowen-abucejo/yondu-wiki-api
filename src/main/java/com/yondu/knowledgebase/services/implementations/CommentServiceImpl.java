@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.DTO.Response;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
@@ -31,23 +32,25 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO createComment(CommentDTO commentRequestDTO, Long commentParentId) {
 
-        User user = userRepository.findById(commentRequestDTO.getUserId()).orElse(null);
-        Page page = pageRepository.findByIdAndActive(commentRequestDTO.getPageId(), true).orElse(null);
+        User user = userRepository.findById(commentRequestDTO.getUserId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found: %d", commentRequestDTO.getUserId())));
+        Page page = pageRepository.findByIdAndActive(commentRequestDTO.getPageId(), true).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", commentRequestDTO.getPageId())));
         LocalDateTime currentDate = LocalDateTime.now();
         Comment comment = new Comment();
         comment.setDateCreated(currentDate);
         comment.setComment(commentRequestDTO.getComment());
         comment.setTotalCommentRating(0);
-
         comment.setPage(page);
+        comment.setUser(user);
 
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }else{
-            comment.setUser(user);
-        }
         if(commentRequestDTO.getCommentParentId() != null){
-            comment.setParentCommentId(commentRequestDTO.getCommentParentId());
+
+            boolean commentParentIsExist = commentRepository.existsById(commentRequestDTO.getCommentParentId());
+            if(commentParentIsExist){
+                comment.setParentCommentId(commentRequestDTO.getCommentParentId());
+            }else{
+                throw new ResourceNotFoundException(String.format("Comment ID not found: %d", commentRequestDTO.getCommentParentId()));
+            }
+
         }
         commentRepository.save(comment);
         return commentRequestDTO;
@@ -73,14 +76,6 @@ public class CommentServiceImpl implements CommentService {
         responseDTO.setData(commentDTOs);
         responseDTO.setTotalComment(getTotalComments());
         responseDTO.setPageId(pageId);
-
-        // Temp Response message
-        Response response = new Response();
-        response.setCode(200);
-        response.setMessage("Success");
-
-        responseDTO.setResponse(response);
-
         return responseDTO;
     }
 
@@ -92,6 +87,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment getComment (Long commentId){
-        return commentRepository.findById(commentId).orElseThrow(null);
+        return commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", commentId)));
     }
 }
