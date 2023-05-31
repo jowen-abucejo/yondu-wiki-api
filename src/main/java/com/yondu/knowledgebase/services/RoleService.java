@@ -54,7 +54,7 @@ public class RoleService {
         }
 
         if(roleDTO.getPermission().isEmpty()){
-            throw new ResourceNotFoundException("Role need at least 1 or more permission");
+            throw new RequestValidationException("Role need at least 1 or more permission");
         }
 
         Set<Permission> permissions = roleDTO.getPermission().stream()
