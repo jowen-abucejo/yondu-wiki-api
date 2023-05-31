@@ -2,7 +2,6 @@ package com.yondu.knowledgebase.entities;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,25 +21,27 @@ public class UserPageRating {
 	@Column(nullable = false, length = 5)
 	private String rating;
 	
+	@Column(name = "is_active")
+    private Boolean active;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="page_id", nullable=true, referencedColumnName="id")
-	@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
-	@JsonIdentityReference(alwaysAsId = true)
+	@JoinColumn(name="page_id", nullable=false, referencedColumnName="id")
 	private Page page;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name="user_id", nullable=true, referencedColumnName="id")
-	@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "email")
-	@JsonIdentityReference(alwaysAsId = true)
+	@JoinColumn(name="user_id", nullable=false, referencedColumnName="id")
 	private User user;
 
 	public UserPageRating() {}
-	public UserPageRating(Long id, String rating, Page page, User user) {
+	
+	public UserPageRating(Long id, String rating, Boolean active, Page page, User user) {
 		this.id = id;
 		this.rating = rating;
+		this.active = active;
 		this.page = page;
 		this.user = user;
 	}
+
 	public Long getId() {
 		return id;
 	}
@@ -54,6 +55,14 @@ public class UserPageRating {
 	
 	public User getUser() {
 		return user;
+	}
+
+	public Boolean getActive() {
+		return active;
+	}
+
+	public void setActive(Boolean active) {
+		this.active = active;
 	}
 
 	public void setRating(String rating) {
