@@ -6,5 +6,5 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 
 public class DirectoryUserAccessDTO {
     public record BaseResponse(Long id, UserDTO.ShortResponse user, PermissionDTO.BaseResponse permission, DirectoryDTO.ShortResponse directory){}
-    public record AddRequest(Long userId, Long permissionId) {}
+    public record AddRequest(String email, Long permissionId) {}
 }
