@@ -46,19 +46,11 @@ public class UserController {
         ResponseEntity response = null;
 
         searchKey = "%" + searchKey + "%";
-        int offset = page * size;
 
-        try{
-            PaginatedResponse<UserDTO.GeneralResponse> fetchedUsers = userService.getAllUser(searchKey, page, offset);
+        PaginatedResponse<UserDTO.GeneralResponse> fetchedUsers = userService.getAllUser(searchKey, page, size);
 
-            ApiResponse apiResponse = ApiResponse.success(fetchedUsers, "success");
-            response = ResponseEntity.ok(apiResponse);
-        }catch (Exception ex) {
-            ex.printStackTrace();
-            response = ResponseEntity.internalServerError().build();
-        }
-
-        return response;
+        ApiResponse apiResponse = ApiResponse.success(fetchedUsers, "success");
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/{id}")
@@ -66,26 +58,12 @@ public class UserController {
         log.info("UserController.getUserById()");
         log.info("id : " + id);
 
-        ResponseEntity response = null;
+        User user = userService.getUserById(id);
 
-        try{
-            User user = userService.getUserById(id);
+        UserDTO.GeneralResponse userDTO = UserDTOMapper.mapToGeneralResponse(user);
 
-            if(user==null){
-                response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }else{
-                UserDTO.GeneralResponse userDTO = UserDTOMapper.mapToGeneralResponse(user);
-
-                ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
-                response = ResponseEntity.ok(apiResponse);
-            }
-
-        }catch (Exception ex){
-            ex.printStackTrace();
-            response = ResponseEntity.internalServerError().build();
-        }
-
-        return response;
+        ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/create")
@@ -94,41 +72,11 @@ public class UserController {
         log.info("UserController.createNewUser()");
         log.info("user : " + user.toString());
 
-        ResponseEntity response = null;
+        User createdUser = userService.createNewUser(user);
+        com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(createdUser);
+        ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
 
-        try{
-            User createdUser = userService.createNewUser(user);
-            com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(createdUser);
-            ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
-
-            response = ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
-        }catch (InvalidEmailException invalidEmailException) {
-            invalidEmailException.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", invalidEmailException.getMessage());
-            errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
-
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-        }catch (MissingFieldException missingFieldException) {
-            missingFieldException.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", missingFieldException.getMessage());
-            errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
-
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-        }catch (Exception exception){
-            exception.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", exception.getMessage());
-            errorMap.put("date", LocalDate.now());
-
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
-        }
-
-        return response;
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @PostMapping("/deactivate")
@@ -137,39 +85,11 @@ public class UserController {
         log.info("UserController.deactivateUser()");
         log.info("user : " + user.toString());
 
-        ResponseEntity response = null;
-        Map<String, Object> errorMap = new HashMap<>();
+        User deactivatedUser = userService.deactivateUser(user);
 
-        try{
-            User deactivatedUser = userService.deactivateUser(user);
+        com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(deactivatedUser);
+        ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
 
-            com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(deactivatedUser);
-            ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
-
-            response = ResponseEntity.ok(apiResponse);
-        }catch(UserException userException) {
-            userException.printStackTrace();
-
-            errorMap.put("error", userException.getMessage());
-            errorMap.put("date", LocalDate.now());
-
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-        }catch (MissingFieldException missingFieldException) {
-            missingFieldException.printStackTrace();
-
-            errorMap.put("error", missingFieldException.getMessage());
-            errorMap.put("date", LocalDate.now());
-
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-        }catch (Exception ex) {
-            ex.printStackTrace();
-
-            errorMap.put("error", ex.getMessage());
-            errorMap.put("date", LocalDate.now());
-
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
-        }
-
-        return response;
+        return ResponseEntity.ok(apiResponse);
     }
 }

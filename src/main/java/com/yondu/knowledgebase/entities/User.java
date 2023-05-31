@@ -51,6 +51,16 @@ public class User implements UserDetails {
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> role = new HashSet<>();
 
+    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Directory> createdDirectories;
+
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    private Set<Notification> notifications = new HashSet<>();
+
+    public User(long id) {
+        this.id = id;
+    }
+
     public User(UserDTO.GeneralInfo user) {
         this.id = user.id();
         this.username = user.username();
@@ -152,6 +162,10 @@ public class User implements UserDetails {
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
         this.directoryUserAccesses = directoryUserAccesses;
+    }
+
+    public Set<Notification> getNotifications() {
+        return notifications;
     }
 
     @Override

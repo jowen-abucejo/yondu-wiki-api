@@ -8,8 +8,8 @@ import com.yondu.knowledgebase.entities.DirectoryUserAccess;
 public class DirectoryUserAccessDTOMapper {
     public static DirectoryUserAccessDTO.BaseResponse mapToBaseResponse(DirectoryUserAccess directoryUserAccess) {
         return new DirectoryUserAccessDTO.BaseResponse(directoryUserAccess.getId(),
-                UserDTOMapper.mapToBaseResponse(directoryUserAccess.getUser()),
+                UserDTOMapper.mapToShortResponse(directoryUserAccess.getUser()),
                 PermissionDTOMapper.mapToBaseResponse(directoryUserAccess.getPermission()),
-                DirectoryDTOMapper.mapToBaseResponse(directoryUserAccess.getDirectory()));
+                DirectoryDTOMapper.mapToShortResponse(directoryUserAccess.getDirectory()));
     }
 }

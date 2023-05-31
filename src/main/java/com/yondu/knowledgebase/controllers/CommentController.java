@@ -1,6 +1,6 @@
 package com.yondu.knowledgebase.controllers;
 
-import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
+import com.yondu.knowledgebase.DTO.Comment.CommentDTO;
 import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.services.CommentService;
@@ -18,8 +18,9 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam Long userId, @RequestParam(required = false) Long commentParentId) {
-        Comment createdComment = commentService.createComment(commentRequest, userId, commentParentId);
+    public ResponseEntity<?> createComment(@RequestBody CommentDTO commentRequest, @RequestParam(required = false) Long commentParentId) {
+
+        Comment createdComment = commentService.createComment(commentRequest, commentParentId);
 
         if (createdComment != null) {
             return ResponseEntity.status(HttpStatus.CREATED).body(createdComment);
@@ -27,10 +28,17 @@ public class CommentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(commentRequest);
         }
     }
+    @PostMapping("/sample")
+    public ResponseEntity<?> createCommentSample(@RequestBody CommentDTO commentRequest, @RequestParam(required = false) Long commentParentId) {
+
+        System.out.println(commentRequest.getUserId() + " <-----------------------------------");
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(commentRequest);
+    }
 
     @GetMapping
-    public CommentResponseDTO getAllComments() {
-        return commentService.getAllComments();
+    public CommentResponseDTO getAllComments( @RequestParam Long pageId) {
+        return commentService.getAllComments(pageId);
     }
 
     @GetMapping ("/{commentId}")

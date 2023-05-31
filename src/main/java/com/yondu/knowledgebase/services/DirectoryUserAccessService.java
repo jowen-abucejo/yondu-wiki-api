@@ -6,8 +6,11 @@ import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.DirectoryUserAccess;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.NotFoundException;
+import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
+import com.yondu.knowledgebase.exceptions.RequestValidationException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -28,31 +31,41 @@ public class DirectoryUserAccessService {
     }
 
     public DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
-        Directory directory = directoryRepository.findById(directoryId)
-                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+        if (request.email() == null || request.email().isEmpty() || request.permissionId() == null) {
+            throw new RequestValidationException("Email and Permission ID are required");
+        }
 
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(()-> new NotFoundException("User not found with ID: "+ request.userId()));
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with email: "+ request.email()));
 
         Permission permission = permissionRepository.findById(request.permissionId())
-                .orElseThrow(()-> new NotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
 
-        DirectoryUserAccess newDirectoryUserAccess = new DirectoryUserAccess(directory, user, permission);
-        return DirectoryUserAccessDTOMapper.mapToBaseResponse(directoryUserAccessRepository.save(newDirectoryUserAccess));
+        Directory directory = directoryRepository.findById(directoryId)
+                .orElseThrow(()-> new ResourceNotFoundException("Directory not found with ID: "+ directoryId));
+
+        if (directoryUserAccessRepository.existsByUserAndPermissionAndDirectory(user, permission, directory)) {
+            throw new DuplicateResourceException("Directory User Access already exists");
+        }
+
+        DirectoryUserAccess savedDirectoryUserAccess = directoryUserAccessRepository.save(new DirectoryUserAccess(directory, user, permission));
+        return DirectoryUserAccessDTOMapper.mapToBaseResponse(savedDirectoryUserAccess);
     }
 
     public List<DirectoryUserAccessDTO.BaseResponse> getAllDirectoryUserAccess(Long directoryId) {
-        List<DirectoryUserAccess> directoryUserAccesses = directoryUserAccessRepository.findAll();
-        return directoryUserAccesses.stream().filter((data)->data.getDirectory().getId().equals(directoryId)).map(DirectoryUserAccessDTOMapper::mapToBaseResponse)
+        List<DirectoryUserAccess> directoryUserAccesses = directoryUserAccessRepository.findByDirectoryId(directoryId);
+
+        return directoryUserAccesses.stream()
+                .map(DirectoryUserAccessDTOMapper::mapToBaseResponse)
                 .collect(Collectors.toList());
     }
 
-    public void removeDirectoryUserAccess(Long directoryId, Long id) {
+    public void removeDirectoryUserAccess(Long directoryId, Long directoryUserAccessId) {
         Directory directory = directoryRepository.findById(directoryId)
-                .orElseThrow(()-> new NotFoundException("Directory not found with ID: "+ directoryId));
+                .orElseThrow(()-> new ResourceNotFoundException("Directory not found with ID: "+ directoryId));
 
-        DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findById(id)
-                .orElseThrow(()-> new NotFoundException("Directory User Access not found"));
+        DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findById(directoryUserAccessId)
+                .orElseThrow(()-> new ResourceNotFoundException("Directory User Access not found"));
 
         directoryUserAccessRepository.delete(directoryUserAccess);
     }

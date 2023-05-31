@@ -19,14 +19,14 @@ public class Directory {
 
     private String description;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private User createdBy;
+
     @Column(nullable = false)
     private LocalDate dateCreated;
 
     @Column(nullable = false)
     private LocalDate dateModified;
-
-    @Column(nullable = false, unique = true)
-    private String fullPath;
 
     @ManyToOne(fetch = FetchType.EAGER)
     private Directory parent;
@@ -37,19 +37,22 @@ public class Directory {
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
-    public Directory() {
-    }
+    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<Page> pages;
+
+    public Directory() {}
 
     // creation of subdirectories
-    public Directory(String name, String description, Directory parent) {
+    public Directory(String name, String description, Directory parent, User createdBy) {
         this.name = name;
         this.description = description;
+        this.createdBy = createdBy;
         this.dateCreated = LocalDate.now();
         this.dateModified = LocalDate.now();
-        this.fullPath = traverseDirectory(parent) + "/" + this.name;
         this.parent = parent;
         this.subDirectories = new HashSet<>();
         this.directoryUserAccesses = new HashSet<>();
+        this.pages = new HashSet<>();
     }
 
     public Long getId() {
@@ -100,13 +103,6 @@ public class Directory {
         this.parent = parent;
     }
 
-    public String getFullPath() {
-        return fullPath;
-    }
-
-    public void setFullPath(String fullPath) {
-        this.fullPath = fullPath;
-    }
 
     public Set<Directory> getSubDirectories() {
         return subDirectories;
@@ -116,41 +112,28 @@ public class Directory {
         this.subDirectories = subDirectories;
     }
 
+    public Set<Page> getPages() {
+        return pages;
+    }
+
+    public void setPages(Set<Page> pages) {
+        this.pages = pages;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
 
     public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
-        Directory current = this;
-        Set<DirectoryUserAccess> accesses;
-        do {
-            accesses = current.directoryUserAccesses;
-            current = current.getParent();
-        } while ((accesses == null || accesses.isEmpty()) && current != null);
-        return accesses;
+        return this.directoryUserAccesses;
     }
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
         this.directoryUserAccesses = directoryUserAccesses;
-    }
-
-    public boolean userHasAccess(User user, Permission permission) {
-        Set<DirectoryUserAccess> userAccesses = getDirectoryUserAccesses();
-        if (userAccesses != null) {
-            List<Permission> userDirectoryPermission = userAccesses.stream()
-                    .filter(access -> access.getUser().equals(user))
-                    .map(DirectoryUserAccess::getPermission)
-                    .toList();
-
-            if (!userDirectoryPermission.isEmpty()) {
-                return userDirectoryPermission.contains(permission);
-            }
-        }
-        return false;
-    }
-
-    public static String traverseDirectory(Directory directory) {
-        if (directory.getParent() == null) {
-            return directory.getName();
-        }
-        return traverseDirectory(directory.getParent()) + "/" + directory.getName();
     }
 
     @Override
