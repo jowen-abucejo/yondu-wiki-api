@@ -53,6 +53,10 @@ public class RoleService {
             throw new RequestValidationException("Role already exists");
         }
 
+        if(roleDTO.getPermission().isEmpty()){
+            throw new ResourceNotFoundException("Role need at least 1 or more permission");
+        }
+
         Set<Permission> permissions = roleDTO.getPermission().stream()
                 .map(permissionDTO -> permissionRepository.findById(permissionDTO.id()).orElse(null))
                 .collect(Collectors.toSet());
