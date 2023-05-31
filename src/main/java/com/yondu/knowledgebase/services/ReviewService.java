@@ -66,8 +66,9 @@ public class ReviewService {
 
     public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
 
         if (review.getStatus().toUpperCase().contains("APPROVED") || review.getStatus().toUpperCase().contains("DISAPPROVE")) {

@@ -65,7 +65,7 @@ public class RequestFilter extends OncePerRequestFilter {
                 ex.printStackTrace();
             }
 
-            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(email, null, user.getAuthorities());
+            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
             userToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(userToken);
         }
