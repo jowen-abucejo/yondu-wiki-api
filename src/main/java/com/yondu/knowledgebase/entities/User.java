@@ -1,10 +1,8 @@
 package com.yondu.knowledgebase.entities;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
 
-import java.sql.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,6 +54,9 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
+
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    private Set<UserGroup> userGroup = new HashSet<>();
 
     public User(long id) {
         this.id = id;
