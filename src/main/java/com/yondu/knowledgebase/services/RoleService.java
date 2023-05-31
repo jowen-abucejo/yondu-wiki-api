@@ -8,6 +8,9 @@ import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,10 +33,11 @@ public class RoleService {
         this.userRepository = userRepository;
     }
 
-    public List<RoleDTO> getAllRoles() {
-        List<Role> roles = roleRepository.findAll();
+    public List<RoleDTO> getAllRoles(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Role> roles = roleRepository.findAll(pageable);
 
-        return roles.stream()
+        return roles.getContent().stream()
                 .map(RoleDTO::new)
                 .collect(Collectors.toList());
     }
