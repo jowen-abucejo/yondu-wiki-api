@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -41,11 +42,11 @@ public class PageVersion {
     @JoinColumn(name = "modified_by", referencedColumnName = "id")
     private User modifiedBy;
 
-    @OneToMany(mappedBy = "pageVersion")
+    @OneToMany(mappedBy = "pageVersion", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
 
     @ManyToOne
-    @JoinColumn(name = "page_id", referencedColumnName = "id")
+    @JoinColumn(name = "page_id", referencedColumnName = "id", updatable = false, nullable = false)
     private Page page;
 
     /**
@@ -121,13 +122,6 @@ public class PageVersion {
      */
     public Page getPage() {
         return page;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Long id) {
-        this.id = id;
     }
 
     /**

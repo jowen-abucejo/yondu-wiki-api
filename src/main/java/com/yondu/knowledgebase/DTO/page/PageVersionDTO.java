@@ -1,28 +1,31 @@
 package com.yondu.knowledgebase.DTO.page;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.yondu.knowledgebase.DTO.page.UserDTO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 
-// import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class PageVersionDTO {
     @JsonInclude(Include.NON_EMPTY)
     private Long id;
 
-    // @NotBlank(message = "Page title cannot be empty.")
+    @NotBlank(message = "Page title cannot be empty.")
     @JsonInclude(Include.ALWAYS)
     private String title;
 
     @JsonInclude(Include.ALWAYS)
+
     private String content;
 
     @JsonInclude(Include.ALWAYS)
-    @JsonProperty(value = "modified_at")
+    @JsonProperty(value = "last_edited_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateModified;
 
     @JsonInclude(Include.NON_EMPTY)
@@ -39,7 +42,9 @@ public class PageVersionDTO {
      * @param title
      * @param content
      */
-    public PageVersionDTO(String title, String content) {
+    @JsonCreator(mode = Mode.PROPERTIES)
+    public PageVersionDTO(@JsonProperty(value = "title") String title,
+            @JsonProperty(value = "content") String content) {
         this.title = title;
         this.content = content;
     }

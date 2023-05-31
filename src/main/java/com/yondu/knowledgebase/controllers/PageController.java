@@ -1,24 +1,23 @@
 package com.yondu.knowledgebase.controllers;
 
-import java.util.List;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.services.PageService;
 
+import jakarta.validation.Valid;
+
 @RestController
-@RequestMapping(path = "pages")
 public class PageController {
 
     private final PageService pageService;
@@ -30,48 +29,66 @@ public class PageController {
         this.pageService = pageService;
     }
 
-    @GetMapping(path = "{id}")
+    @GetMapping(path = "pages/{id}")
     public PageDTO getPage(@PathVariable Long id) {
         return pageService.findById(id);
     }
 
-    // @GetMapping(path = "directories/{directory_id}/pages/{page_id}")
-    // public PageDTO getPage(@PathVariable(name = "directory_id") Long directoryId,
-    // @PathVariable(name = "page_id") Long pageId) {
-    // return pageService.findByDirectoryIdAndId(directoryId, pageId);
-    // }
-
-    @GetMapping
-    public PaginatedResponse<PageDTO> getAllPages(
-            @RequestParam(defaultValue = "", name = "search") String searchKey,
+    @GetMapping(path = "pages/search")
+    public PaginatedResponse<PageDTO> searchPages(
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "50", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sort_by") String[] sortBy) {
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
         return pageService.findAll(searchKey, pageNumber, pageSize, sortBy);
     }
 
-    @PostMapping
-    public PageDTO savePageVersion() {
-        return PageDTO.builder().build();
+    @GetMapping(path = "pages")
+    public PaginatedResponse<PageDTO> getAllPagesWithVersions(
+            @RequestParam(defaultValue = "", name = "categories") String[] categories,
+            @RequestParam(defaultValue = "", name = "tags") String[] tags,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "50", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+
+        return pageService.findAllVersionsByTagsAndCategories(categories, tags, pageNumber, pageSize, sortBy);
     }
 
-    // public CustomPage<UserDto> getUsers(
-    // @CurrentSecurityContext(expression = "authentication.getName()") String
-    // currentUser,
-    // @RequestParam(required = false) String role,
-    // @RequestParam(defaultValue = "1") int page,
-    // @RequestParam(defaultValue = "10") int size,
-    // @RequestParam(defaultValue = "email,asc") String[] sortBy) {
-    // int retrievedPage = Math.max(1, page);
-    // Pageable paging = PageRequest.of(retrievedPage - 1, size,
-    // Sort.by(MultipleSort.sortWithOrders(sortBy)));
+    @PostMapping(path = "directories/{id}/pages")
+    public PageDTO saveNewPage(@PathVariable(name = "id") Long directoryId,
+            @RequestBody @Valid PageVersionDTO pageVersionDTO) {
+        return pageService.createNewPage(directoryId, pageVersionDTO);
+    }
 
-    // Page<User> results = this.userService.findAllExceptCurrentUser(currentUser,
-    // role, paging);
-    // List<UserDto> userRequestList = results.getContent().stream()
-    // .map(user -> new UserDto(user)).collect(Collectors.toList());
-    // return new CustomPage<UserDto>(userRequestList, retrievedPage, size,
-    // results.getTotalElements());
-    // }
+    @PutMapping(path = "pages/{pageId}/versions/{versionId}")
+    public PageDTO updatePageVersion(@PathVariable Long pageId, @PathVariable Long versionId,
+            @RequestBody @Valid PageVersionDTO pageVersionDTO) {
+        return pageService.updatePageDraft(pageId, versionId, pageVersionDTO);
+    }
+
+    @DeleteMapping(path = "pages/{pageId}/delete")
+    public PageDTO deletePage(@PathVariable Long pageId) {
+        return pageService.deletePage(pageId);
+    }
+
+    @PatchMapping(path = "pages/{pageId}/archive")
+    public PageDTO archivePage(@PathVariable Long pageId) {
+        return pageService.updateActiveStatus(pageId, false);
+    }
+
+    @PatchMapping(path = "pages/{pageId}/unarchive")
+    public PageDTO unArchivePage(@PathVariable Long pageId) {
+        return pageService.updateActiveStatus(pageId, true);
+    }
+
+    @PatchMapping(path = "pages/{pageId}/settings/comments-off")
+    public PageDTO turnOffCommenting(@PathVariable Long pageId) {
+        return pageService.updateCommenting(pageId, false);
+    }
+
+    @PatchMapping(path = "pages/{pageId}/settings/comments-on")
+    public PageDTO turnOnCommenting(@PathVariable Long pageId) {
+        return pageService.updateCommenting(pageId, true);
+    }
 }

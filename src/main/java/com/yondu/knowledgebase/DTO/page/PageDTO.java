@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,6 +16,7 @@ public class PageDTO {
 
     @JsonInclude(Include.ALWAYS)
     @JsonProperty(value = "created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateCreated;
 
     @JsonInclude(Include.ALWAYS)
@@ -25,14 +27,20 @@ public class PageDTO {
     private Boolean active;
 
     @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "commenting_on")
+    private Boolean allowComment;
+
+    @JsonInclude(Include.NON_NULL)
     private Boolean deleted;
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "locked_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockStart;
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "unlocked_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockEnd;
 
     @JsonInclude(Include.NON_NULL)
@@ -60,6 +68,7 @@ public class PageDTO {
         this.author = builder.author;
         this.active = builder.active;
         this.deleted = builder.deleted;
+        this.allowComment = builder.allowComment;
         this.lockStart = builder.lockStart;
         this.lockEnd = builder.lockEnd;
         this.lockedBy = builder.lockedBy;
@@ -154,6 +163,7 @@ public class PageDTO {
         private UserDTO author;
         private Boolean active;
         private Boolean deleted;
+        private Boolean allowComment;
         private LocalDateTime lockStart;
         private LocalDateTime lockEnd;
         private UserDTO lockedBy;
@@ -190,6 +200,11 @@ public class PageDTO {
 
         public PageDTOBuilder deleted(Boolean deleted) {
             this.deleted = deleted;
+            return this;
+        }
+
+        public PageDTOBuilder allowComment(Boolean allowComment) {
+            this.allowComment = allowComment;
             return this;
         }
 
