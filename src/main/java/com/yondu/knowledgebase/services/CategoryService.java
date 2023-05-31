@@ -43,4 +43,8 @@ public class CategoryService {
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
     }
+
+    public boolean isCategoryNameTaken(String categoryName) {
+        return categoryRepository.existsByName(categoryName);
+    }
 }
