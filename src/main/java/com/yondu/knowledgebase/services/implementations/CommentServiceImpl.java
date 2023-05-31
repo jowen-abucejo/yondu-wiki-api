@@ -43,7 +43,14 @@ public class CommentServiceImpl implements CommentService {
         comment.setUser(user);
 
         if(commentRequestDTO.getCommentParentId() != null){
-            comment.setParentCommentId(commentRequestDTO.getCommentParentId());
+
+            boolean commentParentIsExist = commentRepository.existsById(commentRequestDTO.getCommentParentId());
+            if(commentParentIsExist){
+                comment.setParentCommentId(commentRequestDTO.getCommentParentId());
+            }else{
+                throw new ResourceNotFoundException(String.format("Comment ID not found: %d", commentRequestDTO.getCommentParentId()));
+            }
+
         }
         commentRepository.save(comment);
         return commentRequestDTO;
