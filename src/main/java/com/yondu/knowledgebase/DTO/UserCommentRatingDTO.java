@@ -1,19 +1,23 @@
 package com.yondu.knowledgebase.DTO;
 
+import com.yondu.knowledgebase.entities.UserCommentRating;
+
 public class UserCommentRatingDTO {
     private String rating;
     private Long userId;
     private Long commentId;
     private int totalCommentRating;
 
-    public UserCommentRatingDTO(){};
+    public UserCommentRatingDTO(){
 
-    public UserCommentRatingDTO(Long userId, Long commentId, String ratingValue, int totalCommentRating) {
+    }
+    public UserCommentRatingDTO(String rating, Long userId, Long commentId, int totalCommentRating) {
         this.userId = userId;
         this.commentId = commentId;
-        this.rating = ratingValue;
+        this.rating = rating;
         this.totalCommentRating = totalCommentRating;
     }
+
 
     public String getRating() {
         return rating;

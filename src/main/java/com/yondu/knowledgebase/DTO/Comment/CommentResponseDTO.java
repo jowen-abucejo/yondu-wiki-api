@@ -7,7 +7,6 @@ import java.util.List;
 
 public class CommentResponseDTO {
     private List<CommentRequestDTO> data;
-    private Response response;
     private Long pageId;
 
     public Long getPageId() {
@@ -34,17 +33,13 @@ public class CommentResponseDTO {
         this.totalComment = totalComment;
     }
 
-    public Response getResponse() {return response; }
 
     // Constructor
 
-    public void setResponse(Response response) { this.response = response; }
-
     public CommentResponseDTO() {}
-    public CommentResponseDTO(List<CommentRequestDTO> data, Response response, int totalComment) {
+    public CommentResponseDTO(List<CommentRequestDTO> data, int totalComment) {
         this.data = data;
         this.totalComment = totalComment;
-        this.response = response;
     }
 }
 
