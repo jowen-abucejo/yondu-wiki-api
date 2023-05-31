@@ -133,3 +133,4 @@ VALUES (CURRENT_TIMESTAMP, 1, true, false, null, null, null, 1);
 INSERT INTO page_version (title, content, date_modified, modified_by, page_id)
 VALUES ('Page Version Title', 'Page Version Content', CURRENT_TIMESTAMP, 1, (SELECT id FROM page ORDER BY id DESC LIMIT 1));
 
+INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");

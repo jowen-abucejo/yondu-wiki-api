@@ -48,20 +48,20 @@ public class DirectoryController {
 
     //  DIRECTORY USER ACCESS
     @PostMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<?>> addDirectoryUserAccess(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessDTO.AddRequest request) {
-        DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess = directoryUserAccessService.addDirectoryUserAccess(directoryId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(addDirectoryUserAccess, "Directory User Access added successfully"));
+    public ResponseEntity<ApiResponse<?>> addDirectoryUserRights(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessDTO.AddRequest request) {
+        DirectoryUserAccessDTO.BaseResponse data = directoryUserAccessService.addDirectoryUserRights(directoryId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory User Rights added successfully"));
     }
 
     @GetMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<List<?>>> getAllDirectoryUserAccess(@PathVariable Long directoryId) {
-        List<DirectoryUserAccessDTO.BaseResponse> userAccesses = directoryUserAccessService.getAllDirectoryUserAccess(directoryId);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userAccesses, "Data retrieved successfully"));
+    public ResponseEntity<ApiResponse<List<?>>> getAllDirectoryUserRights(@PathVariable Long directoryId) {
+        List<DirectoryUserAccessDTO.BaseResponse> data = directoryUserAccessService.getAllDirectoryUserRights(directoryId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Data retrieved successfully"));
     }
 
     @DeleteMapping("/{directoryId}/permissions/{userAccessId}")
     public ResponseEntity<ApiResponse<?>> removeDirectoryUserAccess(@PathVariable Long directoryId, @PathVariable Long userAccessId) {
-        directoryUserAccessService.removeDirectoryUserAccess(directoryId, userAccessId);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Access removed successfully"));
+        directoryUserAccessService.removeDirectoryUserRights(directoryId, userAccessId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Rights removed successfully"));
     }
 }

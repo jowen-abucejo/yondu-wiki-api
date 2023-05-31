@@ -7,10 +7,8 @@ import java.util.Collection;
 import java.util.Set;
 
 public class GroupDTO {
-    public record BaseResponse(String name, String description, Set<UserDTO.ShortResponse> users, Set<RightsDTO.BaseResponse> rights) {}
-    public record GeneralResponse(String name, String description, Set<UserDTO.ShortRequest> users) {}
-    public record UserGroupRequest(String name, String description, Set<UserDTO.ShortRequest> users) {}
+    public record BaseResponse(Long id, String name, String description, Set<UserDTO.ShortResponse> users, Set<RightsDTO.BaseResponse> rights) {}
+    public record GroupRequest(String name, String description) {}
     public record EditUsersRequest(Set<UserDTO.ShortRequest> users){}
-    public record EditGroupRequest(String name, String description){}
     public record AddPermission(Long permissionId){}
 }
