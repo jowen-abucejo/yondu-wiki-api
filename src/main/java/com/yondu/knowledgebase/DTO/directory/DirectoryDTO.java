@@ -21,4 +21,8 @@ public class DirectoryDTO {
                               LocalDate dateCreated,
                               LocalDate dateModified,
                               Set<BaseResponse> subdirectories){}
+
+    public record ShortResponse(Long id,
+                               String name,
+                               String description){}
 }

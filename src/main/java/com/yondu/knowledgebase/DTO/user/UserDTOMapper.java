@@ -10,4 +10,8 @@ public class UserDTOMapper {
     public static UserDTO.GeneralResponse mapToGeneralResponse(User user) {
         return new UserDTO.GeneralResponse(user.getId(), user.getUsername(), user.getEmail(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt());
     }
+
+    public static UserDTO.ShortResponse mapToShortResponse(User user) {
+        return new UserDTO.ShortResponse(user.getId(), user.getEmail(), user.getUsername(), user.getFirstName(), user.getLastName());
+    }
 }

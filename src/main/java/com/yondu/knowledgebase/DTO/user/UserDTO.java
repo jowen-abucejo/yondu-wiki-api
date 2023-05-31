@@ -7,4 +7,5 @@ public class UserDTO {
     public record GeneralResponse(Long id, String email, String username, String firstName, String lastName, String status, LocalDate createdAt) {}
     public record BaseResponse(Long id, String email, String username, String firstName, String lastName, String status, LocalDate createdAt) {}
     public record LoginRequest(String email, String password) {}
+    public record ShortResponse(Long id, String email, String username, String firstName, String lastName){}
 }
