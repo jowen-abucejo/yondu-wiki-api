@@ -55,8 +55,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
 
-    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
-    private Set<UserGroup> userGroup = new HashSet<>();
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
+    private Set<Group> group = new HashSet<>();
 
     public User(long id) {
         this.id = id;

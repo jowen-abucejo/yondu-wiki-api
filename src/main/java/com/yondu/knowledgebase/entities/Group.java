@@ -2,10 +2,7 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
-@Entity(name="groups")
+@Entity(name="cluster")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,10 +11,6 @@ public class Group {
     private String groupName;
 
     private String description;
-
-    @OneToMany(mappedBy="group", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
-    private Set<UserGroup> userGroup = new HashSet<>();
-
 
     public Group() {
     }
@@ -45,8 +38,7 @@ public class Group {
         return "Group{" +
                 "id=" + id +
                 ", groupName='" + groupName + '\'' +
-                ", description='" + description + '\'' +
-                ", userGroup=" + userGroup +
+                ", description='" + description  +
                 '}';
     }
 }
