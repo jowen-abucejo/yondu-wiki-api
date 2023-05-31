@@ -59,6 +59,10 @@ public class User implements UserDetails {
     @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
     private Set<Group> group = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "user_rights", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
+    private Set<Rights> rights;
+
     public User(long id) {
         this.id = id;
     }
@@ -72,6 +76,7 @@ public class User implements UserDetails {
         this.lastName = user.lastName();
         this.status = user.status();
         this.createdAt = user.createdAt();
+        this.rights = new HashSet<>();
     }
 
     public User(Long id, String username, String email, String password, String firstName, String lastName,
@@ -85,6 +90,7 @@ public class User implements UserDetails {
         this.status = status;
         this.createdAt = createdAt;
         this.role = role;
+        this.rights = new HashSet<>();
     }
 
     public User() {
@@ -168,6 +174,14 @@ public class User implements UserDetails {
 
     public Set<Notification> getNotifications() {
         return notifications;
+    }
+
+    public Set<Rights> getRights() {
+        return rights;
+    }
+
+    public void setRights(Set<Rights> rights) {
+        this.rights = rights;
     }
 
     @Override

@@ -1,10 +1,9 @@
 package com.yondu.knowledgebase.entities;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"directory_id", "permission_id"})})
 public class DirectoryRights extends Rights{
     @ManyToOne
     @JoinColumn(name = "directory_id")
@@ -14,16 +13,31 @@ public class DirectoryRights extends Rights{
     @JoinColumn(name = "permission_id")
     private Permission permission;
 
+    public DirectoryRights() {}
+
+    public DirectoryRights(Directory directory, Permission permission) {
+        this.directory = directory;
+        this.permission = permission;
+    }
+
+    public Directory getDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(Directory directory) {
+        this.directory = directory;
+    }
+
+    public Permission getPermission() {
+        return permission;
+    }
+
+    public void setPermission(Permission permission) {
+        this.permission = permission;
+    }
+
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-        DirectoryRights other = (DirectoryRights) obj;
-        //Compare fields for equality
-        return this.id.equals(other.id);
+        return super.equals(obj);
     }
 }

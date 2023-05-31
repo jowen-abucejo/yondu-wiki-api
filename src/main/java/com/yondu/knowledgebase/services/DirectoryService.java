@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.DirectoryRepository;
+import com.yondu.knowledgebase.repositories.DirectoryRightsRepository;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,25 +24,24 @@ public class DirectoryService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
+    private final DirectoryRightsRepository directoryRightsRepository;
 
-    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository) {
+    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository, DirectoryRightsRepository directoryRightsRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
+        this.directoryRightsRepository = directoryRightsRepository;
     }
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
         Long permissionId = 19L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
-
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
 
-        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -57,14 +58,11 @@ public class DirectoryService {
         Long permissionId = 16L;
         Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
-
-        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
-        if (!hasDirectoryUserAccess(currentUser, parent, permission)) {
+        if (!hasDirectoryUserRights(currentUser, parent, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -73,6 +71,18 @@ public class DirectoryService {
         }
 
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser));
+        List<DirectoryRights> savedRights = directoryRightsRepository
+                .saveAll(permissionRepository
+                        .findAllByCategory("Directory")
+                        .stream()
+                        .map(obj -> directoryRightsRepository.save(new DirectoryRights(savedDirectory, obj))).toList());
+
+        Set<Rights> updatedRights = new HashSet<>(currentUser.getRights());
+        updatedRights.addAll(savedRights);
+
+        currentUser.setRights(updatedRights);
+        userRepository.save(currentUser);
+
         return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
 
@@ -85,15 +95,12 @@ public class DirectoryService {
         Long permissionId = 17L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
-
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
         Directory parent = directory.getParent();
 
-        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -115,14 +122,11 @@ public class DirectoryService {
         Long permissionId = 18L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
-
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Directory not found: " + id));
 
-        if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
+        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
 
@@ -158,23 +162,12 @@ public class DirectoryService {
         return existingDirectory != null;
     }
 
-    public boolean hasDirectoryUserAccess(User user, Directory directory, Permission desiredPermission) {
-        Set<Permission> userPermissions = getUserPermissions(user, directory);
-        System.out.println(userPermissions.contains(desiredPermission));
-        return userPermissions.contains(desiredPermission);
+    public boolean hasDirectoryUserRights(User user, Directory directory, Permission desiredPermission) {
+        return user.getRights().stream().anyMatch(rights ->
+            ((DirectoryRights) rights).getDirectory().equals(directory) &&
+                    ((DirectoryRights) rights).getPermission().equals(desiredPermission)
+        );
     }
 
-    private Set<Permission> getUserPermissions(User user, Directory directory) {
-        return getDirectoryUserAccess(directory).stream()
-                .map(access -> access.getUser().equals(user) ? access.getPermission(): null)
-                .collect(Collectors.toSet());
-    }
-
-    public Set<DirectoryUserAccess> getDirectoryUserAccess(Directory directory) {
-        if(directory == null) {
-            return new HashSet<>();
-        }
-        return directory.getDirectoryUserAccesses() == null || directory.getDirectoryUserAccesses().isEmpty() ? getDirectoryUserAccess(directory.getParent()):directory.getDirectoryUserAccesses();
-    }
 
 }
