@@ -116,7 +116,7 @@ public class PageServiceImpl implements PageService {
         var currentTime = LocalDateTime.now();
         var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        boolean isSameUser = page.getLockedBy().getId() != currentUser.getId();
+        boolean isSameUser = page.getLockedBy().getId().equals(currentUser.getId());
         boolean isPageUnlocked = currentTime.isAfter(page.getLockEnd());
 
         // checked if page can be edited by current user
