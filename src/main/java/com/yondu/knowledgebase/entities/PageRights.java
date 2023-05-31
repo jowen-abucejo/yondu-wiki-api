@@ -9,4 +9,9 @@ public class PageRights extends Rights{
     @ManyToOne
     @JoinColumn(name = "page_id")
     private Page page;
+
+    @ManyToOne
+    @JoinColumn(name = "permission_id")
+    private Permission permisison;
+
 }

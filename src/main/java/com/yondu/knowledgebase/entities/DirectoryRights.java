@@ -9,4 +9,9 @@ public class DirectoryRights extends Rights{
     @ManyToOne
     @JoinColumn(name = "directory_id")
     private Directory directory;
+
+    @ManyToOne
+    @JoinColumn(name = "permission_id")
+    private Permission permisison;
+
 }
