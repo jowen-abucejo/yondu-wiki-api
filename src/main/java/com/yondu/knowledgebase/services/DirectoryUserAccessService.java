@@ -31,12 +31,12 @@ public class DirectoryUserAccessService {
     }
 
     public DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
-        if (request.userId() == null || request.permissionId() == null) {
-            throw new RequestValidationException("User ID and Permission ID are required");
+        if (request.email() == null || request.email().isEmpty() || request.permissionId() == null) {
+            throw new RequestValidationException("Email and Permission ID are required");
         }
 
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(()-> new ResourceNotFoundException("User not found with ID: "+ request.userId()));
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(()-> new ResourceNotFoundException("User not found with email: "+ request.email()));
 
         Permission permission = permissionRepository.findById(request.permissionId())
                 .orElseThrow(()-> new ResourceNotFoundException("Directory Permission not found with ID: "+ request.permissionId()));
