@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 public class GroupDTOMapper {
     public static GroupDTO.BaseResponse mapToBaseResponse(Group group) {
         return new GroupDTO.BaseResponse(
+                group.getId(),
                 group.getName(),
                 group.getDescription(),
                 group.getUsers().stream().map(UserDTOMapper::mapToShortResponse).collect(Collectors.toSet()),

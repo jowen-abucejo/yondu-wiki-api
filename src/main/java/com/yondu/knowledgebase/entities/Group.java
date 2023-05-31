@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity(name="cluster")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name"}))
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,8 +27,7 @@ public class Group {
     public Group() {
     }
 
-    public Group(Long id, String name, String description) {
-        this.id = id;
+    public Group(String name, String description) {
         this.name = name;
         this.description = description;
         this.users = new HashSet<>();
@@ -38,20 +38,40 @@ public class Group {
         return id;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
         return description;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Set<User> getUsers() {
         return users;
     }
 
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
     public Set<Rights> getRights() {
         return rights;
+    }
+
+    public void setRights(Set<Rights> rights) {
+        this.rights = rights;
     }
 
     @Override

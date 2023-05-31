@@ -31,7 +31,7 @@ public class DirectoryUserAccessService {
         this.permissionRepository = permissionRepository;
     }
 
-    public DirectoryUserAccessDTO.BaseResponse addDirectoryUserAccess(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
+    public DirectoryUserAccessDTO.BaseResponse addDirectoryUserRights(Long directoryId, DirectoryUserAccessDTO.AddRequest request) {
         if (hasManageDirectoryPermission()) {
             throw new AccessDeniedException();
         }
@@ -57,7 +57,7 @@ public class DirectoryUserAccessService {
         return DirectoryUserAccessDTOMapper.mapToBaseResponse(savedDirectoryUserAccess);
     }
 
-    public List<DirectoryUserAccessDTO.BaseResponse> getAllDirectoryUserAccess(Long directoryId) {
+    public List<DirectoryUserAccessDTO.BaseResponse> getAllDirectoryUserRights(Long directoryId) {
         if (hasManageDirectoryPermission()) {
             throw new AccessDeniedException();
         }
@@ -69,7 +69,7 @@ public class DirectoryUserAccessService {
                 .collect(Collectors.toList());
     }
 
-    public void removeDirectoryUserAccess(Long directoryId, Long directoryUserAccessId) {
+    public void removeDirectoryUserRights(Long directoryId, Long directoryUserAccessId) {
         if (hasManageDirectoryPermission()) {
             throw new AccessDeniedException();
         }
