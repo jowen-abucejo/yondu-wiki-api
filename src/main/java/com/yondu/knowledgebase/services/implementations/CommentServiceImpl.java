@@ -29,9 +29,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public Comment createComment(CommentDTO commentRequestDTO, Long commentParentId) {
-        System.out.println("---------here: " + commentRequestDTO.getUserId());
-        System.out.println("---------here: " + commentRequestDTO.getPageId());
+    public CommentDTO createComment(CommentDTO commentRequestDTO, Long commentParentId) {
 
         User user = userRepository.findById(commentRequestDTO.getUserId()).orElse(null);
         Page page = pageRepository.findByIdAndActive(commentRequestDTO.getPageId(), true).orElse(null);
@@ -43,9 +41,6 @@ public class CommentServiceImpl implements CommentService {
 
         comment.setPage(page);
 
-//        TO DO ---- Need PageRepository and  Rating
-//        comment.setPage(commentReqDTO.getPageId());
-
         if (user == null) {
             throw new RuntimeException("User not found");
         }else{
@@ -54,7 +49,8 @@ public class CommentServiceImpl implements CommentService {
         if(commentRequestDTO.getCommentParentId() != null){
             comment.setParentCommentId(commentRequestDTO.getCommentParentId());
         }
-        return commentRepository.save(comment);
+        commentRepository.save(comment);
+        return commentRequestDTO;
     }
 
     @Override
@@ -78,7 +74,6 @@ public class CommentServiceImpl implements CommentService {
         responseDTO.setTotalComment(getTotalComments());
         responseDTO.setPageId(pageId);
 
-
         // Temp Response message
         Response response = new Response();
         response.setCode(200);
@@ -97,7 +92,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public Comment getComment (Long commentId){
-        Comment retieveComment = commentRepository.findById(commentId).orElseThrow(null);
-        return retieveComment;
+        return commentRepository.findById(commentId).orElseThrow(null);
     }
 }

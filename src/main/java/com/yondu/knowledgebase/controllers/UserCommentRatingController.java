@@ -78,17 +78,17 @@ public class UserCommentRatingController {
         }
     }
 
-    @PutMapping ("/update/{ratingId}")
-    public ResponseEntity <ApiResponse<?>> updateRating (@RequestBody String rating, @PathVariable Long ratingId){
-        try{
-            UserCommentRating userCommentRating = userCommentRatingService.updateRating(rating, ratingId);
-            if(userCommentRating == null)
-                throw new NotFoundException("Rating not found");
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRating,"Rating successfully updated"));
-        }catch (BadRequestException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
-        }catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
-        }
-    }
+//    @PutMapping ("/update/{ratingId}")
+//    public ResponseEntity <ApiResponse<?>> updateRating (@RequestBody String rating, @PathVariable Long ratingId){
+//        try{
+//            UserCommentRating userCommentRating = userCommentRatingService.updateRating(rating, ratingId);
+//            if(userCommentRating == null)
+//                throw new NotFoundException("Rating not found");
+//            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userCommentRating,"Rating successfully updated"));
+//        }catch (BadRequestException e) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(e.getMessage()));
+//        }catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred: " + e.getMessage()));
+//        }
+//    }
 }

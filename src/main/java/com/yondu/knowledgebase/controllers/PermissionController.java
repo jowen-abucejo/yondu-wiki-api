@@ -22,28 +22,13 @@ public class PermissionController {
     }
     @GetMapping("/permission")
     public ResponseEntity<ApiResponse<List<PermissionDTO.BaseResponse>>> getAllPermission(){
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permissionService.getAllPermission(), "Success retrieving list of permissions"));
-        } catch (Exception e) {
-            // Handle the exception, log the error, and return an appropriate response
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Failed to retrieve list of permissions!"));
-
-        }
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permissionService.getAllPermission(), "Success retrieving list of permissions"));
     }
 
     @GetMapping("/permission/{id}")
     public ResponseEntity<ApiResponse<PermissionDTO.BaseResponse>> getPermissionById(@PathVariable Long id){
-        try {
-            PermissionDTO.BaseResponse permission = permissionService.getPermission(id);
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permission, "Permission with id: " + id + " found"));
-        } catch (ResourceNotFoundException e) {
-            // Handle the exception, log the error, and return an appropriate response
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
-        }
-        catch (Exception e) {
-            // Handle the exception, log the error, and return an appropriate response
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("An error occurred!"));
-        }
+        PermissionDTO.BaseResponse permission = permissionService.getPermission(id);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permission, "Permission with id: " + id + " found"));
     }
 
 }
