@@ -41,6 +41,7 @@ public class DirectoryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> deleteDirectory(@PathVariable("id") Long id) {
+        directoryService.removeDirectory(id);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
     }
 

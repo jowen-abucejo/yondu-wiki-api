@@ -123,15 +123,7 @@ INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 1);
 --INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 2);
 
 -- INITIALIZE DIRECTORY USER ACCESS
-INSERT IGNORE INTO DIRECTORY_USER_ACCESS(id, directory_id, user_id, permission_id) VALUES(1, 1, 1, 1);
-
--- INITIALIZE DIRECTORY PERMISSIONS
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(1, 'Create Directory', 'Allows users to create new directories within the specified directory', 0);
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(2, 'Edit Directory', 'Allows users to edit the directory properties of the specified directory', 0);
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(3, 'View Directory', 'Allows users to view the content and metadata of a directory', 0);
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(4, 'Delete Directory', 'Allows users to delete the directory and its contents', 0);
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(5, 'Move Directory', 'Allows users to move directory to different locations within the directory structure', 0);
---INSERT IGNORE INTO DIRECTORY_PERMISSION(id, name, description, is_deleted) VALUES(6, 'Manage Permissions', 'Allows users to manage permissions for a directory, including assigning roles and users', 0);
+INSERT IGNORE INTO DIRECTORY_USER_ACCESS(id, directory_id, user_id, permission_id) VALUES(1, 1, 1, 16), (2, 1, 1, 17), (3, 1, 1, 18), (4, 1, 1, 19);
 
 -- Create a new page
 INSERT INTO page (date_created, author, is_active, is_deleted, lock_start, lock_end, locked_by, directory_id)

@@ -31,9 +31,12 @@ public class UserPageRatingService {
 	public ResponseEntity<UserPageRating> ratePageService(UserPageRatingDTO userRating, Long pageId){
 
 		//current logged-in user
-    	String username = SecurityContextHolder.getContext().getAuthentication().getName();
-    	User currentUser = userRepository.getUserByEmail(username);
-    	userRating.setUserId(currentUser.getId());
+//    	String username = SecurityContextHolder.getContext().getAuthentication().getName();
+//    	User currentUser = userRepository.getUserByEmail(username);
+//    	userRating.setUserId(currentUser.getId());
+
+		User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		userRating.setUserId(currentUser.getId());
 		
     	//validation to prevent multiple rating input and update rating if changed.
     	UserPageRating savedRating = userPageRatingRepository.findByPageIdAndUserId(pageId, userRating.getUserId());

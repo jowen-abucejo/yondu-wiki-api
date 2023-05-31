@@ -33,8 +33,10 @@ public class DirectoryService {
         Long permissionId = 19L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
 
@@ -55,8 +57,10 @@ public class DirectoryService {
         Long permissionId = 16L;
         Permission permission = permissionRepository.findById( permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
@@ -81,8 +85,10 @@ public class DirectoryService {
         Long permissionId = 17L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(String.format("User 'email' not found: %s", email)));
+
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
         Directory parent = directory.getParent();
@@ -109,12 +115,20 @@ public class DirectoryService {
         Long permissionId = 18L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission ID not found: %d", permissionId)));
 
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+//        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+//        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Directory not found: " + id));
 
         if (!hasDirectoryUserAccess(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
+
+
+        System.out.println("directory.getParent() == null");
+        if (directory.getParent() == null) {
             throw new AccessDeniedException();
         }
 
