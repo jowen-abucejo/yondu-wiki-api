@@ -9,6 +9,6 @@ import java.util.Set;
 public class GroupDTO {
     public record BaseResponse(Long id, String name, String description, Set<UserDTO.ShortResponse> users, Set<RightsDTO.BaseResponse> rights) {}
     public record GroupRequest(String name, String description) {}
-    public record EditUsersRequest(Set<UserDTO.ShortRequest> users){}
+    public record UserRequest(String email){}
     public record AddPermission(Long permissionId){}
 }

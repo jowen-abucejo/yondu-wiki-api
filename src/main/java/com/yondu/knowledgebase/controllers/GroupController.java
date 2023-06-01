@@ -44,15 +44,15 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Group updated successfully"));
     }
 
-    @PostMapping("/{userGroupId}/add-user")
-    public ResponseEntity<ApiResponse<?>> addUserToUserGroup(@PathVariable Long userGroupId, @RequestBody GroupDTO.EditUsersRequest request) {
-        GroupDTO.BaseResponse data = groupService.addUserToUserGroup(userGroupId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "User add to group successfully"));
+    @PostMapping("/{id}/add-user")
+    public ResponseEntity<ApiResponse<?>> addUserToGroup(@PathVariable Long id, @RequestBody GroupDTO.UserRequest request) {
+        GroupDTO.BaseResponse data = groupService.addUserToGroup(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "User added to group successfully"));
     }
 
-    @DeleteMapping("/{userGroupId}/remove-user")
-    public ResponseEntity<ApiResponse<?>> removeUserToUserGroup(@PathVariable Long userGroupId, @RequestBody GroupDTO.EditUsersRequest request) {
-        GroupDTO.BaseResponse data = groupService.removeUserToUserGroup(userGroupId, request);
+    @DeleteMapping("/{id}/remove-user")
+    public ResponseEntity<ApiResponse<?>> removeUserToGroup(@PathVariable Long id, @RequestBody GroupDTO.UserRequest request) {
+        GroupDTO.BaseResponse data = groupService.removeUserFromGroup(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "User removed from group successfully"));
     }
 
