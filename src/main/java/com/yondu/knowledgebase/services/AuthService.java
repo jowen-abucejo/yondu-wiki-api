@@ -24,7 +24,7 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User login(UserDTO.LoginRequest request) throws MissingFieldException, InvalidCredentialsException, Exception{
+    public User login(UserDTO.LoginRequest request) {
         log.info("AuthService.login()");
         log.info("user : " + request);
 
