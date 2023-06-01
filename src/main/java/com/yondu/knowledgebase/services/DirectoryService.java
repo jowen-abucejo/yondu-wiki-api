@@ -104,9 +104,6 @@ public class DirectoryService {
             throw new AccessDeniedException();
         }
 
-        if (parent == null) {
-            throw new AccessDeniedException();
-        }
 
         if (isDirectoryExists(request.name(), parent)) {
             throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
@@ -130,11 +127,6 @@ public class DirectoryService {
             throw new AccessDeniedException();
         }
 
-
-        System.out.println("directory.getParent() == null");
-        if (directory.getParent() == null) {
-            throw new AccessDeniedException();
-        }
 
         if (isNotEmptyDirectory(directory)) {
             // throw bawal i delete
