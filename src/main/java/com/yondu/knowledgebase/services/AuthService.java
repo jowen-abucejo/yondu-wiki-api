@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidCredentialsException;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,5 +46,14 @@ public class AuthService {
         }else{
             throw new InvalidCredentialsException();
         }
+    }
+
+
+    public boolean checkEmail(UserDTO.LoginRequest request) {
+        log.info("UserService.checkEmail()");
+        log.info("request : " + request);
+
+        userRepository.fetchUserByEmail(request.email()).orElseThrow(() -> new ResourceNotFoundException("User not found."));
+        return true;
     }
 }
