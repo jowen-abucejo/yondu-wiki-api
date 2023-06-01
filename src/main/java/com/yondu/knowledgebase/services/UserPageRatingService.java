@@ -17,6 +17,9 @@ import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.entities.UserPageRating;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.UserPageRatingRepository;
+import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
+import com.yondu.knowledgebase.exceptions.NoContentException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 
 @Service
 public class UserPageRatingService {
@@ -42,28 +45,34 @@ public class UserPageRatingService {
 	
 	public ResponseEntity<UserPageRatingDTO> createPageRating(UserPageRatingDTO userRatingDTO, Long pageId){
     	UserPageRating savedRating = userPageRatingRepository.findByPageIdAndUserId(pageId, getCurrentUser().getId());
-    	if(savedRating == null) {
-    		// create rating
-        	UserPageRating newUserPageRating = new UserPageRating();
-    		newUserPageRating.setRating(userRatingDTO.getRating().toUpperCase());
-    		newUserPageRating.setUser(getCurrentUser());
-    		newUserPageRating.setActive(true);
+    	
+    	if(userRatingDTO.getRating().isEmpty()) {
+    		throw new NoContentException("Please indicate either UP or DOWN");
+    	}else if(savedRating == null) {
     		
     		// selected active page to rate
         	Optional<Page> page = pageRepository.findByIdAndActive(pageId, true);
-    		newUserPageRating.setPage(page.get());
     		
-    		// Append this UserPageRating to Page
     		if(page.isPresent()) {
+    			// create rating
+            	UserPageRating newUserPageRating = new UserPageRating();
+        		newUserPageRating.setRating(userRatingDTO.getRating().toUpperCase());
+        		newUserPageRating.setUser(getCurrentUser());
+        		newUserPageRating.setActive(true);
+    			
+    			// Append this UserPageRating to Page
     			page.get().getUserPageRatings().add(newUserPageRating);
         		pageRepository.save(page.get());
+        		
+        		// Set selected Page to this UserPageRating
+        		newUserPageRating.setPage(page.get());
+
+        		//save UserPageRating
+        		userPageRatingRepository.save(newUserPageRating);
+            	return ResponseEntity.status(HttpStatus.CREATED).body(userPageRatingDTOMapper.apply(newUserPageRating));
     		}else {
-    			throw new ResponseStatusException(HttpStatus.CONFLICT, "Page not found."); 
+    			throw new ResourceNotFoundException("Page not found."); 
     		}
-    		    			
-    		//save UserPageRating
-    		userPageRatingRepository.save(newUserPageRating);
-        	return ResponseEntity.status(HttpStatus.CREATED).body(userPageRatingDTOMapper.apply(newUserPageRating));
     	}else if(!savedRating.getActive()){
     		// set rating to active and set rating value
     		savedRating.setActive(true);
@@ -71,7 +80,7 @@ public class UserPageRatingService {
 			userPageRatingRepository.save(savedRating);
 			return ResponseEntity.status(HttpStatus.OK).body(userPageRatingDTOMapper.apply(savedRating));
     	}else {
-    		throw new ResponseStatusException(HttpStatus.CONFLICT, "Record already exist.");    	
+    		throw new DuplicateResourceException("Record already exist.");    	
     	}	
     }
 	
@@ -84,7 +93,7 @@ public class UserPageRatingService {
 			userPageRatingRepository.save(savedRating);
 			return ResponseEntity.status(HttpStatus.OK).body(userPageRatingDTOMapper.apply(savedRating));
 		}else {
-			// if same rating value deactivate rating
+			// if same rating value deactivate rating(to undo rating)
 			savedRating.setActive(false);
 			userPageRatingRepository.save(savedRating);
 			throw new ResponseStatusException(HttpStatus.OK, "Rating deactivated");
@@ -108,6 +117,4 @@ public class UserPageRatingService {
 				.stream().map(userPageRatingDTOMapper::apply)
 				.collect(Collectors.toList());	
 	}
-	
-	
 }
