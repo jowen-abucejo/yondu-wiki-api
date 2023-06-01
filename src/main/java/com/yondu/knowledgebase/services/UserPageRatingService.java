@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.services;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.entities.UserPageRating;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.UserPageRatingRepository;
-import com.yondu.knowledgebase.repositories.UserRepository;
 
 @Service
 public class UserPageRatingService {
@@ -27,17 +25,13 @@ public class UserPageRatingService {
 	private UserPageRatingRepository userPageRatingRepository;
 
 	@Autowired
-	private UserRepository userRepository;
-
-	@Autowired
 	private PageRepository pageRepository;
 	
 	@Autowired
 	private UserPageRatingDTOMapper userPageRatingDTOMapper;
 	
-	public UserPageRatingService(UserPageRatingRepository userPageRatingRepository, UserRepository userRepository, PageRepository pageRepository, UserPageRatingDTOMapper userPageRatingDTOMapper) {
+	public UserPageRatingService(UserPageRatingRepository userPageRatingRepository, PageRepository pageRepository, UserPageRatingDTOMapper userPageRatingDTOMapper) {
 		this.userPageRatingRepository = userPageRatingRepository;
-		this.userRepository = userRepository;
 		this.pageRepository = pageRepository;
 		this.userPageRatingDTOMapper = userPageRatingDTOMapper;
 	}
@@ -55,10 +49,19 @@ public class UserPageRatingService {
     		newUserPageRating.setUser(getCurrentUser());
     		newUserPageRating.setActive(true);
     		
-    		// selected page to rate
+    		// selected active page to rate
         	Optional<Page> page = pageRepository.findByIdAndActive(pageId, true);
     		newUserPageRating.setPage(page.get());
-
+    		
+    		// Append this UserPageRating to Page
+    		if(page.isPresent()) {
+    			page.get().getUserPageRatings().add(newUserPageRating);
+        		pageRepository.save(page.get());
+    		}else {
+    			throw new ResponseStatusException(HttpStatus.CONFLICT, "Page not found."); 
+    		}
+    		    			
+    		//save UserPageRating
     		userPageRatingRepository.save(newUserPageRating);
         	return ResponseEntity.status(HttpStatus.CREATED).body(userPageRatingDTOMapper.apply(newUserPageRating));
     	}else if(!savedRating.getActive()){
