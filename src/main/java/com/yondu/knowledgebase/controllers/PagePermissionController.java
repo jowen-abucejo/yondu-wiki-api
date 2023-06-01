@@ -7,11 +7,11 @@ import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.UserPagePermissionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping(path = "page-permission")
 public class PagePermissionController {
 
     private final UserPagePermissionService userPagePermissionService;
@@ -24,15 +24,16 @@ public class PagePermissionController {
      * Adding user roles in page permission roles
      * **/
 
-    @PostMapping("/{permissionId}/add-user")
-    public ResponseEntity<ApiResponse<?>> addUserToPageAccess(@PathVariable Long permissionId, @RequestBody UserPagePermissionDTO.AddUser userPagePermission){
+    @PostMapping("/page-permissions/pages/{pageId}/addPageAccess")
+    @PreAuthorize("hasAuthority('MANAGE_PAGE_PERMISSIONS')")
+    public ResponseEntity<ApiResponse<?>> addUserToPageAccess(@PathVariable Long pageId, @RequestBody UserPagePermissionDTO.AddUser userPermission){
 
-        if(userPagePermission.pageId() == null || userPagePermission.userId() == null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Incomplete Fields"));
+        if(userPermission.userPermissionPair().isEmpty()){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Please provide users and permissions"));
         }
 
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userPagePermissionService.addUserToPageAccess(permissionId, userPagePermission), "User has been successfully added in page permission."));
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userPagePermissionService.addUserToPageAccess(pageId, userPermission), "User has been successfully added in page permission."));
         } catch(DuplicateResourceException e){
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(e.getMessage()));
         } catch (ResourceNotFoundException e ){
@@ -42,14 +43,14 @@ public class PagePermissionController {
         }
     }
 
-    @PostMapping("/{permissionId}/remove-user")
-    public ResponseEntity<ApiResponse<?>> removeUserToPageAccess(@PathVariable Long permissionId, @RequestBody UserPagePermissionDTO.AddUser userPagePermission){
-        if(userPagePermission.pageId() == null || userPagePermission.userId() == null){
+    @PostMapping("/page-permissions/pages/{pageId}/removePageAccess")
+    @PreAuthorize("hasAuthority('MANAGE_PAGE_PERMISSIONS')")
+    public ResponseEntity<ApiResponse<?>> removeUserToPageAccess(@PathVariable Long pageId, @RequestBody UserPagePermissionDTO.UserPermissionPair userPagePermission){
+        if(userPagePermission.permissionId() == null || userPagePermission.userId() == null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error("Incomplete Fields"));
         }
-
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.removeUserToPageAccess(permissionId, userPagePermission), "User has been successfully removed in page permission."));
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.removeUserToPageAccess(pageId, userPagePermission), "User has been successfully removed in page permission."));
         } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
@@ -58,15 +59,14 @@ public class PagePermissionController {
 
     }
 
-    @GetMapping("/users/{id}")
-    public ResponseEntity<ApiResponse<?>> getAllPagePermissionOfUser(@PathVariable Long id){
+    @GetMapping("/page-permissions/user/{userId}")
+    public ResponseEntity<ApiResponse<?>> getAllPageOfUser(@PathVariable Long userId){
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllPagePermissionOfUser(id), "All page access of user has been fetched."));
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllPagePermissionOfUser(userId), "All page access of user has been fetched."));
         } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot fetch list."));
         }
     }
-
 }

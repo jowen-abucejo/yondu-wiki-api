@@ -14,4 +14,5 @@ public class UserPagePermissionDTOMapper {
                 userPagePermission.getActive(), userPagePermission.getDateCreated().toString(),
                 userPagePermission.getLastModified().toString());
     }
+
 }

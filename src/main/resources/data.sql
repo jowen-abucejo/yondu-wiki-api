@@ -21,6 +21,7 @@ VALUES
 (6, 'UPDATE_CONTENT', 'Allows user to update created content', 'Content'),
 (7, 'DELETE_CONTENT', 'Allows user to delete created content', 'Content'),
 (8, 'READ_CONTENT', 'Allows user to read created contents', 'Content'),
+(26, 'MANAGE_PAGE_PERMISSIONS', 'Allow user to manage the page permissions', 'Content'),
 -- CONTENT MODERATION MODULE
 (9, 'CONTENT_APPROVAL', 'Allows user to approve created content', 'Content Moderation'),
 -- PAGE COLLABORATION & DISCUSSION
@@ -78,6 +79,7 @@ VALUES
  (1, 23),
  (1, 24),
  (1, 25),
+ (1, 26),
  -- Moderator
  (2, 2),
  (2, 3),
@@ -90,6 +92,7 @@ VALUES
  (2, 14),
  (2, 19),
  (2, 24),
+ (2, 26),
  -- Content Creator
  (3, 4),
  (3, 5),
@@ -108,6 +111,7 @@ VALUES
  (3, 19),
  (3, 24),
  (3, 25),
+ (3, 26),
  -- Users (Readers)
  (4, 4),
  (4, 8),
@@ -143,4 +147,4 @@ VALUES ('Page Version Title', 'Page Version Content', CURRENT_TIMESTAMP, 1, (SEL
 INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
 
 -- Create user page permission
-INSERT INTO user_page_permission (date_created, last_modified, is_active, page_id, user_id, permission_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 5), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 6), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 7), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 8);
+INSERT INTO user_page_permission (date_created, last_modified, is_active, page_id, user_id, permission_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 5), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 6),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 7), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 8),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 9),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 10),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 11),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 12),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 13),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 14),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 15);

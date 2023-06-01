@@ -13,7 +13,9 @@ import com.yondu.knowledgebase.services.UserPagePermissionService;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,37 +35,41 @@ public class UserPagePermissionImpl implements UserPagePermissionService {
     }
 
     @Override
-    public UserPagePermissionDTO.BaseResponse addUserToPageAccess(Long permissionId, UserPagePermissionDTO.AddUser userPagePermission) {
+    public Set<UserPagePermissionDTO.BaseResponse> addUserToPageAccess(Long pageId, UserPagePermissionDTO.AddUser userPermission) {
 
-        User user = userRepository.findById(userPagePermission.userId()).orElseThrow(()-> new ResourceNotFoundException("User not found."));
+        Set<UserPagePermissionDTO.BaseResponse> setResponse = new HashSet<>();
+        for(UserPagePermissionDTO.UserPermissionPair userPermissionPair : userPermission.userPermissionPair()){
 
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(()-> new ResourceNotFoundException("Permission not found."));
+            User user = userRepository.findById(userPermissionPair.userId()).orElseThrow(()-> new ResourceNotFoundException("User not found."));
 
-        Page page = pageRepository.findByIdAndActive(userPagePermission.pageId(), true).orElseThrow(()-> new ResourceNotFoundException("Page not found."));
+            Permission permission = permissionRepository.findById(userPermissionPair.permissionId()).orElseThrow(()-> new ResourceNotFoundException("Permission not found."));
 
-        if(userPagePermissionRepository.findByPageAndPermissionAndUserAndIsActive(page, permission, user, true).orElse(null) == null){
-            UserPagePermission savedUserPagePermission = userPagePermissionRepository.save(new UserPagePermission(permission, user, page, true, LocalDateTime.now(), LocalDateTime.now()));
-            return UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission);
-        } else {
-            throw new DuplicateResourceException("User "+user.getEmail()+" already has this permission on page " +page.getId());
+            Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page not found."));
+
+            if(userPagePermissionRepository.findByPageAndPermissionAndUserAndIsActive(page, permission, user, true).orElse(null) == null){
+                UserPagePermission savedUserPagePermission = userPagePermissionRepository.save(new UserPagePermission(permission, user, page, true, LocalDateTime.now(), LocalDateTime.now()));
+                setResponse.add(UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission));
+            } else {
+                throw new DuplicateResourceException("User "+user.getEmail()+" already has permission "+ permission.getName() +" on page " +page.getId());
+            }
+
         }
-
+        return setResponse;
     }
 
     @Override
-    public UserPagePermissionDTO.BaseResponse removeUserToPageAccess(Long permissionId, UserPagePermissionDTO.AddUser userPagePermission) {
+    public UserPagePermissionDTO.BaseResponse removeUserToPageAccess(Long pageId, UserPagePermissionDTO.UserPermissionPair userPagePermission) {
         User user = userRepository.findById(userPagePermission.userId()).orElseThrow(()-> new ResourceNotFoundException("User not found."));
 
-        Permission permission = permissionRepository.findById(permissionId).orElseThrow(()-> new ResourceNotFoundException("Permission not found."));
+        Permission permission = permissionRepository.findById(userPagePermission.permissionId()).orElseThrow(()-> new ResourceNotFoundException("Permission not found."));
 
-        Page page = pageRepository.findByIdAndActive(userPagePermission.pageId(), true).orElseThrow(()-> new ResourceNotFoundException("Page not found."));
+        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page not found."));
 
         userPagePermissionRepository.modifyUserPermission(false, LocalDateTime.now(), page, permission ,user, true);
 
         UserPagePermission savedUserPagePermission = userPagePermissionRepository.findByPageAndPermissionAndUserAndIsActive( page, permission, user, false).orElseThrow(()-> new ResourceNotFoundException("User with this specific page permission is not found."));
 
         return UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission);
-
     }
 
     @Override
