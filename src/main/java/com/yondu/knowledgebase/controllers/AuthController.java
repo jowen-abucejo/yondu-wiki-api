@@ -54,6 +54,6 @@ public class AuthController {
         log.info("request : " + request.toString());
 
         boolean isUserExist = authService.checkEmail(request); // Automatically throws an exception if user is not found.
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(request, "user exists."));
     }
 }
