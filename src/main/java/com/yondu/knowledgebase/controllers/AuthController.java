@@ -35,47 +35,17 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
         log.info("AuthController.login()");
         log.info("user : " + request);
-        ResponseEntity response = null;
 
-        try{
-            User fetchedUser = authService.login(request);
-            UserDTO userDTO = new UserDTO(fetchedUser);
-            String token = tokenUtil.generateToken(fetchedUser);
+        User fetchedUser = authService.login(request);
+        UserDTO userDTO = new UserDTO(fetchedUser);
+        String token = tokenUtil.generateToken(fetchedUser);
 
-            Map<String, Object> res = new HashMap<>();
-            res.put("user", userDTO);
-            res.put("token", token);
+        Map<String, Object> res = new HashMap<>();
+        res.put("user", userDTO);
+        res.put("token", token);
 
-            ApiResponse r = ApiResponse.success(res, "success");
-
-            response = ResponseEntity.ok(r);
-        }catch (MissingFieldException missingFieldException) {
-            missingFieldException.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", missingFieldException.getMessage());
-            errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
-
-            response = ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMap);
-        }catch (InvalidCredentialsException invalidCredentialsException) {
-            invalidCredentialsException.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", invalidCredentialsException.getMessage());
-            errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
-
-            response = ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorMap);
-        }catch (Exception ex){
-            ex.printStackTrace();
-
-            Map<String, Object> errorMap = new HashMap<>();
-            errorMap.put("error", ex.getMessage());
-            errorMap.put("date", Util.convertDate(Calendar.getInstance().getTime()));
-
-            response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMap);
-        }
-
-        return response;
+        ApiResponse apiResponse = ApiResponse.success(res, "success");
+        return ResponseEntity.ok(apiResponse);
     }
 
     @PostMapping("/check")
@@ -83,14 +53,7 @@ public class AuthController {
         log.info("AuthController.checkEmail()");
         log.info("request : " + request.toString());
 
-        ResponseEntity response = null;
-
-        boolean isUserExist = authService.checkEmail(request);
-        if(isUserExist){
-            response = ResponseEntity.ok().build();
-        }else{
-            response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("No account found."));
-        }
-        return response;
+        boolean isUserExist = authService.checkEmail(request); // Automatically throws an exception if user is not found.
+        return ResponseEntity.ok().build();
     }
 }
