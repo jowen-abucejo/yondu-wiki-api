@@ -1,17 +1,12 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.ReviewCreateDTO;
-import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
-import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.yondu.knowledgebase.entities.Review;
 import com.yondu.knowledgebase.services.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -61,5 +56,11 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Failed to update Review"));
         }
 
+    }
+
+    @GetMapping("/reviews/{id}")
+    public ResponseEntity<ApiResponse<ReviewDTO.BaseResponse>> getReviewById(@PathVariable Long id){
+        ReviewDTO.BaseResponse review = reviewService.getReview(id);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(review, "Review with id: " + id + " found"));
     }
 }

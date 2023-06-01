@@ -33,6 +33,12 @@ public class ReviewService {
         return reviewRepository.findAll().stream().map(ReviewDTOMapper::mapToBaseResponse).toList();
     }
 
+    public ReviewDTO.BaseResponse getReview(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new ResourceNotFoundException("Review with id " + reviewId + " not found"));
+
+        return ReviewDTOMapper.mapToBaseResponse(review);
+    }
+
     public ReviewDTO.BaseResponse createReview(Long pageId, Long versionId) {
         PageVersion pageVersion = pageVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
