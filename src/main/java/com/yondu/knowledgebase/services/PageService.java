@@ -1,8 +1,14 @@
 package com.yondu.knowledgebase.services;
 
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.entities.Page;
+
 
 public interface PageService {
 
@@ -23,4 +29,6 @@ public interface PageService {
     public PageDTO updateActiveStatus(Long pageId, Boolean isActive);
 
     public PageDTO updateCommenting(Long pageId, Boolean allowCommenting);
+
+    public Page getPage(Long pageId);
 }

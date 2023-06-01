@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
@@ -254,5 +255,10 @@ public class PageServiceImpl implements PageService {
         pageVersion.setPage(pageRepository.save(page));
 
         return pageDTODefault(pageVersion).build();
+    }
+
+    @Override
+    public Page getPage(Long id){
+        return pageRepository.findById(id).orElseThrow();
     }
 }

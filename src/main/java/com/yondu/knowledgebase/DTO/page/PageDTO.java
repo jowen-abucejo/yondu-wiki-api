@@ -83,6 +83,9 @@ public class PageDTO {
         // this.rolePagePermissions = builder.rolePagePermissions;
     }
 
+    public PageDTO() {
+    }
+
     /**
      * @return the id
      */
@@ -274,5 +277,9 @@ public class PageDTO {
         public PageDTO build() {
             return new PageDTO(this);
         }
+    }
+
+    public void setId(Long id2) {
+        this.id=id2;
     }
 }

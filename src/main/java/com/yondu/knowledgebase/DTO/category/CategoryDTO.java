@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.yondu.knowledgebase.DTO.page_permission.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CategoryDTO {
@@ -40,6 +40,10 @@ public class CategoryDTO {
         public Boolean getDeleted() {
             return deleted;
         }
+
+        public void setPages(List<PageDTO> pages) {
+			this.pages = pages;
+		}
     
     
         public List<PageDTO> getPages(){

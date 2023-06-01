@@ -348,4 +348,11 @@ public class Page {
         this.userPageRatings = userPageRatings;
     }
 
+    public void setId(Long id2) {
+    }
+
+    public Object getName() {
+        return null;
+    }
+
 }
