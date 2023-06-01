@@ -77,4 +77,20 @@ public class AuthController {
 
         return response;
     }
+
+    @PostMapping("/check")
+    public ResponseEntity<?> checkEmail(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
+        log.info("AuthController.checkEmail()");
+        log.info("request : " + request.toString());
+
+        ResponseEntity response = null;
+
+        boolean isUserExist = authService.checkEmail(request);
+        if(isUserExist){
+            response = ResponseEntity.ok().build();
+        }else{
+            response = ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("No account found."));
+        }
+        return response;
+    }
 }
