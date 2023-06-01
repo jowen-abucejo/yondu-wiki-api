@@ -3,10 +3,12 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.group.GroupDTOMapper;
 import com.yondu.knowledgebase.entities.Group;
+import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.GroupRepository;
+import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,9 +18,11 @@ import java.util.stream.Collectors;
 public class GroupService {
 
     private final GroupRepository groupRepository;
+    private final UserRepository userRepository;
 
-    public GroupService(GroupRepository groupRepository) {
+    public GroupService(GroupRepository groupRepository, UserRepository userRepository) {
         this.groupRepository = groupRepository;
+        this.userRepository = userRepository;
     }
 
     public List<GroupDTO.BaseResponse> getAllGroups() {
@@ -33,7 +37,7 @@ public class GroupService {
             throw new RequestValidationException("Name and Description are required");
         }
 
-        if (isGroupExists(request.name())) {
+        if (groupRepository.existsByName(request.name())) {
             throw new DuplicateResourceException(String.format("Group name '%s' already exists", request.name()));
         }
 
@@ -50,7 +54,7 @@ public class GroupService {
         Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
 
         if (request.name() != null && !request.name().isEmpty()) {
-            if (isGroupExists(request.name())) {
+            if (groupRepository.existsByName(request.name())) {
                 throw new DuplicateResourceException(String.format("Group name '%s' already exists", request.name()));
             }
             group.setName(request.name());
@@ -65,12 +69,38 @@ public class GroupService {
     }
 
 
-    public GroupDTO.BaseResponse addUserToUserGroup(Long userGroupId, GroupDTO.EditUsersRequest request) {
-        return null;
+    public GroupDTO.BaseResponse addUserToGroup(Long id, GroupDTO.UserRequest request) {
+        if (request.email() == null || request.email().isEmpty()) {
+            throw new RequestValidationException("Email is required");
+        }
+
+        Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
+        User user = userRepository.findByEmail(request.email()).orElseThrow(()-> new ResourceNotFoundException("User not found with email: " + request.email()));
+
+        if (group.getUsers().contains(user)) {
+            throw new DuplicateResourceException("User already exists in group");
+        }
+
+        group.getUsers().add(user);
+        groupRepository.save(group);
+        return GroupDTOMapper.mapToBaseResponse(group);
     }
 
-    public GroupDTO.BaseResponse removeUserToUserGroup(Long userGroupId, GroupDTO.EditUsersRequest request) {
-        return null;
+    public GroupDTO.BaseResponse removeUserFromGroup(Long id, GroupDTO.UserRequest request) {
+        if (request.email() == null || request.email().isEmpty()) {
+            throw new RequestValidationException("Email is required");
+        }
+
+        Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
+        User user = userRepository.findByEmail(request.email()).orElseThrow(()-> new ResourceNotFoundException("User not found with email: " + request.email()));
+
+        if (!group.getUsers().contains(user)) {
+            throw new RequestValidationException("User does not exist in group");
+        }
+
+        group.getUsers().remove(user);
+        groupRepository.save(group);
+        return GroupDTOMapper.mapToBaseResponse(group);
     }
 
     public GroupDTO.BaseResponse addUserGroupPermissionToPage(Long userGroupId, Long pageId, GroupDTO.AddPermission request) {
@@ -78,9 +108,5 @@ public class GroupService {
     }
     public GroupDTO.BaseResponse removeUserGroupPermissionToPage(Long userGroupId, Long pageId, GroupDTO.AddPermission request) {
         return null;
-    }
-
-    public boolean isGroupExists(String name) {
-        return groupRepository.existsByName(name);
     }
 }
