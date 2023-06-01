@@ -141,3 +141,6 @@ INSERT INTO page_version (title, content, date_modified, modified_by, page_id)
 VALUES ('Page Version Title', 'Page Version Content', CURRENT_TIMESTAMP, 1, (SELECT id FROM page ORDER BY id DESC LIMIT 1));
 
 INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
+
+-- Create user page permission
+INSERT INTO user_page_permission (date_created, last_modified, is_active, page_id, user_id, permission_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 5), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 6), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 7), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 8);
