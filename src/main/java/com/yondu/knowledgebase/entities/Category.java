@@ -26,7 +26,7 @@ public class Category {
     private String name;
 
     @Column(name = "is_deleted")
-    private Boolean deleted;
+    private Boolean deleted =false;
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
@@ -60,11 +60,18 @@ public class Category {
         return pages;
     }
 
+    public void setId(Long id){
+        this.id=id;
+    }
+
     public void setName(String name){
         this.name = name;
     }
 
     public void setDeleted(Boolean deleted){
         this.deleted = deleted;
+    }
+
+    public void setPages(List<Page> pages2) {
     }
 }

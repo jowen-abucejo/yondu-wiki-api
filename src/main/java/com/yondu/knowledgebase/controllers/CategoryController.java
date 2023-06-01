@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,15 @@ import org.springframework.http.ResponseEntity;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.DTO.category.CategoryMapper;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.Category;
+import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.services.CategoryService;
+import com.yondu.knowledgebase.services.PageService;
+
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +28,9 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private PageService pageService;
 
 
     private final CategoryMapper categoryMapper;
@@ -74,34 +82,41 @@ public class CategoryController {
                 .map(categoryMapper::toDto)
                 .collect(Collectors.toList());
     }
-/* 
-    @PutMapping("/pages/{pageId}/categories")
-    public ResponseEntity<ApiResponse<List<Category>>> assignPageCategory(@RequestBody List<CategoryDTO> categoryDtoList, @PathVariable Long pageId) {
-        // Retrieve the page by ID using a PageService or repository
+
+    @PostMapping("/pages/{pageId}/categories")
+    public ResponseEntity<ApiResponse<Category>> assignPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId) {
+        // Retrieve the page by ID using the PageService
         Page page = pageService.getPage(pageId);
-    
-        // Create a list to store the assigned categories
-        List<Category> assignedCategories = new ArrayList<>();
-    
-        // Iterate through the CategoryDTO list and assign the page ID to each category
-        for (CategoryDTO categoryDto : categoryDtoList) {
-            // Check if the category exists in the database by ID
-            Category category = categoryService.getCategory(categoryDto.getId());
-            
-            // Assign the page to the category's pages list
-            category.getPages().add(page);
-    
-            // Save the category with the updated pages list
-            Category assignedCategory = categoryService.editCategory(category);
-    
-            // Add the assigned category to the list
-            assignedCategories.add(assignedCategory);
+        if (page == null) {
+            throw new ResourceNotFoundException("Page not found with ID: " + pageId);
         }
-  
-      // Return the assigned categories in the response
-      return ResponseEntity.ok(ApiResponse.success(assignedCategories, "Page categories assigned successfully"));
-  }
-*/
+    
+        // Retrieve the category by ID using the CategoryService
+        Category category = categoryService.getCategory(categoryDto.getId());
+        if (category == null) {
+            throw new ResourceNotFoundException("Category not found with ID: " + categoryDto.getId());
+        }
+
+     
+    
+        // Add the page to the category's pages list
+        category.getPages().add(page);
+    
+        // Save the updated category
+         
+        Category updatedCategory = categoryService.addPageCategory(category);
+
+        Category newCategory = categoryService.getCategory(categoryDto.getId());
+
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(newCategory);
+
+        Category new2Category = categoryMapper.pageCategoryEntity(newCategoryDTO);
+        //newCategory = categoryMapper.toEntity(categoryDto);
+       // updatedCategory = categoryService.getCategory(updatedCategory.getId());
+     
+    
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(new2Category, "Category created successfully"));
 
 
+}
 }

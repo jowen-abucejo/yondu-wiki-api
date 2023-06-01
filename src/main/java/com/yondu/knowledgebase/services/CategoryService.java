@@ -47,4 +47,18 @@ public class CategoryService {
     public boolean isCategoryNameTaken(String categoryName) {
         return categoryRepository.existsByName(categoryName);
     }
+
+    public Category getCategoryByName(String name) {
+        return categoryRepository.findByName(name)
+                .orElseThrow();
+    }
+
+    public Category addPageCategory(Category category) {
+
+        // Save the updated category
+        Category updatedCategory = categoryRepository.save(category);
+
+        return updatedCategory;
+    
+    }
 }
