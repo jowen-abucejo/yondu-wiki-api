@@ -19,6 +19,8 @@ public class CategoryMapper {
     }
 
     public CategoryDTO toDto(Category category) {
+
+        Long oldPageId = 0L;
         CategoryDTO categoryDto = new CategoryDTO();
         categoryDto.setName(category.getName());
         categoryDto.setId(category.getId());
@@ -27,8 +29,14 @@ public class CategoryMapper {
         // Assuming the PageDTO has the necessary fields to create a Page entity
         for (Page page : category.getPages()) {
             PageDTO pageDto = new PageDTO();
-            pageDto.setId(page.getId());
-            pages.add(pageDto);
+            
+            if(page.getId()!=oldPageId){
+                pageDto.setId(page.getId());
+                oldPageId = page.getId();
+                pages.add(pageDto);
+              
+            }
+      
         }
         categoryDto.setPages(pages);
         return categoryDto;

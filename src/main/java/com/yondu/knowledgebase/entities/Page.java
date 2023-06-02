@@ -349,6 +349,7 @@ public class Page {
     }
 
     public void setId(Long id2) {
+        this.id=id2;
     }
 
     public Object getName() {

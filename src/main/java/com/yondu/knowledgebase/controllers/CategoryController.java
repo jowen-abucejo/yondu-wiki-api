@@ -58,21 +58,23 @@ public class CategoryController {
     }
 
     @PutMapping("/categories/{id}/edit")
-    public ResponseEntity<ApiResponse<Category>> editCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> editCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long id) {
         if (categoryService.isCategoryNameTaken(categoryDto.getName())) {
             throw new RequestValidationException("Category name is already taken");
         }
         Category category = categoryService.getCategory(id);
         categoryMapper.updateCategory(categoryDto, category);
         Category updatedCategory = categoryService.editCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(updatedCategory,"Category has been successfully edited"));
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO,"Category has been successfully edited"));
     }
 
     @PutMapping("/categories/{id}/delete")
-    public ResponseEntity<ApiResponse<Category>> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> deleteCategory(@PathVariable Long id) {
         Category category = categoryService.getCategory(id);
         Category updatedCategory = categoryService.deleteCategory(category);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(updatedCategory,"Category has been successfully deleted"));
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO,"Category has been successfully deleted"));
     }
 
     @GetMapping("/categories")
@@ -84,7 +86,7 @@ public class CategoryController {
     }
 
     @PostMapping("/pages/{pageId}/categories")
-    public ResponseEntity<ApiResponse<Category>> assignPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId) {
+    public ResponseEntity<ApiResponse<CategoryDTO>> assignPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId) {
         // Retrieve the page by ID using the PageService
         Page page = pageService.getPage(pageId);
         if (page == null) {
@@ -106,16 +108,16 @@ public class CategoryController {
          
         Category updatedCategory = categoryService.addPageCategory(category);
 
-        Category newCategory = categoryService.getCategory(categoryDto.getId());
+        //Category newCategory = categoryService.getCategory(categoryDto.getId());
 
-        CategoryDTO newCategoryDTO = categoryMapper.toDto(newCategory);
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
 
-        Category new2Category = categoryMapper.pageCategoryEntity(newCategoryDTO);
+        //Category new2Category = categoryMapper.pageCategoryEntity(newCategoryDTO);
         //newCategory = categoryMapper.toEntity(categoryDto);
        // updatedCategory = categoryService.getCategory(updatedCategory.getId());
      
     
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(new2Category, "Category created successfully"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO, "Category added to page successfully"));
 
 
 }
