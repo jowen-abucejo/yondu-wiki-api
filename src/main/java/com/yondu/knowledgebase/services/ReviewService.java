@@ -1,5 +1,8 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
+import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
@@ -15,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -40,22 +44,25 @@ public class ReviewService {
     }
 
     public ReviewDTO.BaseResponse createReview(Long pageId, Long versionId) {
-        PageVersion pageVersion = pageVersionRepository.findById(versionId)
+        PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
 
-        Review review = new Review();
-        review.setPageVersion(pageVersion);
-        review.setUser(null);
-        review.setComment("");
-        review.setReviewDate(null);
-        review.setStatus("PENDING");
+        if (pageVersion.getReviews().isEmpty()) {
+            Review review = new Review();
+            review.setPageVersion(pageVersion);
+            review.setUser(null);
+            review.setComment("");
+            review.setReviewDate(null);
+            review.setStatus("PENDING");
 
-        pageVersion.getReviews().add(review);
+            reviewRepository.save(review);
 
-        pageVersionRepository.save(pageVersion);
-        reviewRepository.save(review);
+            return ReviewDTOMapper.mapToBaseResponse(review);
+        } else {
+            throw new RequestValidationException("Content already submitted, submit the latest version instead.");
+        }
 
-        return ReviewDTOMapper.mapToBaseResponse(review);
+
     }
 
     public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
@@ -79,6 +86,10 @@ public class ReviewService {
             throw new RequestValidationException("Invalid Status, try APPROVED or DISAPPROVE");
         }
 
+
+
     }
+
+
 
 }
