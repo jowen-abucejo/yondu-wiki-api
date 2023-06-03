@@ -19,8 +19,8 @@ public class PageVersionDTO {
     @JsonInclude(Include.ALWAYS)
     private String title;
 
+    @NotBlank(message = "Page content is required.")
     @JsonInclude(Include.ALWAYS)
-
     private String content;
 
     @JsonInclude(Include.ALWAYS)
