@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.DTO.page;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,25 @@ public class PageDTO {
     @JsonProperty(value = "key_holder")
     private UserDTO lockedBy;
 
+    @JsonInclude(Include.NON_NULL)
+    private BigDecimal relevance;
+
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_comments")
+    private Long totalComments;
+
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_ratings")
+    private Long totalRatings;
+
+    @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty(value = "categories")
+    private String[] categories;
+
+    @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty(value = "tags")
+    private String[] tags;
+
     // private DirectoryDTO directory;
 
     @JsonInclude(Include.NON_EMPTY)
@@ -74,6 +94,12 @@ public class PageDTO {
         this.lockedBy = builder.lockedBy;
         this.versions = builder.versions;
         this.body = builder.body;
+        this.relevance = builder.relevance;
+        this.totalComments = builder.totalComments;
+        this.totalRatings = builder.totalRatings;
+        this.categories = builder.categories;
+        this.tags = builder.tags;
+
         // this.directory = builder.directory;
         // this.comments = builder.comments;
         // this.categories = builder.categories;
@@ -160,7 +186,50 @@ public class PageDTO {
         return new PageDTOBuilder();
     }
 
+    /**
+     * @return the allowComment
+     */
+    public Boolean getAllowComment() {
+        return allowComment;
+    }
+
+    /**
+     * @return the relevance
+     */
+    public BigDecimal getRelevance() {
+        return relevance;
+    }
+
+    /**
+     * @return the totalComments
+     */
+    public Long getTotalComments() {
+        return totalComments;
+    }
+
+    /**
+     * @return the totalRatings
+     */
+    public Long getTotalRatings() {
+        return totalRatings;
+    }
+
+    /**
+     * @return the categories
+     */
+    public String[] getCategories() {
+        return categories;
+    }
+
+    /**
+     * @return the tags
+     */
+    public String[] getTags() {
+        return tags;
+    }
+
     public static class PageDTOBuilder {
+        private BigDecimal relevance;
         private Long id;
         private LocalDateTime dateCreated;
         private UserDTO author;
@@ -170,6 +239,10 @@ public class PageDTO {
         private LocalDateTime lockStart;
         private LocalDateTime lockEnd;
         private UserDTO lockedBy;
+        private Long totalComments;
+        private Long totalRatings;
+        private String[] categories;
+        private String[] tags;
 
         // private DirectoryDTO directory;
         // private List<CommentDTO> comments = new ArrayList<>();
@@ -236,6 +309,31 @@ public class PageDTO {
             return this;
         }
 
+        public PageDTOBuilder relevance(BigDecimal relevance) {
+            this.relevance = relevance;
+            return this;
+        }
+
+        public PageDTOBuilder totalComments(Long totalComments) {
+            this.totalComments = totalComments;
+            return this;
+        }
+
+        public PageDTOBuilder totalRatings(Long totalRatings) {
+            this.totalRatings = totalRatings;
+            return this;
+        }
+
+        public PageDTOBuilder categories(String[] categories) {
+            this.categories = categories;
+            return this;
+        }
+
+        public PageDTOBuilder tags(String[] tags) {
+            this.tags = tags;
+            return this;
+        }
+
         // public PageDTOBuilder directory(DirectoryDTO directory) {
         // this.directory = directory;
         // return this;
@@ -277,9 +375,5 @@ public class PageDTO {
         public PageDTO build() {
             return new PageDTO(this);
         }
-    }
-
-    public void setId(Long id2) {
-        this.id=id2;
     }
 }

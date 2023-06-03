@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.repositories;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -7,26 +9,136 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.yondu.knowledgebase.entities.PageVersion;
 
 public interface PageVersionRepository extends JpaRepository<PageVersion, Long> {
 
-        @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-        public Optional<PageVersion> findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
-                        Long id, boolean isDeleted, String status);
+    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
+    public Optional<PageVersion> findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
+            Long id, boolean isDeleted, String status);
 
-        @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-        @Query("SELECT v FROM PageVersion v JOIN v.page p LEFT JOIN v.reviews r LEFT JOIN p.tags t LEFT JOIN p.categories c LEFT JOIN v.modifiedBy mb "
-                        + "WHERE p.deleted=:deleted AND r.status=:reviewStatus AND (c.name LIKE %:searchKey% OR t.name LIKE %:searchKey% OR "
-                        + "p.author.firstName LIKE %:searchKey% OR p.author.lastName LIKE %:searchKey% OR FUNCTION('REGEXP_REPLACE', "
-                        + "v.title, '<[^>]+>', '') LIKE %:searchKey% OR FUNCTION('REGEXP_REPLACE', v.content, '<[^>]+>', '') LIKE %:searchKey%)")
-        public Optional<Page<PageVersion>> findByTitleOrContent(String searchKey, boolean deleted, String reviewStatus,
-                        Pageable paging);
+    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
+    public Optional<PageVersion> findByPageIdAndId(Long pageId, Long id);
 
-        @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-        public Optional<PageVersion> findByPageIdAndId(Long pageId, Long id);
+    @EntityGraph(attributePaths = { "page" })
+    public Optional<PageVersion> findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(Long id, boolean isDeleted);
 
-        @EntityGraph(attributePaths = { "page" })
-        public Optional<PageVersion> findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(Long id, boolean isDeleted);
+    @Query(nativeQuery = true, value = """
+            SELECT
+                p.date_created AS dateCreated,
+                v.date_modified AS dateModified,
+                CASE
+                    WHEN
+                        NOT :isExactMatch OR :searchKey=''
+                        THEN
+                            ROUND(((MATCH (a.first_name, a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE)*0.1) +
+                            (MATCH (v.title) AGAINST (:searchKey IN NATURAL LANGUAGE MODE)*0.7) +
+                            (MATCH (v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE)*0.5)), 3)
+                    ELSE 1.0
+                END AS relevance,
+                (SELECT COUNT(*) FROM comment cm WHERE cm.page_id = p.id) AS totalComments,
+                (SELECT COUNT(*)  FROM user_page_rating upr  WHERE upr.page_id = p.id AND upr.rating = 'up') AS totalRatings,
+                v.id AS versionId,
+                v.title AS versionTitle,
+                v.original_content AS versionContent,
+                a.first_name AS authorFirstName,
+                a.last_name AS authorLastName,
+                a.email AS authorEmail,
+                mb.first_name AS modifiedByFirstName,
+                mb.last_name AS modifiedByLastName,
+                mb.email AS modifiedByEmail,
+                p.id AS pageId,
+                p.is_active AS isActive,
+                p.allow_comment AS allowComment,
+                p.lock_start AS lockStart,
+                p.lock_end AS lockEnd,
+                (SELECT
+                    GROUP_CONCAT(t.name SEPARATOR '|')
+                FROM
+                    page_tag pt
+                    LEFT JOIN tag t ON pt.tag_id = t.id
+                WHERE
+                    pt.page_id = v.page_id
+                GROUP BY
+                    pt.page_id
+                ) AS pageTags,
+                (SELECT
+                    GROUP_CONCAT(cat.name SEPARATOR '|')
+                FROM
+                    page_category pcat
+                    JOIN category cat ON pcat.category_id = cat.id
+                WHERE
+                    pcat.page_id = v.page_id
+                GROUP BY
+                    pcat.page_id
+                ) AS pageCategories
+            FROM
+                page_version v
+                JOIN page p ON v.page_id = p.id
+                LEFT JOIN users mb ON v.modified_by = mb.id
+                LEFT JOIN users a ON p.author = a.id
+            WHERE
+                p.is_deleted = 0
+                AND CASE
+                    WHEN :isPublished
+                    THEN
+                        (v.page_id, v.id) IN(
+                            SELECT pv.page_id,MAX(pv.id) FROM page_version pv WHERE EXISTS(SELECT 1
+                            FROM review r2 WHERE r2.status = 'approved') GROUP BY pv.page_id)
+                    ELSE
+                        (v.page_id, v.id) IN(
+                            SELECT pv.page_id,MAX(pv.id) FROM page_version pv WHERE NOT EXISTS(SELECT 1
+                            FROM review r2 WHERE r2.status = 'approved' OR r2.status = 'rejected') GROUP BY pv.page_id)
+                    END
+                AND p.is_active <> :isArchived
+                AND CASE
+                    WHEN :categories IS NOT NULL AND :categories <> ''
+                    THEN
+                            (
+                                v.page_id IN(
+                                    SELECT pcat2.page_id FROM page_category pcat2 LEFT JOIN category cat2
+                                    ON pcat2.category_id=cat2.id WHERE cat2.name IN (:categories)
+                                )
+                            )
+                        ELSE TRUE
+                END
+                AND CASE
+                    WHEN :tags IS NOT NULL AND :tags <> ''
+                    THEN
+                            (
+                                v.page_id IN(
+                                    SELECT ptag.page_id FROM page_tag ptag LEFT JOIN tag tag2
+                                    ON ptag.tag_id=tag2.id WHERE tag2.name IN (:tags)
+                                )
+                            )
+                        ELSE TRUE
+                END
+                AND CASE
+                    WHEN :isExactMatch OR :searchKey=''
+                    THEN
+                        (
+                            a.first_name LIKE CONCAT('%', :searchKey, '%')
+                            OR a.last_name LIKE CONCAT('%', :searchKey, '%')
+                            OR v.title LIKE CONCAT('%', :searchKey, '%')
+                            OR v.content LIKE CONCAT('%', :searchKey, '%')
+                        )
+                    ELSE
+                        (
+                            MATCH (a.first_name, a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
+                            OR MATCH (v.title) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
+                            OR MATCH (v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
+                        )
+                END
+                """)
+    Optional<Page<Map<String, Object>>> findByFullTextSearch(
+            @Param("searchKey") String searchKey,
+            @Param("isExactMatch") Boolean isExactMatch,
+            @Param("isArchived") Boolean isArchived,
+            @Param("isPublished") Boolean isPublished,
+            @Param("categories") List<String> categories,
+            @Param("tags") List<String> tags,
+            Pageable pageable);
+
 }

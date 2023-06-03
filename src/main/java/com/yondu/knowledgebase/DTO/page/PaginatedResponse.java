@@ -2,7 +2,9 @@ package com.yondu.knowledgebase.DTO.page;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class PaginatedResponse<T> {
     @JsonProperty(index = 1)
@@ -17,14 +19,23 @@ public class PaginatedResponse<T> {
     @JsonProperty(index = 4)
     private Long total;
 
-    /**
-     * @param size
-     */
+    @JsonProperty(index = 5)
+    @JsonInclude(Include.NON_EMPTY)
+    private List<String> sortBy;
+
     public PaginatedResponse(List<T> data, Integer page, Integer size, Long total) {
         this.data = data;
         this.page = page;
         this.size = size;
         this.total = total;
+    }
+
+    public PaginatedResponse(List<T> data, Integer page, Integer size, Long total, List<String> sortBy) {
+        this.data = data;
+        this.page = page;
+        this.size = size;
+        this.total = total;
+        this.sortBy = sortBy;
     }
 
     /**
@@ -81,6 +92,20 @@ public class PaginatedResponse<T> {
      */
     public void setTotal(Long total) {
         this.total = total;
+    }
+
+    /**
+     * @return the sortBy
+     */
+    public List<String> getSortBy() {
+        return sortBy;
+    }
+
+    /**
+     * @param sortBy the sortBy to set
+     */
+    public void setSortBy(List<String> sortBy) {
+        this.sortBy = sortBy;
     }
 
 }
