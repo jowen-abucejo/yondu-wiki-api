@@ -244,6 +244,13 @@ public class Page {
     }
 
     /**
+     * @param id the id to set
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
      * @param dateCreated the dateCreated to set
      */
     public void setDateCreated(LocalDateTime dateCreated) {
@@ -346,14 +353,6 @@ public class Page {
      */
     public void setUserPageRatings(Set<UserPageRating> userPageRatings) {
         this.userPageRatings = userPageRatings;
-    }
-
-    public void setId(Long id2) {
-        this.id=id2;
-    }
-
-    public Object getName() {
-        return null;
     }
 
 }

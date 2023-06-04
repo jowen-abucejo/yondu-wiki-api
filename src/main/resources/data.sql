@@ -139,13 +139,56 @@ INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3);
 
 -- Create a new page
 INSERT INTO page (date_created, author, is_active, is_deleted, lock_start, lock_end, locked_by, directory_id)
-VALUES (CURRENT_TIMESTAMP, 1, true, false, null, null, null, 1);
+VALUES 
+    (CURRENT_TIMESTAMP, 1, true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+    (CURRENT_TIMESTAMP, 1, true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+    (CURRENT_TIMESTAMP, 1, true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+    (CURRENT_TIMESTAMP, 1, true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1),
+    (CURRENT_TIMESTAMP, 1, true, false, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 1, 1);
 
 -- Create a new page version
-INSERT INTO page_version (title, content, date_modified, modified_by, page_id)
-VALUES ('Page Version Title', 'Page Version Content', CURRENT_TIMESTAMP, 1, (SELECT id FROM page ORDER BY id DESC LIMIT 1));
+INSERT INTO page_version (title, content, original_content, date_modified, modified_by, page_id)
+VALUES
+    ('Jumping Cat', 'The cat cat jumped over the fence.', '<div>The cat cat jumped over the fence.</div>', '2023-03-01 09:15:00', 1, 1),
+    ('Delicious Ice Cream', 'I love love ice cream.', '<div>I love love ice cream.</div>', '2023-04-05 14:30:00', 1, 1),
+    ('Beautiful Song', 'She sang sang her favorite song.', '<div>She sang sang her favorite song.</div>', '2023-05-10 18:45:00', 1, 1),
+    ('Playful Dog', 'The dog dog chased its tail.', '<div>The dog dog chased its tail.</div>', '2023-06-15 12:00:00', 1, 1),
+    ('Tasty Pizza', 'He ate ate a delicious pizza.', '<div>He ate ate a delicious pizza.</div>', '2023-07-20 16:30:00', 1, 1),
+    
+    ('Joyful Smile', 'She smiled smiled at the camera.', '<div>She smiled smiled at the camera.</div>', '2023-03-02 10:00:00', 1, 2),
+    ('Flying Bird', 'The bird bird flew high in the sky.', '<div>The bird bird flew high in the sky.</div>', '2023-04-06 15:15:00', 1, 2),
+    ('Dancing All Night', 'They danced danced all night long.', '<div>They danced danced all night long.</div>', '2023-05-11 20:30:00', 1, 2),
+    ('Fast Car', 'The car car raced down the track.', '<div>The car car raced down the track.</div>', '2023-06-16 14:45:00', 1, 2),
+    ('Laughing at Joke', 'She laughed laughed at the funny joke.', '<div>She laughed laughed at the funny joke.</div>', '2023-07-21 18:00:00', 1, 2),
+    
+    ('Favorite Song on Guitar', 'He played played his favorite song on the guitar.', '<div>He played played his favorite song on the guitar.</div>', '2023-03-03 11:30:00', 1, 3),
+    ('Interesting Book', 'The book book contained many interesting stories.', '<div>The book book contained many interesting stories.</div>', '2023-04-07 16:45:00', 1, 3),
+    ('Steep Mountain Hike', 'They hiked hiked up the steep mountain.', '<div>They hiked hiked up the steep mountain.</div>', '2023-05-12 21:00:00', 1, 3),
+    ('Heartfelt Letter', 'She wrote wrote a heartfelt letter to her friend.', '<div>She wrote wrote a heartfelt letter to her friend.</div>', '2023-06-17 15:15:00', 1, 3),
+    ('Bright Sunny Day', 'The sun sun shone brightly in the clear sky.', '<div>The sun sun shone brightly in the clear sky.</div>', '2023-07-22 19:30:00', 1, 3),
+    
+    ('Running Fast', 'He ran ran as fast as he could.', '<div>He ran ran as fast as he could.</div>', '2023-03-04 12:45:00', 1, 4),
+    ('Shady Tree', 'The tree tree provided shade on a hot day.', '<div>The tree tree provided shade on a hot day.</div>', '2023-04-08 18:00:00', 1, 4),
+    ('Endless Conversation', 'They talked talked for hours about their dreams.', '<div>They talked talked for hours about their dreams.</div>', '2023-05-13 22:15:00', 1, 4),
+    ('Heavy Rainfall', 'The rain rain poured down in heavy drops.', '<div>The rain rain poured down in heavy drops.</div>', '2023-06-18 16:30:00', 1, 4),
+    ('Artistic Painting', 'She painted painted a beautiful landscape.', '<div>She painted painted a beautiful landscape.</div>', '2023-07-23 20:45:00', 1, 4);
 
 INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
 
 -- Create user page permission
 INSERT INTO user_page_permission (date_created, last_modified, is_active, page_id, user_id, permission_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 5), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 6),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 7), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 8),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 9),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 10),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 11),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 12),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 13),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 14),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 15);
+
+-- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
+ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
+
+-- Add FULLTEXT index to the `title` column in the `page_version` table
+ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title (title);
+
+-- Add FULLTEXT index to the `content` column in the `page_version` table
+ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_content (content);
+
+-- Add FULLTEXT index to the `name` column in the `category` table
+ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
+
+-- Add FULLTEXT index to the `name` column in the `tag` table
+ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);

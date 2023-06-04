@@ -11,7 +11,7 @@ import com.yondu.knowledgebase.entities.Page;
 
 @Component
 public class CategoryMapper {
-    
+
     public Category toEntity(CategoryDTO dto) {
         Category category = new Category();
         category.setName(dto.getName());
@@ -28,26 +28,23 @@ public class CategoryMapper {
         List<PageDTO> pages = new ArrayList<>();
         // Assuming the PageDTO has the necessary fields to create a Page entity
         for (Page page : category.getPages()) {
-            PageDTO pageDto = new PageDTO();
-            
-            if(page.getId()!=oldPageId){
-                pageDto.setId(page.getId());
+            if (page.getId() != oldPageId) {
                 oldPageId = page.getId();
-                pages.add(pageDto);
-              
+                pages.add(PageDTO.builder().id(oldPageId).build());
+
             }
-      
+
         }
         categoryDto.setPages(pages);
         return categoryDto;
     }
 
-    public Category pageCategoryEntity(CategoryDTO dto){
+    public Category pageCategoryEntity(CategoryDTO dto) {
         Category category = new Category();
         category.setId(dto.getId());
         category.setName(dto.getName());
         category.setDeleted(dto.getDeleted());
-        
+
         List<Page> pages = new ArrayList<>();
         // Assuming the PageDTO has the necessary fields to create a Page entity
         for (PageDTO pageDTO : dto.getPages()) {
@@ -59,9 +56,6 @@ public class CategoryMapper {
 
         return category;
     }
-    
-       
-    
 
     public void updateCategory(CategoryDTO dto, Category category) {
         category.setName(dto.getName());

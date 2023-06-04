@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class)
@@ -30,9 +31,12 @@ public class PageVersion {
     @Column(nullable = false)
     private String title;
 
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
-    private String content;
+    private String originalContent;
 
     @LastModifiedDate
     private LocalDateTime dateModified;
@@ -164,6 +168,27 @@ public class PageVersion {
      */
     public void setPage(Page page) {
         this.page = page;
+    }
+
+    /**
+     * @param id the id to set
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * @return the originalContent
+     */
+    public String getOriginalContent() {
+        return originalContent;
+    }
+
+    /**
+     * @param originalContent the originalContent to set
+     */
+    public void setOriginalContent(String originalContent) {
+        this.originalContent = originalContent;
     }
 
 }

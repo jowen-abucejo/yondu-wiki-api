@@ -37,11 +37,17 @@ public class PageController {
     @GetMapping(path = "pages/search")
     public PaginatedResponse<PageDTO> searchPages(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "", name = "categories") String[] categories,
+            @RequestParam(defaultValue = "", name = "tags") String[] tags,
+            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "published") Boolean published,
+            @RequestParam(defaultValue = "0", name = "exactSearch") Boolean exactSearch,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
-            @RequestParam(defaultValue = "50", name = "size") int pageSize,
+            @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAll(searchKey, pageNumber, pageSize, sortBy);
+        return pageService.findAllByFullTextSearch(searchKey, categories, tags, archived, published, exactSearch,
+                pageNumber, pageSize, sortBy);
     }
 
     @GetMapping(path = "pages")
