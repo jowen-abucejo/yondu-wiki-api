@@ -1,9 +1,6 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
@@ -36,8 +33,16 @@ public class ReviewService {
         this.pageVersionRepository = pageVersionRepository;
     }
 
-    public List<ReviewDTO.BaseResponse> getAllReviews(){
-        return reviewRepository.findAll().stream().map(ReviewDTOMapper::mapToBaseResponse).toList();
+    public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviews( int page, int size){
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Review> reviewPages = reviewRepository.findAll(pageRequest);
+        List<Review> reviews = reviewPages.getContent();
+
+        List<ReviewDTO.BaseResponse> review = reviews.stream()
+                .map(rev -> ReviewDTOMapper.mapToBaseResponse(rev))
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(review, page,size, (long)review.size());
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviewsByStatus(String status, int page, int size){
@@ -53,8 +58,21 @@ public class ReviewService {
                     .collect(Collectors.toList());
 
         return new PaginatedResponse<>(review, page,size, (long)review.size());
+    }
 
+    public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviewsByPageTitle(String title, int page, int size){
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Review> reviewPages = reviewRepository.findAllByPageVersionTitle("%" + title.toLowerCase() + "%", pageRequest);
+        List<Review> reviews = reviewPages.getContent();
 
+        if(reviews.isEmpty()) {
+            throw new ResourceNotFoundException("No reviews found");
+        }
+        List<ReviewDTO.BaseResponse> review = reviews.stream()
+                .map(rev -> ReviewDTOMapper.mapToBaseResponse(rev))
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(review, page,size, (long)review.size());
     }
 
     public ReviewDTO.BaseResponse getReview(Long reviewId) {
