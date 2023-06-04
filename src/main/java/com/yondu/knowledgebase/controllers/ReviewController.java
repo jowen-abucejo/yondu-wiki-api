@@ -26,9 +26,12 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<List<ReviewDTO.BaseResponse>>> getAllReviews() {
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(reviewService.getAllReviews(), "Success retrieving list of page reviews"));
+    @GetMapping("reviews")
+    public ResponseEntity<?> getReviews(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size){
+        PaginatedResponse<ReviewDTO.BaseResponse> review = reviewService.getAllReviews(page,size);
+
+        ApiResponse apiResponse = ApiResponse.success(review, "Retrieved reviews successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 
 @PostMapping("/pages/{pageId}/versions/{versionId}/reviews")
@@ -39,7 +42,6 @@ public class ReviewController {
 
 }
     @PutMapping("/reviews/update/{id}")
-    @PreAuthorize("hasAuthority('CONTENT_APPROVAL')")
     public ResponseEntity<ApiResponse<?>> updateReview(@PathVariable("id") Long id, @RequestBody ReviewDTO.UpdateRequest request) {
             Object data = reviewService.updateReview(id, request);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Review updated successfully"));
@@ -52,9 +54,17 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(review, "Review with id: " + id + " found"));
     }
 
-    @GetMapping("reviews/search")
+    @GetMapping("reviews/status")
     public ResponseEntity<?> getReviewByStatus(@RequestParam(defaultValue = "PENDING") String status, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size){
         PaginatedResponse<ReviewDTO.BaseResponse> review = reviewService.getAllReviewsByStatus(status,page,size);
+
+        ApiResponse apiResponse = ApiResponse.success(review, "Retrieved reviews successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("reviews/search")
+    public ResponseEntity<?> getReviewByPageTitle(@RequestParam(defaultValue = "") String title, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size){
+        PaginatedResponse<ReviewDTO.BaseResponse> review = reviewService.getAllReviewsByPageTitle(title,page,size);
 
         ApiResponse apiResponse = ApiResponse.success(review, "Retrieved reviews successfully");
         return ResponseEntity.ok(apiResponse);

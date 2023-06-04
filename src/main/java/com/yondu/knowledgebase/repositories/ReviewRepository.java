@@ -14,4 +14,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 
     Page<Review> findAllByStatus (String status, Pageable pageable);
+
+    @Query("SELECT r FROM Review r WHERE lower(r.pageVersion.title) like %:title%")
+    Page<Review> findAllByPageVersionTitle(String title, Pageable pageable);
+
+    Page<Review> findAll (Pageable pageable);
 }
