@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.controllers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,14 +112,41 @@ public class CategoryController {
         //Category newCategory = categoryService.getCategory(categoryDto.getId());
 
         CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
-
-        //Category new2Category = categoryMapper.pageCategoryEntity(newCategoryDTO);
-        //newCategory = categoryMapper.toEntity(categoryDto);
-       // updatedCategory = categoryService.getCategory(updatedCategory.getId());
-     
     
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO, "Category added to page successfully"));
 
 
-}
+    }
+
+
+    @PutMapping("/pages/{pageId}/categories/{newCategoryId}")
+    public ResponseEntity<ApiResponse<CategoryDTO>> editPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId, @PathVariable Long newCategoryId) {
+        // Retrieve the page by ID using the PageService
+        Page page = pageService.getPage(pageId);
+        if (page == null) {
+            throw new ResourceNotFoundException("Page not found with ID: " + pageId);
+        }
+    
+        // Retrieve the category by ID using the CategoryService
+        Category category = categoryService.getCategory(newCategoryId);
+        if (category == null) {
+            throw new ResourceNotFoundException("Category not found with ID: " + newCategoryId);
+        }
+
+        Category oldCategory = categoryService.getCategory(categoryDto.getId());
+    
+        // Remove the page from its current categories set
+        Set<Category> currentCategories = page.getCategories();
+        currentCategories.remove(oldCategory);
+    
+        // Add the page to the new category's pages list
+        category.getPages().add(page);
+    
+        // Save the updated category and page
+        categoryService.editPageCategory(category);
+    
+        CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
+        return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Page category updated successfully"));
+    }
+
 }

@@ -61,4 +61,10 @@ public class CategoryService {
         return updatedCategory;
     
     }
+
+    public Category editPageCategory (Category category){
+        Category updatedCategory = categoryRepository.save(category);
+
+        return updatedCategory;
+    }
 }
