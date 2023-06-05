@@ -16,10 +16,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @CreatedBy
-//    @ManyToOne
-//    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
-//    private User author;
+    @CreatedBy
+    @ManyToOne
+    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
+    private User author;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -54,7 +54,7 @@ public class Post {
 
     public Post(Long id, User author, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Set<Category> categories, Set<Tag> tags) {
         this.id = id;
-//        this.author = author;
+        this.author = author;
         this.content = content;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
@@ -72,13 +72,13 @@ public class Post {
         this.id = id;
     }
 
-//    public User getAuthor() {
-//        return author;
-//    }
-//
-//    public void setAuthor(User author) {
-//        this.author = author;
-//    }
+    public User getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
+    }
 
     public String getContent() {
         return content;
@@ -140,7 +140,7 @@ public class Post {
     public String toString() {
         return "Post{" +
                 "id=" + id +
-//                ", author=" + author +
+                ", author=" + author +
                 ", content='" + content + '\'' +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +
