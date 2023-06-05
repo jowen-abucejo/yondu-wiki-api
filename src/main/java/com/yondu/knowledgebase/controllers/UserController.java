@@ -99,8 +99,9 @@ public class UserController {
     /*
      *  TODO
      *   Create endpoint uploading new profile picture
+     *   Wait for S3 Bucket, Secret, and Region
      */
-    @PostMapping("/upload")
+    @PostMapping("/update/photo")
     public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> changeProfilePhoto(@RequestParam("file") MultipartFile file) {
         log.info("UserController.changeProfilePhoto()");
         log.info("file : " + file);
@@ -111,11 +112,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, file.getOriginalFilename()));
     }
 
-    /*
-     * TODO
-     *  Create endpoint for changing password
-     */
-    @PutMapping("/password")
+    @PostMapping("/update/password")
     public ResponseEntity<ApiResponse<UserDTO.BaseResponse>> updatePassword(@RequestBody UserDTO.ChangePassRequest request) {
         log.info("UserController.updatePassword");
         log.info("request : " + request);
@@ -125,5 +122,16 @@ public class UserController {
 
         ApiResponse apiResponse = ApiResponse.success(userResponse, "Successfully changed password");
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> viewMyProfile() {
+        log.info("UserController.viewMyProfile()");
+
+        User user = userService.viewMyProfile();
+        UserDTO.GeneralResponse userDTO = UserDTOMapper.mapToGeneralResponse(user);
+        ApiResponse response = ApiResponse.success(userDTO, "success");
+
+        return ResponseEntity.ok(response);
     }
 }

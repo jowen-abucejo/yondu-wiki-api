@@ -67,8 +67,8 @@ public class UserService implements UserDetailsService {
         newUser.setStatus(Status.ACTIVE.getCode());
         newUser.setCreatedAt(LocalDate.now());
 
-        User createdUser = userRepository.save(newUser);
-        createdUser.setPassword("");
+        userRepository.save(newUser);
+        User createdUser = userRepository.fetchUserByEmail(newUser.getEmail()).orElseThrow(() -> new UserException("Cannot find user."));
         return createdUser;
     }
 
@@ -122,6 +122,19 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
     }
 
+    public User changeProfilePhoto(MultipartFile file) {
+        log.info("UserService.changeProfilePhoto()");
+        log.info("file : " + file);
+
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Upload photo to S3, retrieves path.
+        user.setProfilePhoto("");
+
+        userRepository.save(user);
+        return user;
+    }
+
     public User updatePassword(UserDTO.ChangePassRequest request) {
         log.info("UserService.updatePassword()");
         log.info("request : " + request);
@@ -139,16 +152,9 @@ public class UserService implements UserDetailsService {
         return updatedUser;
     }
 
-    public User changeProfilePhoto(MultipartFile file) {
-        log.info("UserService.changeProfilePhoto()");
-        log.info("file : " + file);
+    public User viewMyProfile() {
+        log.info("UserService.viewMyProfile()");
 
-        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        // Upload photo to S3, retrieves path.
-        user.setProfilePhoto("");
-
-        userRepository.save(user);
-        return user;
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }
