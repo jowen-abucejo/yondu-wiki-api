@@ -47,18 +47,20 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
 
     @Override
     public List<UserCommentRatingDTO> getAllCommentRating(){
-        List <UserCommentRating> userCommentRatings = userCommentRatingRepository.findAll();
+/*        List <UserCommentRating> userCommentRatings = userCommentRatingRepository.findAll();
         List <UserCommentRatingDTO> userCommentRatingDTOS = userCommentRatings.stream().map(userCommentRating ->
             new UserCommentRatingDTO(userCommentRating.getRating(),userCommentRating.getUser().getId(),userCommentRating.getComment().getId(),userCommentRating.getComment().getTotalCommentRating()))
         .collect(Collectors.toList());
-        return userCommentRatingDTOS;
+        return userCommentRatingDTOS;*/
+        return null;
     }
 
     @Override
     public UserCommentRatingDTO getCommentRating (Long ratingId){
-        UserCommentRating userCommentRating = userCommentRatingRepository.findById(ratingId).orElseThrow(() -> new ResourceNotFoundException(String.format("Rating ID not found: %d", ratingId)));
+/*        UserCommentRating userCommentRating = userCommentRatingRepository.findById(ratingId).orElseThrow(() -> new ResourceNotFoundException(String.format("Rating ID not found: %d", ratingId)));
         UserCommentRatingDTO userCommentRatingDTO = new UserCommentRatingDTO(userCommentRating.getRating(),userCommentRating.getUser().getId(),userCommentRating.getComment().getId(),userCommentRating.getComment().getTotalCommentRating());
-        return userCommentRatingDTO;
+        return userCommentRatingDTO;*/
+        return null;
     }
 
     @Override
@@ -73,11 +75,12 @@ public class UserCommentRatingServiceImpl implements UserCommentRatingService {
     }
 
     public int getTotalCommentRating(Long commentId){
-        int totalCommentRating = userCommentRatingRepository.totalCommentRating(commentId);
+/*        int totalCommentRating = userCommentRatingRepository.totalCommentRating(commentId);
         Comment updatedComment = commentRepository.findById(commentId).orElseThrow();
         updatedComment.setTotalCommentRating(totalCommentRating);
         commentRepository.save(updatedComment);
-        return totalCommentRating;
+        return totalCommentRating;*/
+        return 0;
     }
 
     public UserCommentRating checkRatingValue (UserCommentRating userCommentRating, String rating){

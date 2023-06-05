@@ -68,8 +68,10 @@ public class Page {
     @OrderBy(value = "modified_by DESC")
     private List<PageVersion> pageVersions = new ArrayList<>();
 
+/*
     @OneToMany(mappedBy = "page")
     private List<Comment> comments = new ArrayList<>();
+*/
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
@@ -111,7 +113,7 @@ public class Page {
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
-            List<PageVersion> pageVersions, List<Comment> comments, Set<Category> categories, Set<Tag> tags,
+            List<PageVersion> pageVersions, /*List<Comment> comments,*/ Set<Category> categories, Set<Tag> tags,
             Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings) {
         this.id = id;
         this.dateCreated = dateCreated;
@@ -124,7 +126,7 @@ public class Page {
         this.lockedBy = lockedBy;
         this.directory = directory;
         this.pageVersions = pageVersions;
-        this.comments = comments;
+//        this.comments = comments;
         this.categories = categories;
         this.tags = tags;
         this.userPagePermissions = userPagePermissions;
@@ -211,9 +213,9 @@ public class Page {
     /**
      * @return the comments
      */
-    public List<Comment> getComments() {
+/*    public List<Comment> getComments() {
         return comments;
-    }
+    }*/
 
     /**
      * @return the categories
@@ -323,9 +325,9 @@ public class Page {
     /**
      * @param comments the comments to set
      */
-    public void setComments(List<Comment> comments) {
+/*    public void setComments(List<Comment> comments) {
         this.comments = comments;
-    }
+    }*/
 
     /**
      * @param categories the categories to set

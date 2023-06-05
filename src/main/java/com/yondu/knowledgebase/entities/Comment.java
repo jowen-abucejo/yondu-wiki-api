@@ -18,16 +18,13 @@ public class Comment {
 
     private Long parentCommentId;
 
+    private Long entityId;
+
+    private String entityType;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-
     private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "page_id", referencedColumnName = "id")
-    private Page page;
-
-    private int totalCommentRating;
 
     public Comment() {
     }
@@ -37,90 +34,73 @@ public class Comment {
      * @param dateCreated
      * @param comment
      * @param parentCommentId
+     * @param entityId
+     * @param entityType
      * @param user
-     * @param page
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, User user, Page page, int totalCommentRating) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
         this.parentCommentId = parentCommentId;
+        this.entityId = entityId;
+        this.entityType = entityType;
         this.user = user;
-        this.page = page;
-        this.totalCommentRating = totalCommentRating;
     }
 
-    /**
-     * @return the id
-     */
     public Long getId() {
         return id;
-    }
-
-    /**
-     * @return the dateCreated
-     */
-    public LocalDateTime getDateCreated() {
-        return dateCreated;
-    }
-
-    /**
-     * @return the comment
-     */
-    public String getComment() {
-        return comment;
-    }
-
-    /**
-     * @return the parentCommentId
-     */
-    public Long getParentCommentId() {
-        return parentCommentId;
-    }
-
-    /**
-     * @return the user
-     */
-    public User getUser() {
-        return user;
-    }
-
-    /**
-     * @return the page
-     */
-    public Page getPage() {
-        return page;
     }
 
     public void setId(Long id) {
         this.id = id;
     }
 
+    public LocalDateTime getDateCreated() {
+        return dateCreated;
+    }
+
     public void setDateCreated(LocalDateTime dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    public String getComment() {
+        return comment;
     }
 
     public void setComment(String comment) {
         this.comment = comment;
     }
 
+    public Long getParentCommentId() {
+        return parentCommentId;
+    }
+
     public void setParentCommentId(Long parentCommentId) {
         this.parentCommentId = parentCommentId;
     }
 
+    public Long getEntityId() {
+        return entityId;
+    }
+
+    public void setEntityId(Long entityId) {
+        this.entityId = entityId;
+    }
+
+    public String getEntityType() {
+        return entityType;
+    }
+
+    public void setEntityType(String entityType) {
+        this.entityType = entityType;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public void setPage(Page page) {
-        this.page = page;
-    }
-
-    public int getTotalCommentRating() {
-        return totalCommentRating;
-    }
-
-    public void setTotalCommentRating(int totalCommentRating) {
-        this.totalCommentRating = totalCommentRating;
     }
 }
