@@ -28,19 +28,22 @@ public class Category {
     @Column(name = "is_deleted")
     private Boolean deleted =false;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
+    @ManyToMany(mappedBy = "categories")
     private List<Page> pages = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "categories")
+    private List<Page> posts = new ArrayList<>();
 
     public Category(){
 
     }
 
-    public Category(Long id, String name, Boolean deleted, List<Page> pages){
-        this.id= id;
+    public Category(Long id, String name, Boolean deleted, List<Page> pages, List<Page> posts) {
+        this.id = id;
         this.name = name;
         this.deleted = deleted;
         this.pages = pages;
+        this.posts = posts;
     }
 
     public Long getId(){
@@ -73,5 +76,24 @@ public class Category {
     }
 
     public void setPages(List<Page> pages2) {
+    }
+
+    public List<Page> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<Page> posts) {
+        this.posts = posts;
+    }
+
+    @Override
+    public String toString() {
+        return "Category{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", deleted=" + deleted +
+                ", pages=" + pages +
+                ", posts=" + posts +
+                '}';
     }
 }
