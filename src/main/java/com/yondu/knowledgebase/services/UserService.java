@@ -13,10 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -34,7 +36,7 @@ public class UserService implements UserDetailsService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    public User createNewUser(UserDTO.GeneralInfo user) {
+    public User createNewUser(UserDTO.WithRolesRequest user) {
         log.info("UserService.createNewUser()");
         log.info("user : " + user.toString());
 
@@ -65,12 +67,12 @@ public class UserService implements UserDetailsService {
         newUser.setStatus(Status.ACTIVE.getCode());
         newUser.setCreatedAt(LocalDate.now());
 
-        User createdUser = userRepository.save(newUser);
-        createdUser.setPassword("");
+        userRepository.save(newUser);
+        User createdUser = userRepository.fetchUserByEmail(newUser.getEmail()).orElseThrow(() -> new UserException("Cannot find user."));
         return createdUser;
     }
 
-    public User deactivateUser(UserDTO.GeneralInfo user) {
+    public User deactivateUser(UserDTO.ShortRequest user) {
         log.info("UserService.deactivateUser()");
         log.info("user : " + user.toString());
 
@@ -93,7 +95,7 @@ public class UserService implements UserDetailsService {
                 String.format("Active user with email of %s not found", email)));
     }
 
-    public PaginatedResponse<UserDTO.GeneralResponse> getAllUser(String searchKey, int page, int size) {
+    public PaginatedResponse<UserDTO.WithRolesResponse> getAllUser(String searchKey, int page, int size) {
         log.info("UserService.getAllUser()");
         log.info("searchKey : " + searchKey);
         log.info("page : " + page);
@@ -107,16 +109,52 @@ public class UserService implements UserDetailsService {
             throw new NoContentException("No content found");
         }
 
-        List<UserDTO.GeneralResponse> userDTOs = users.stream()
-                .map(user -> UserDTOMapper.mapToGeneralResponse(user))
+        List<UserDTO.WithRolesResponse> userDTOs = users.stream()
+                .map(user -> UserDTOMapper.mapToWithRolesResponse(user))
                 .collect(Collectors.toList());
 
-        PaginatedResponse<UserDTO.GeneralResponse> paginatedResponse = new PaginatedResponse<UserDTO.GeneralResponse>(userDTOs, page, size, (long)userDTOs.size());
+        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<UserDTO.WithRolesResponse>(userDTOs, page, size, (long)userDTOs.size());
 
         return paginatedResponse;
     }
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
+    }
+
+    public User changeProfilePhoto(MultipartFile file) {
+        log.info("UserService.changeProfilePhoto()");
+        log.info("file : " + file);
+
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Upload photo to S3, retrieves path.
+        user.setProfilePhoto("");
+
+        userRepository.save(user);
+        return user;
+    }
+
+    public User updatePassword(UserDTO.ChangePassRequest request) {
+        log.info("UserService.updatePassword()");
+        log.info("request : " + request);
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if(passwordEncoder.matches(request.oldPassword(), user.getPassword())){
+            String newEncodedPassword = passwordEncoder.encode(request.newPassword());
+            user.setPassword(newEncodedPassword);
+        }else{
+            throw new InvalidCredentialsException();
+        }
+
+        User updatedUser = userRepository.save(user);
+        return updatedUser;
+    }
+
+    public User viewMyProfile() {
+        log.info("UserService.viewMyProfile()");
+
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 }

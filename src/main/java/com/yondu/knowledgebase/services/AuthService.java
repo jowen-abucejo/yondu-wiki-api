@@ -49,7 +49,7 @@ public class AuthService {
     }
 
 
-    public boolean checkEmail(UserDTO.LoginRequest request) {
+    public boolean checkEmail(UserDTO.ShortRequest request) {
         log.info("UserService.checkEmail()");
         log.info("request : " + request);
 
