@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity(name = "users")
 public class User implements UserDetails {
@@ -31,6 +32,8 @@ public class User implements UserDetails {
     private String firstName;
     private String lastName;
     private String status;
+    private String profilePhoto;
+    private String position;
     private LocalDate createdAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -77,6 +80,26 @@ public class User implements UserDetails {
         this.status = user.status();
         this.createdAt = user.createdAt();
         this.rights = new HashSet<>();
+    }
+
+    public User(UserDTO.WithRolesRequest user) {
+        this.id = user.id();
+        this.username = user.username();
+        this.email = user.email();
+        this.password = user.password();
+        this.firstName = user.firstName();
+        this.lastName = user.lastName();
+        this.profilePhoto = user.profilePhoto();
+        this.position = user.position();
+        this.status = user.status();
+        this.createdAt = user.createdAt();
+        this.rights = new HashSet<>();
+
+        Set<Role> roles = user.roles()
+                .stream()
+                .map(role -> new Role(role.getId()))
+                .collect(Collectors.toSet());
+        this.role = roles;
     }
 
     public User(Long id, String username, String email, String password, String firstName, String lastName,
@@ -158,6 +181,22 @@ public class User implements UserDetails {
 
     public void setCreatedAt(LocalDate createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getProfilePhoto() {
+        return profilePhoto;
+    }
+
+    public void setProfilePhoto(String profilePhoto) {
+        this.profilePhoto = profilePhoto;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 
     public Set<Role> getRole() {
