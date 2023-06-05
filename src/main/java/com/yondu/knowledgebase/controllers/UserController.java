@@ -37,7 +37,7 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("")
-    public ResponseEntity<?> getAllUser(@RequestParam(defaultValue = "") String searchKey, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "30") int size){
+    public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.GeneralResponse>>> getAllUser(@RequestParam(defaultValue = "") String searchKey, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "30") int size){
         log.info("UserController.getAllUser()");
         log.info("searchKey : " + searchKey);
         log.info("page : " + page);
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id){
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> getUserById(@PathVariable Long id){
         log.info("UserController.getUserById()");
         log.info("id : " + id);
 
@@ -68,7 +68,7 @@ public class UserController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_USERS')")
-    public ResponseEntity<?> createNewUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> createNewUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
         log.info("UserController.createNewUser()");
         log.info("user : " + user.toString());
 
@@ -81,13 +81,13 @@ public class UserController {
 
     @PostMapping("/deactivate")
     @PreAuthorize("hasAuthority('DEACTIVATE_USERS')")
-    public ResponseEntity<?> deactivateUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> deactivateUser(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.GeneralInfo user) {
         log.info("UserController.deactivateUser()");
         log.info("user : " + user.toString());
 
         User deactivatedUser = userService.deactivateUser(user);
 
-        com.yondu.knowledgebase.DTO.user.UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(deactivatedUser);
+        UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(deactivatedUser);
         ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
 
         return ResponseEntity.ok(apiResponse);
