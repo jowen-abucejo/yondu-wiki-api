@@ -23,5 +23,9 @@ public interface UserPagePermissionRepository extends JpaRepository<UserPagePerm
 
     Optional<UserPagePermission>findByPageAndPermissionAndUserAndIsActive(Page page, Permission permission, User user, Boolean isActive);
 
-    List<UserPagePermission> findAllByUserAndIsActive(User user, boolean b);
+    @Query("SELECT DISTINCT up FROM UserPagePermission up WHERE up.user = :user AND up.isActive = :isActive GROUP BY up.page, up.permission")
+    List<UserPagePermission> findAllByUserAndIsActiveGroupByPage(User user, Boolean isActive);
+
+    @Query("SELECT DISTINCT up FROM UserPagePermission up WHERE up.page = :page AND up.isActive = :isActive GROUP BY up.user, up.permission")
+    List<UserPagePermission> findAllByPageAndIsActiveGroupByUser(Page page, Boolean isActive);
 }

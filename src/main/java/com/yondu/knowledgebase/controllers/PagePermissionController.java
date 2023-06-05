@@ -62,11 +62,24 @@ public class PagePermissionController {
     @GetMapping("/page-permissions/user/{userId}")
     public ResponseEntity<ApiResponse<?>> getAllPageOfUser(@PathVariable Long userId){
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllPagePermissionOfUser(userId), "All page access of user has been fetched."));
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllPageOfUser(userId), "All page access of user has been fetched."));
         } catch (ResourceNotFoundException e ){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e ){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot fetch list."));
         }
     }
+
+    @GetMapping("/page-permissions/page/{pageId}")
+    public ResponseEntity<ApiResponse<?>> getAllUsersOfPage(@PathVariable Long pageId){
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(userPagePermissionService.getAllUsersOfPage(pageId), "All users with access of this page has been fetched."));
+        } catch (ResourceNotFoundException e ){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e ){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiResponse.error("Cannot fetch list."));
+        }
+    }
+
+
 }

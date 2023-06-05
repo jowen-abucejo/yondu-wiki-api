@@ -11,7 +11,8 @@ public interface UserPagePermissionService {
 
     public UserPagePermissionDTO.BaseResponse removeUserToPageAccess(Long pageId, UserPagePermissionDTO.UserPermissionPair userPagePermission);
 
-    public List<UserPagePermissionDTO.BaseResponse> getAllPagePermissionOfUser(Long id);
+    public List<UserPagePermissionDTO.BaseResponse> getAllPageOfUser(Long id);
+    public List<UserPagePermissionDTO.BaseResponse> getAllUsersOfPage(Long id);
 
 }
 

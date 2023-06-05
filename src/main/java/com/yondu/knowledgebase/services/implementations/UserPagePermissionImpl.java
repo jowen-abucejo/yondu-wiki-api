@@ -72,12 +72,31 @@ public class UserPagePermissionImpl implements UserPagePermissionService {
         return UserPagePermissionDTOMapper.mapToBaseResponse(savedUserPagePermission);
     }
 
+    /**
+     * Retrieves all the pages the user has access to
+     * **/
     @Override
-    public List<UserPagePermissionDTO.BaseResponse> getAllPagePermissionOfUser(Long userId) {
+    public List<UserPagePermissionDTO.BaseResponse> getAllPageOfUser(Long userId) {
 
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found."));
 
-        List<UserPagePermission> userPagePermission = userPagePermissionRepository.findAllByUserAndIsActive(user, true);
+        List<UserPagePermission> userPagePermission = userPagePermissionRepository.findAllByUserAndIsActiveGroupByPage(user, true);
+        return userPagePermission.stream().map(UserPagePermissionDTOMapper::mapToBaseResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves all the users with access on the page
+     * **/
+    @Override
+    public List<UserPagePermissionDTO.BaseResponse> getAllUsersOfPage(Long pageId) {
+
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page not found."));
+
+        List<UserPagePermission> userPagePermission = userPagePermissionRepository.findAllByPageAndIsActiveGroupByUser(page, true);
+
+
+
         return userPagePermission.stream().map(UserPagePermissionDTOMapper::mapToBaseResponse)
                 .collect(Collectors.toList());
     }
