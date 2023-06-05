@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -136,5 +137,18 @@ public class UserService implements UserDetailsService {
 
         User updatedUser = userRepository.save(user);
         return updatedUser;
+    }
+
+    public User changeProfilePhoto(MultipartFile file) {
+        log.info("UserService.changeProfilePhoto()");
+        log.info("file : " + file);
+
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // Upload photo to S3, retrieves path.
+        user.setProfilePhoto("");
+
+        userRepository.save(user);
+        return user;
     }
 }

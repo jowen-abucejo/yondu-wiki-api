@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Calendar;
@@ -99,7 +100,16 @@ public class UserController {
      *  TODO
      *   Create endpoint uploading new profile picture
      */
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> changeProfilePhoto(@RequestParam("file") MultipartFile file) {
+        log.info("UserController.changeProfilePhoto()");
+        log.info("file : " + file);
 
+        User userWithPhotoPath = userService.changeProfilePhoto(file);
+        UserDTO.GeneralResponse response = UserDTOMapper.mapToGeneralResponse(userWithPhotoPath);
+
+        return ResponseEntity.ok(ApiResponse.success(response, file.getOriginalFilename()));
+    }
 
     /*
      * TODO
