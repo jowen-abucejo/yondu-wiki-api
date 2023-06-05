@@ -27,4 +27,13 @@ public class UserDTOMapper {
     public static UserDTO.ShortResponse mapToShortResponse(User user) {
         return new UserDTO.ShortResponse(user.getId(), user.getEmail(), user.getUsername(), user.getFirstName(), user.getLastName());
     }
+
+    public static UserDTO.WithRolesResponse mapToWithRolesResponse(User user) {
+        Set<RoleDTO> roles = user.getRole()
+                .stream()
+                .map(RoleDTO::new)
+                .collect(Collectors.toSet());
+
+        return new UserDTO.WithRolesResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt(), roles);
+    }
 }
