@@ -33,7 +33,7 @@ public class AuthController {
     private TokenUtil tokenUtil;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
+    public ResponseEntity<ApiResponse<Object>> login(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
         log.info("AuthController.login()");
         log.info("user : " + request);
 
@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/check")
-    public ResponseEntity<?> checkEmail(@RequestBody com.yondu.knowledgebase.DTO.user.UserDTO.LoginRequest request) {
+    public ResponseEntity<ApiResponse<UserDTO.ShortRequest>> checkEmail(@RequestBody UserDTO.ShortRequest request) {
         log.info("AuthController.checkEmail()");
         log.info("request : " + request.toString());
 
