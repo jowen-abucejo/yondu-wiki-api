@@ -16,11 +16,13 @@ import com.yondu.knowledgebase.DTO.category.CategoryMapper;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.services.CategoryService;
 import com.yondu.knowledgebase.services.PageService;
+import com.yondu.knowledgebase.services.PostService;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +34,9 @@ public class CategoryController {
 
     @Autowired
     private PageService pageService;
+
+    @Autowired
+    private PostService postService;
 
 
     private final CategoryMapper categoryMapper;
@@ -147,6 +152,39 @@ public class CategoryController {
     
         CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
         return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Page category updated successfully"));
+    }
+
+
+    @PostMapping("/posts/{postId}/categories")
+    public ResponseEntity<ApiResponse<CategoryDTO>> assignPostCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long postId) {
+        // Retrieve the page by ID using the PageService
+        Post post = postService.getPost(postId);
+        if (post == null) {
+            throw new ResourceNotFoundException("Page not found with ID: " + postId);
+        }
+    
+        // Retrieve the category by ID using the CategoryService
+        Category category = categoryService.getCategory(categoryDto.getId());
+        if (category == null) {
+            throw new ResourceNotFoundException("Category not found with ID: " + categoryDto.getId());
+        }
+
+     
+    
+        // Add the page to the category's pages list
+        category.getPosts().add(post);
+    
+        // Save the updated category
+         
+        Category updatedCategory = categoryService.addPageCategory(category);
+
+        //Category newCategory = categoryService.getCategory(categoryDto.getId());
+
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
+    
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO, "Category added to post successfully"));
+
+
     }
 
 }
