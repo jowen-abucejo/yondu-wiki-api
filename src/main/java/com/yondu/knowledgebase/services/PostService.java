@@ -58,7 +58,7 @@ public class PostService {
             return tagRepository.findById(tag.getId()).get();
         }).collect(Collectors.toSet());
 
-        Post post = new Post(postDTO.getId(), user, postDTO.getContent().replaceAll("<[^>]+>", ""), postDTO.getDateCreated(), postDTO.getDateModified(), true, false, categories, tags);
+        Post post = new Post(postDTO.getId(), user, postDTO.getContent().replaceAll("<[^>]+>", ""), LocalDateTime.now(), postDTO.getDateModified(), true, false, categories, tags);
         postRepository.save(post);
 
         return new PostDTO(post);
