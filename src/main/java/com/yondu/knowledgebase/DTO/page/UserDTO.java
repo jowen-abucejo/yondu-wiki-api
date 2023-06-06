@@ -31,7 +31,7 @@ public class UserDTO {
     private String status;
 
     // @JsonInclude(Include.NON_EMPTY)
-    // private Set<UserPagePermissionDTO> userPagePermissions = new HashSet<>();
+    // private Set<PageRightsDTO> pageRights = new HashSet<>();
 
     // @JsonInclude(Include.NON_EMPTY)
     // private List<UserCommentRatingDTO> userCommentRating = new ArrayList<>();

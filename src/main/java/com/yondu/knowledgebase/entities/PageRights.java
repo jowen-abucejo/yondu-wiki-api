@@ -14,6 +14,14 @@ public class PageRights extends Rights{
     @JoinColumn(name = "permission_id")
     private Permission permission;
 
+    public PageRights() {
+    }
+
+    public PageRights(Page page, Permission permission) {
+        this.page = page;
+        this.permission = permission;
+    }
+
     public Page getPage() {
         return page;
     }
