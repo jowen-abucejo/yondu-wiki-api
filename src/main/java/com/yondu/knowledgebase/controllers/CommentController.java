@@ -21,26 +21,26 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam(required = false) Long parentCommentId) {
+    public ResponseEntity<ApiResponse<CommentResponseDTO>> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam(required = false) Long parentCommentId) {
         CommentResponseDTO createdComment = commentService.createComment(commentRequest, parentCommentId);
         String message = (parentCommentId==null) ? "Comment added successfully" : "Reply added successfully";
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdComment, message));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllComments(@RequestParam String entity, @RequestParam Long id) {
+    public ResponseEntity<ApiResponse<List <CommentResponseDTO>>> getAllComments(@RequestParam String entity, @RequestParam Long id) {
         List <CommentResponseDTO> commentResponseDTO= commentService.getAllComments(entity,id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentResponseDTO, "All comments retrieved successfully"));
     }
 
     @GetMapping ("/count")
-    public ResponseEntity <ApiResponse<?>> getTotalCommentCount (@RequestParam String entity, @RequestParam Long id){
+    public ResponseEntity <ApiResponse<CommentCountResponseDTO>> getTotalCommentCount (@RequestParam String entity, @RequestParam Long id){
         CommentCountResponseDTO commentCountResponseDTO = commentService.getTotalComments(entity,id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentCountResponseDTO, "Total Comment Count retrieved successfully"));
 
     }
     @GetMapping ("/{commentId}")
-    public ResponseEntity<ApiResponse<?>> getComment (@PathVariable Long commentId) {
+    public ResponseEntity<ApiResponse<CommentResponseDTO>> getComment (@PathVariable Long commentId) {
         CommentResponseDTO commentResponseDTO = commentService.getComment(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentResponseDTO, "Comment retrieved successfully"));
     }
