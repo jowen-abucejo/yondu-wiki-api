@@ -114,7 +114,7 @@ public class Page {
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, /*List<Comment> comments,*/ Set<Category> categories, Set<Tag> tags,
-            Set<UserPagePermission> userPagePermissions, Set<UserPageRating> userPageRatings) {
+            Set<PageRights> pageRights, Set<UserPageRating> userPageRatings) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
@@ -130,7 +130,6 @@ public class Page {
         this.categories = categories;
         this.tags = tags;
         this.pageRights = pageRights;
-        this.userPageRatings = userPageRatings;
     }
 
     /**

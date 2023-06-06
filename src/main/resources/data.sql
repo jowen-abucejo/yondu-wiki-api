@@ -175,9 +175,6 @@ VALUES
 
 INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
 
--- Create user page permission
-INSERT INTO user_page_permission (date_created, last_modified, is_active, page_id, user_id, permission_id) VALUES (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 5), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 6),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 7), (CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 8),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 9),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 10),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 11),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 12),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 13),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 14),(CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, true, 1, 1, 15);
-
 -- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
 ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
 
