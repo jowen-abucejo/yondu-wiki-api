@@ -1,9 +1,12 @@
 package com.yondu.knowledgebase.DTO.comment;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.yondu.knowledgebase.DTO.UserDTO;
+import com.yondu.knowledgebase.entities.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 public class CommentResponseDTO {
     private Long id;
@@ -14,12 +17,14 @@ public class CommentResponseDTO {
     private String entityType;
     private Long totalReplies;
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Set<MentionedUserResponseDTO> commentMentions;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List <CommentDTO> replies;
 
     public CommentResponseDTO() {
     }
 
-    public CommentResponseDTO(Long id, LocalDateTime date, String comment, Long userId, Long entityId, String entityType, List<CommentDTO> replies, Long totalReplies) {
+    public CommentResponseDTO(Long id, LocalDateTime date, String comment, Long userId, Long entityId, String entityType, Set<MentionedUserResponseDTO> commentMentions, List<CommentDTO> replies, Long totalReplies) {
         this.id = id;
         this.date = date;
         this.comment = comment;
@@ -27,6 +32,7 @@ public class CommentResponseDTO {
         this.entityId = entityId;
         this.entityType = entityType;
         this.totalReplies = totalReplies;
+        this.commentMentions = commentMentions;
         this.replies = replies;
     }
 
@@ -84,6 +90,14 @@ public class CommentResponseDTO {
 
     public void setTotalReplies(Long totalReplies) {
         this.totalReplies = totalReplies;
+    }
+
+    public Set<MentionedUserResponseDTO> getCommentMentions() {
+        return commentMentions;
+    }
+
+    public void setCommentMentions(Set<MentionedUserResponseDTO> commentMentions) {
+        this.commentMentions = commentMentions;
     }
 
     public List<CommentDTO> getReplies() {

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 public class Comment {
@@ -26,6 +28,10 @@ public class Comment {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "comment_mentions", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> commentMentions = new HashSet<>();
+
     public Comment() {
     }
 
@@ -37,8 +43,9 @@ public class Comment {
      * @param entityId
      * @param entityType
      * @param user
+     * @param commentMentions
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set commentMentions) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
@@ -46,6 +53,7 @@ public class Comment {
         this.entityId = entityId;
         this.entityType = entityType;
         this.user = user;
+        this.commentMentions = commentMentions;
     }
 
     public Long getId() {
@@ -102,5 +110,13 @@ public class Comment {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Set<User> getCommentMentions() {
+        return commentMentions;
+    }
+
+    public void setCommentMentions(Set<User> commentMentions) {
+        this.commentMentions = commentMentions;
     }
 }
