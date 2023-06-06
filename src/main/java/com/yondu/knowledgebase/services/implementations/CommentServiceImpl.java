@@ -1,9 +1,9 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.Comment.CommentDTO;
-import com.yondu.knowledgebase.DTO.Comment.CommentRequestDTO;
-import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
-import com.yondu.knowledgebase.DTO.Response;
+import com.yondu.knowledgebase.DTO.comment.CommentCountResponseDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentRequestDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentResponseDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.User;
@@ -14,6 +14,7 @@ import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.CommentService;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,63 +31,74 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDTO createComment(CommentDTO commentRequestDTO, Long commentParentId) {
-
+    public CommentResponseDTO createComment(CommentRequestDTO commentRequestDTO, Long parentCommentId) {
         User user = userRepository.findById(commentRequestDTO.getUserId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found: %d", commentRequestDTO.getUserId())));
-        Page page = pageRepository.findByIdAndActive(commentRequestDTO.getPageId(), true).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", commentRequestDTO.getPageId())));
+        if (commentRequestDTO.getEntityType().equals("PAGE")){
+            pageRepository.findById(commentRequestDTO.getEntityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", commentRequestDTO.getEntityId())));
+        }else if (commentRequestDTO.getEntityType().equals("POST")){
+            return null; //postRepository.findById(commentRequestDTO.getEntityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", commentRequestDTO.getEntityId())));
+        }
+
         LocalDateTime currentDate = LocalDateTime.now();
         Comment comment = new Comment();
         comment.setDateCreated(currentDate);
         comment.setComment(commentRequestDTO.getComment());
-        comment.setTotalCommentRating(0);
-        comment.setPage(page);
+        comment.setEntityId(commentRequestDTO.getEntityId());
+        comment.setEntityType(commentRequestDTO.getEntityType());
         comment.setUser(user);
 
-        if(commentRequestDTO.getCommentParentId() != null){
-
-            boolean commentParentIsExist = commentRepository.existsById(commentRequestDTO.getCommentParentId());
-            if(commentParentIsExist){
-                comment.setParentCommentId(commentRequestDTO.getCommentParentId());
+        if(parentCommentId != null){
+            if(commentRepository.existsById(parentCommentId)){
+                comment.setParentCommentId(parentCommentId);
             }else{
-                throw new ResourceNotFoundException(String.format("Comment ID not found: %d", commentRequestDTO.getCommentParentId()));
+                throw new ResourceNotFoundException(String.format("Comment ID not found: %d",parentCommentId));
             }
-
         }
+
         commentRepository.save(comment);
-        return commentRequestDTO;
+        return mapToCommentResponseDTO(comment);
     }
 
     @Override
-    public CommentResponseDTO getAllComments(Long pageId) {
-        List<Comment> comments = commentRepository.findAllByParentCommentIdIsNullAndPageId(pageId);
+    public List<CommentResponseDTO> getAllComments(String entity, Long id) {
+        List<Comment> comments = commentRepository.findByEntityTypeAndEntityId(entity,id);
+        List <CommentResponseDTO> commentResponseList = new ArrayList<>();
 
-        List<CommentRequestDTO> commentDTOs = comments.stream()
-                .map(comment -> {
-                    CommentRequestDTO commentDTO = new CommentRequestDTO(comment);
-                    List<Comment> childComments = commentRepository.findAllByParentCommentIdAndPageId(comment.getId(), comment.getPage().getId());
-                    List<CommentRequestDTO> childCommentDTOs = childComments.stream()
-                            .map(CommentRequestDTO::new)
-                            .collect(Collectors.toList());
-                    commentDTO.setCommentParentList(childCommentDTOs);
-                    return commentDTO;
-                })
-                .collect(Collectors.toList());
-
-        CommentResponseDTO responseDTO = new CommentResponseDTO();
-        responseDTO.setData(commentDTOs);
-        responseDTO.setTotalComment(getTotalComments());
-        responseDTO.setPageId(pageId);
-        return responseDTO;
+        for (Comment comment : comments){
+            CommentResponseDTO commentResponseDTO = mapToCommentResponseDTO(comment);
+            commentResponseList.add(commentResponseDTO);
+        }
+        return commentResponseList;
     }
 
     @Override
-    public int getTotalComments() {
-        System.out.println(Math.toIntExact(commentRepository.count()));
-        return Math.toIntExact(commentRepository.count());
+    public CommentCountResponseDTO getTotalComments(String entity, Long id) {
+        Long totalCommentCount = commentRepository.countByEntityTypeAndEntityId(entity,id);
+        CommentCountResponseDTO commentCountResponseDTO = new CommentCountResponseDTO(id,entity,totalCommentCount);
+        return commentCountResponseDTO;
     }
 
     @Override
-    public Comment getComment (Long commentId){
-        return commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", commentId)));
+    public CommentResponseDTO getComment (Long commentId){
+        Comment comment = commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", commentId)));
+        return mapToCommentResponseDTO(comment);
+    }
+
+    private CommentResponseDTO mapToCommentResponseDTO(Comment comment) {
+        CommentResponseDTO commentResponseDTO = new CommentResponseDTO();
+        commentResponseDTO.setId(comment.getId());
+        commentResponseDTO.setDate(comment.getDateCreated());
+        commentResponseDTO.setComment(comment.getComment());
+        commentResponseDTO.setUserId(comment.getUser().getId());
+        commentResponseDTO.setEntityId(comment.getEntityId());
+        commentResponseDTO.setEntityType(comment.getEntityType());
+        commentResponseDTO.setTotalReplies(commentRepository.countAllReplies(comment.getId()));
+
+        //Fetch Replies
+        List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(),comment.getEntityId(),comment.getId());
+        List <CommentDTO> commentReplies = comments.stream().map(reply -> new CommentDTO(reply.getId(),reply.getDateCreated(),reply.getComment(),reply.getUser().getId())).collect(Collectors.toList());
+        commentResponseDTO.setReplies(commentReplies);
+
+        return commentResponseDTO;
     }
 }

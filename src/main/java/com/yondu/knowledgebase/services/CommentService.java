@@ -1,13 +1,18 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.Comment.CommentDTO;
-import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentCountResponseDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentRequestDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentResponseDTO;
 import com.yondu.knowledgebase.entities.Comment;
+
+import java.util.List;
 
 
 public interface CommentService {
-    public CommentDTO createComment(CommentDTO commentRequestDTO, Long commentParentId);
-    public CommentResponseDTO getAllComments(Long pageId);
-    public int getTotalComments();
-    Comment getComment(Long commentId);
+    public CommentResponseDTO createComment(CommentRequestDTO commentRequestDTO, Long commentParentId);
+    public List<CommentResponseDTO> getAllComments(String entity, Long id);
+
+    CommentCountResponseDTO getTotalComments(String entity, Long id);
+
+    CommentResponseDTO getComment(Long commentId);
 }

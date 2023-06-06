@@ -1,13 +1,15 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.Comment.CommentDTO;
-import com.yondu.knowledgebase.DTO.Comment.CommentResponseDTO;
-import com.yondu.knowledgebase.entities.Comment;
+import com.yondu.knowledgebase.DTO.comment.CommentCountResponseDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentRequestDTO;
+import com.yondu.knowledgebase.DTO.comment.CommentResponseDTO;
 import com.yondu.knowledgebase.services.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/comments")
@@ -19,22 +21,27 @@ public class CommentController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> createComment(@RequestBody CommentDTO commentRequest, @RequestParam(required = false) Long commentParentId) {
-        CommentDTO createdComment = commentService.createComment(commentRequest, commentParentId);
-        String message = (commentParentId==null) ? "Comment added successfully" : "Reply added successfully";
+    public ResponseEntity<ApiResponse<?>> createComment(@RequestBody CommentRequestDTO commentRequest, @RequestParam(required = false) Long parentCommentId) {
+        CommentResponseDTO createdComment = commentService.createComment(commentRequest, parentCommentId);
+        String message = (parentCommentId==null) ? "Comment added successfully" : "Reply added successfully";
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(createdComment, message));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<?>> getAllComments( @RequestParam Long pageId) {
-        CommentResponseDTO commentResponseDTO= commentService.getAllComments(pageId);
+    public ResponseEntity<ApiResponse<?>> getAllComments(@RequestParam String entity, @RequestParam Long id) {
+        List <CommentResponseDTO> commentResponseDTO= commentService.getAllComments(entity,id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentResponseDTO, "All comments retrieved successfully"));
     }
 
+    @GetMapping ("/count")
+    public ResponseEntity <ApiResponse<?>> getTotalCommentCount (@RequestParam String entity, @RequestParam Long id){
+        CommentCountResponseDTO commentCountResponseDTO = commentService.getTotalComments(entity,id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentCountResponseDTO, "Total Comment Count retrieved successfully"));
+
+    }
     @GetMapping ("/{commentId}")
     public ResponseEntity<ApiResponse<?>> getComment (@PathVariable Long commentId) {
-        Comment comment = commentService.getComment(commentId);
-        CommentDTO commentResponseDTO = new CommentDTO(comment.getComment(),comment.getPage().getId(),comment.getUser().getId(),comment.getParentCommentId(),comment.getTotalCommentRating());
+        CommentResponseDTO commentResponseDTO = commentService.getComment(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(commentResponseDTO, "Comment retrieved successfully"));
     }
 }
