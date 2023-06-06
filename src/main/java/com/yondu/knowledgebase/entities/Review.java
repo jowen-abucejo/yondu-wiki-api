@@ -8,11 +8,6 @@ import java.time.LocalDate;
 @Entity
 public class Review {
 
-    public enum Status {
-        PENDING,
-        APPROVED,
-        DISAPPROVED
-    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -28,12 +23,12 @@ public class Review {
     private String comment;
     private LocalDate reviewDate;
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private String status;
 
     public Review() {
     }
 
-    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, Status status) {
+    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
         this.pageVersion = pageVersion;
         this.user = user;
         this.comment = comment;
@@ -63,7 +58,7 @@ public class Review {
         return reviewDate;
     }
 
-    public Status getStatus() {
+    public String getStatus() {
         return status;
     }
 
@@ -95,7 +90,7 @@ public class Review {
         this.reviewDate = reviewDate;
     }
 
-    public void setStatus(Status status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 

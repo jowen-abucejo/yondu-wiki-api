@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.repositories;
 
 import com.yondu.knowledgebase.entities.Review;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Repository;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 
-    Page<Review> findAllByStatus (Review.Status status, Pageable pageable);
+    Page<Review> findAllByStatus (ReviewStatus status, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE lower(r.pageVersion.title) like %:title%")
     Page<Review> findAllByPageVersionTitle(String title, Pageable pageable);

@@ -4,6 +4,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
@@ -46,13 +47,8 @@ public class ReviewService {
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviewsByStatus(String status, int page, int size){
-        try {
-            Review.Status.valueOf(status);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid status: " + status);
-        }
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<Review> reviewPages = reviewRepository.findAllByStatus(Review.Status.valueOf(status), pageRequest);
+        Page<Review> reviewPages = reviewRepository.findAllByStatus(ReviewStatus.valueOf(status), pageRequest);
         List<Review> reviews = reviewPages.getContent();
 
         if(reviews.isEmpty()) {
@@ -62,7 +58,6 @@ public class ReviewService {
             List<ReviewDTO.BaseResponse> review = reviews.stream()
                     .map(rev -> ReviewDTOMapper.mapToBaseResponse(rev))
                     .collect(Collectors.toList());
-
         return new PaginatedResponse<>(review, page,size, (long)review.size());
     }
 
@@ -97,7 +92,7 @@ public class ReviewService {
             review.setUser(null);
             review.setComment("");
             review.setReviewDate(null);
-            review.setStatus(Review.Status.PENDING);
+            review.setStatus(ReviewStatus.PENDING.getCode());
 
             reviewRepository.save(review);
 
@@ -114,14 +109,15 @@ public class ReviewService {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
 
-        if (review.getStatus().equals(Review.Status.APPROVED) || review.getStatus().equals(Review.Status.DISAPPROVED)) {
+        if (review.getStatus().equals(ReviewStatus.APPROVED.getCode()) || review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
+
             throw new RequestValidationException("Content is already reviewed. Submit your latest version instead");
         }
 
             review.setUser(currentUser);
             review.setComment(request.comment());
             review.setReviewDate(LocalDate.now());
-            review.setStatus(Review.Status.valueOf(request.status()));
+            review.setStatus(review.getStatus());
             Review updatedReview = reviewRepository.save(review);
             return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
 

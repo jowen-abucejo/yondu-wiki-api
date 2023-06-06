@@ -13,10 +13,10 @@ public class Save {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @CreatedBy
-//    @ManyToOne
-//    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
-//    private User author;
+    @CreatedBy
+    @ManyToOne
+    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
+    private User author;
 
     @CreatedDate
     @Column(updatable = false)
@@ -26,9 +26,9 @@ public class Save {
 
     private Long entityId;
 
-    public Save(Long id, User author, LocalDateTime dateCreated, String entityType, Long entityId) {
+    public Save(User author, String entityType, Long entityId) {
         this.id = id;
-//        this.author = author;
+        this.author = author;
         this.dateCreated = dateCreated;
         this.entityType = entityType;
         this.entityId = entityId;
@@ -45,13 +45,13 @@ public class Save {
         this.id = id;
     }
 
-//    public User getAuthor() {
-//        return author;
-//    }
-//
-//    public void setAuthor(User author) {
-//        this.author = author;
-//    }
+    public User getAuthor() {
+       return author;
+    }
+
+   public void setAuthor(User author) {
+       this.author = author;
+    }
 
     public LocalDateTime getDateCreated() {
         return dateCreated;
@@ -81,7 +81,7 @@ public class Save {
     public String toString() {
         return "Save{" +
                 "id=" + id +
-//                ", author=" + author +
+                ", author=" + author +
                 ", dateCreated=" + dateCreated +
                 ", entityType='" + entityType + '\'' +
                 ", entityId=" + entityId +
