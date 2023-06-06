@@ -48,9 +48,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comment = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<DirectoryUserAccess> directoryUserAccesses;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> role = new HashSet<>();
@@ -206,17 +203,9 @@ public class User implements UserDetails {
         return role;
     }
 
-    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
-        return directoryUserAccesses;
-    }
-
 //    public Set<PageRights> getPageRights() {
 //        return pageRights;
 //    }
-
-    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
-        this.directoryUserAccesses = directoryUserAccesses;
-    }
 
 //    public void setPageRights(Set<PageRights> pageRights) {
 //        this.pageRights = pageRights;

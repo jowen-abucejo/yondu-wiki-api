@@ -15,9 +15,6 @@ public class Permission {
     private String category;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<DirectoryUserAccess> directoryUserAccesses;
-
-    @OneToMany(fetch = FetchType.LAZY)
     private Set<PageRights> pageRights;
 
     public Permission() {
@@ -52,16 +49,8 @@ public class Permission {
         return category;
     }
 
-    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
-        return directoryUserAccesses;
-    }
-
     public Set<PageRights> getPageRights() {
         return pageRights;
-    }
-
-    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
-        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     @Override
