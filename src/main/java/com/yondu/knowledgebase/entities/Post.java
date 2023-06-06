@@ -38,12 +38,12 @@ public class Post {
     private Boolean deleted = false;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "junction_category", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @JoinTable(name = "post_category", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
-            name = "junction_tag",
+            name = "post_tag",
             joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
