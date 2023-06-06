@@ -1,7 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -12,7 +11,7 @@ public class Review {
     public enum Status {
         PENDING,
         APPROVED,
-        DISAPPROVED;
+        DISAPPROVED
     }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
