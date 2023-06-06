@@ -11,7 +11,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -28,17 +27,19 @@ public class Category {
     @Column(name = "is_deleted")
     private Boolean deleted =false;
 
-    @ManyToMany(mappedBy = "categories")
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
     private List<Page> pages = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "categories")
-    private List<Page> posts = new ArrayList<>();
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "post_category", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns =@JoinColumn (name = "post_id"))
+    private List<Post> posts = new ArrayList<>();
 
     public Category(){
 
     }
 
-    public Category(Long id, String name, Boolean deleted, List<Page> pages, List<Page> posts) {
+    public Category(Long id, String name, Boolean deleted, List<Page> pages, List<Post> posts) {
         this.id = id;
         this.name = name;
         this.deleted = deleted;
@@ -75,14 +76,15 @@ public class Category {
         this.deleted = deleted;
     }
 
-    public void setPages(List<Page> pages2) {
+    public void setPages(List<Page> pages) {
+        this.pages=pages;
     }
 
-    public List<Page> getPosts() {
+    public List<Post> getPosts() {
         return posts;
     }
 
-    public void setPosts(List<Page> posts) {
+    public void setPosts(List<Post> posts) {
         this.posts = posts;
     }
 

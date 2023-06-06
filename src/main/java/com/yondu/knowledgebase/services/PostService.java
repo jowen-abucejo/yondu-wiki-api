@@ -106,4 +106,8 @@ public class PostService {
         return new PostDTO(post);
 
     }
+
+    public Post getPost(Long id){
+        return postRepository.findById(id).orElseThrow();
+    }
 }
