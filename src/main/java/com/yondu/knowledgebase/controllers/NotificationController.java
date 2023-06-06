@@ -22,37 +22,44 @@ public class NotificationController {
     private final Logger log = LoggerFactory.getLogger(NotificationController.class);
 
     @PostMapping("")
-    public ResponseEntity<?> createNewNotification(@RequestBody NotificationDTO.Base notification) {
+    public ResponseEntity<ApiResponse<NotificationDTO.BaseResponse>> createNewNotification(@RequestBody NotificationDTO.BaseRequest notification) {
         log.info("NotificationController.createNewNotification()");
         log.info("notification : " + notification.toString());
 
-        NotificationDTO.Base newNotification = notificationService.createNotification(notification);
+        NotificationDTO.BaseResponse newNotification = notificationService.createNotification(notification);
 
         ApiResponse apiResponse = ApiResponse.success(newNotification, "success");
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getUserNotifications(@PathVariable long userId,
-                                                  @RequestParam(defaultValue = "1") int page,
-                                                  @RequestParam(defaultValue = "15") int size) {
+    @GetMapping("/user")
+    public ResponseEntity<ApiResponse<PaginatedResponse<NotificationDTO.BaseResponse>>> getUserNotifications(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "15") int size) {
         log.info("NotificationController.getUserNotifications()");
-        log.info("userId : " + userId);
         log.info("page : " + page);
         log.info("size : " + size);
 
-        PaginatedResponse<NotificationDTO.Base> notifications = notificationService.getUserNotifications(userId, page, size);
+        PaginatedResponse<NotificationDTO.BaseResponse> notifications = notificationService.getUserNotifications(page, size);
         ApiResponse apiResponse = ApiResponse.success(notifications, "success");
 
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<?> readNotification(@PathVariable long id) {
+    @PostMapping("/{id}")
+    public ResponseEntity<ApiResponse<NotificationDTO.Base>> readNotification(@PathVariable long id) {
         log.info("NotificationController.readNotification()");
         log.info("id : " + id);
 
         NotificationDTO.Base notification = notificationService.readNotification(id);
-        return ResponseEntity.ok(notification);
+        ApiResponse response = ApiResponse.success(notification, "success");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/readAll")
+    public ResponseEntity<ApiResponse<PaginatedResponse<NotificationDTO.Base>>> readAllNotification() {
+        log.info("NotificationController.readAllNotification()");
+
+        notificationService.readAllNotification();
+
+        return ResponseEntity.ok().build();
     }
 }
