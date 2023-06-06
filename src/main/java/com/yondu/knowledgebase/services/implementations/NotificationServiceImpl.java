@@ -6,6 +6,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.Notification;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Override
-    public NotificationDTO.Base createNotification(NotificationDTO.Base notification) {
+    public NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification) {
         log.info("NotificationServiceImpl.createNotification()");
         log.info("notification : " + notification);
 
@@ -47,20 +49,28 @@ public class NotificationServiceImpl implements NotificationService {
         Notification newNotification = NotificationDTOMapper.mapBaseToEntity(notification);
         newNotification.setTimestamp(LocalDateTime.now());
         newNotification.setRead(false);
-        Notification createdNotification = notificationRepository.save(newNotification);
+        Notification createdNotification = null;
+        try{
+            createdNotification = notificationRepository.save(newNotification);
+        }catch (Exception ex){
+            throw ex;
+        }
 
-        NotificationDTO.Base notificationBase = NotificationDTOMapper.mapEntityToBase(createdNotification);
+        if(newNotification.getType() == null){
+            newNotification.setType(NotificationType.GENERAL.getCode());
+        }
+
+        NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
         return notificationBase;
     }
 
     @Override
-    public PaginatedResponse<NotificationDTO.Base> getUserNotifications(long userId, int page, int size) {
+    public PaginatedResponse<NotificationDTO.BaseResponse> getUserNotifications(int page, int size) {
         log.info("NotificationServiceImpl.getUserNotifications()");
-        log.info("userId : " + userId);
         log.info("page : " + page);
         log.info("size : " + size);
 
-        User user = new User(userId);
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PageRequest pageRequest = PageRequest.of(page - 1, size);
         Page<Notification> fetchedNotification = notificationRepository.getNotificationsByUser(user, pageRequest);
 
@@ -68,9 +78,9 @@ public class NotificationServiceImpl implements NotificationService {
             throw new NoContentException("There are no notifications found.");
         }
 
-        List<NotificationDTO.Base> notifications = fetchedNotification.getContent()
+        List<NotificationDTO.BaseResponse> notifications = fetchedNotification.getContent()
                 .stream()
-                .map(notification -> NotificationDTOMapper.mapEntityToBase(notification))
+                .map(notification -> NotificationDTOMapper.mapEntityToBaseResponse(notification))
                 .collect(Collectors.toList());
 
         PaginatedResponse paginatedResponse = new PaginatedResponse(
@@ -96,5 +106,15 @@ public class NotificationServiceImpl implements NotificationService {
 
         NotificationDTO.Base notificationBase = NotificationDTOMapper.mapEntityToBase(notification);
         return notificationBase;
+    }
+
+    @Override
+    public boolean readAllNotification() {
+        log.info("NotificationServiceImpl.readAllNotification()");
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        notificationRepository.readAllNotification(user);
+
+        return true;
     }
 }

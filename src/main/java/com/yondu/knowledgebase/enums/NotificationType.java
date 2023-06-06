@@ -1,0 +1,19 @@
+package com.yondu.knowledgebase.enums;
+
+public enum NotificationType {
+
+    GENERAL("GENERAL"),
+    COMMENT("COMMENT"),
+    PAGE("PAGE"),
+    APPROVAL("APPROVAL");
+
+    String code;
+
+    NotificationType(String code) {
+        this.code = code;
+    }
+
+    public String getCode() {
+        return this.code;
+    }
+}
