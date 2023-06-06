@@ -5,9 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface PermissionRepository extends JpaRepository<Permission, Long> {
     List<Permission> findAllByCategory(String category);
+
+    List<Permission> findAllByCategoryOrCategoryOrCategoryOrCategory(String category1, String category2, String category3, String category4);
 }

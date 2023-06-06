@@ -3,11 +3,11 @@ package com.yondu.knowledgebase.services.implementations;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.repositories.*;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,12 +23,6 @@ import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO.PageDTOBuilder;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO.PageVersionDTOBuilder;
 import com.yondu.knowledgebase.Utils.MultipleSort;
-import com.yondu.knowledgebase.entities.Directory;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.repositories.PageRepository;
-import com.yondu.knowledgebase.repositories.PageVersionRepository;
 import com.yondu.knowledgebase.services.PageService;
 
 @Service
@@ -36,14 +30,24 @@ public class PageServiceImpl implements PageService {
 
     private final PageRepository pageRepository;
     private final PageVersionRepository pageVersionRepository;
+    private final PageRightsRepository pageRightsRepository;
+    private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
 
     /**
      * @param pageRepository
      * @param pageVersionRepository
+     * @param pageRightsRepository
+     * @param permissionRepository
+     * @param userRepository
      */
-    public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository) {
+    public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository,
+    PageRightsRepository pageRightsRepository, PermissionRepository permissionRepository, UserRepository userRepository) {
         this.pageRepository = pageRepository;
         this.pageVersionRepository = pageVersionRepository;
+        this.pageRightsRepository = pageRightsRepository;
+        this.permissionRepository = permissionRepository;
+        this.userRepository = userRepository;
     }
 
     private org.springframework.data.domain.Page<Page> filterPagesByTagsAndCategories(String[] categories,
@@ -236,8 +240,26 @@ public class PageServiceImpl implements PageService {
 
         newPage = pageRepository.save(newPage);
 
+        createPageRights(newPage);
+
+
         return pageDTODefault(newPageVersion).build();
 
+    }
+
+    private void createPageRights(Page newPage) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<PageRights> savedRights = pageRightsRepository
+                .saveAll(permissionRepository
+                        .findAllByCategoryOrCategoryOrCategoryOrCategory("Content", "Content Moderation", "Comment", "Page Editor")
+                        .stream()
+                        .map(obj -> pageRightsRepository.save(new PageRights(newPage, obj))).toList());
+
+        Set<Rights> updatedRights = new HashSet<>(currentUser.getRights());
+        updatedRights.addAll(savedRights);
+
+        currentUser.setRights(updatedRights);
+        userRepository.save(currentUser);
     }
 
     @Override
@@ -330,4 +352,6 @@ public class PageServiceImpl implements PageService {
                 optionalPageVersions.getTotalElements(), validSortAliases);
 
     }
+
+    //TODO: private method to add all possible page rights in permissions (content, comment, page editor, content mod)
 }

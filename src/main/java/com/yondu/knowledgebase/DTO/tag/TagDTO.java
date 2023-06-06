@@ -1,13 +1,7 @@
 package com.yondu.knowledgebase.DTO.tag;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yondu.knowledgebase.DTO.page_permission.PageDTO;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.Tag;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
+import com.yondu.knowledgebase.DTO.page_rights.PageDTO;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -82,7 +82,7 @@ public class Page {
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    private Set<UserPagePermission> userPagePermissions = new HashSet<>();
+    private Set<PageRights> pageRights = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
     private Set<UserPageRating> userPageRatings = new HashSet<>();
@@ -108,7 +108,7 @@ public class Page {
      * @param comments
      * @param categories
      * @param tags
-     * @param userPagePermissions
+     * @param pageRights
      * @param userPageRatings
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
@@ -129,7 +129,7 @@ public class Page {
 //        this.comments = comments;
         this.categories = categories;
         this.tags = tags;
-        this.userPagePermissions = userPagePermissions;
+        this.pageRights = pageRights;
         this.userPageRatings = userPageRatings;
     }
 
@@ -232,10 +232,10 @@ public class Page {
     }
 
     /**
-     * @return the userPagePermissions
+     * @return the pageRights
      */
-    public Set<UserPagePermission> getUserPagePermissions() {
-        return userPagePermissions;
+    public Set<PageRights> getPageRights() {
+        return pageRights;
     }
 
     /**
@@ -344,10 +344,10 @@ public class Page {
     }
 
     /**
-     * @param userPagePermissions the userPagePermissions to set
+     * @param pageRights the pageRights to set
      */
-    public void setUserPagePermissions(Set<UserPagePermission> userPagePermissions) {
-        this.userPagePermissions = userPagePermissions;
+    public void setPageRights(Set<PageRights> pageRights) {
+        this.pageRights = pageRights;
     }
 
     /**

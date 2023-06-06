@@ -78,7 +78,7 @@ public class PageDTO {
     // private List<CommentDTO> comments = new ArrayList<>();
     // private Set<CategoryDTO> categories = new HashSet<>();
     // private Set<TagDTO> categories = new HashSet<>();
-    // private Set<UserPagePermissionDTO> userPagePermissions = new HashSet<>();
+    // private Set<PageRights> pageRights = new HashSet<>();
     // private Set<UserPageRatingDTO> userPageRatings = new HashSet<>();
     // private Set<RolePagePermissions> rolePagePermissions = new HashSet<>();
 
@@ -104,7 +104,7 @@ public class PageDTO {
         // this.comments = builder.comments;
         // this.categories = builder.categories;
         // this.tags = builder.tags;
-        // this.userPagePermissions = builder.userPagePermissions;
+        // this.pageRights = builder.pageRights;
         // this.userPageRatings = builder.userPageRatings;
         // this.rolePagePermissions = builder.rolePagePermissions;
     }
@@ -248,7 +248,7 @@ public class PageDTO {
         // private List<CommentDTO> comments = new ArrayList<>();
         // private Set<CategoryDTO> categories = new HashSet<>();
         // private Set<TagDTO> tags = new HashSet<>();
-        // private Set<UserPagePermissionDTO> userPagePermissions = new HashSet<>();
+        // private Set<PageRights> pageRights = new HashSet<>();
         // private Set<UserPageRatingDTO> userPageRatings = new HashSet<>();
         // private Set<RolePagePermissions> rolePagePermissions = new HashSet<>();
         private List<PageVersionDTO> versions = new ArrayList<>();
@@ -354,9 +354,9 @@ public class PageDTO {
         // return this;
         // }
 
-        // public PageDTOBuilder userPagePermissions(Set<UserPagePermissionDTO>
-        // userPagePermissions) {
-        // this.userPagePermissions = userPagePermissions;
+        // public PageDTOBuilder pageRights(Set<PageRights>
+        // pageRights) {
+        // this.pageRights = pageRights;
         // return this;
         // }
 

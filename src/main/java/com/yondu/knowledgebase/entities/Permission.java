@@ -18,7 +18,7 @@ public class Permission {
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<UserPagePermission> userPagePermission;
+    private Set<PageRights> pageRights;
 
     public Permission() {
     }
@@ -56,8 +56,8 @@ public class Permission {
         return directoryUserAccesses;
     }
 
-    public Set<UserPagePermission> getUserPagePermission() {
-        return userPagePermission;
+    public Set<PageRights> getPageRights() {
+        return pageRights;
     }
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
