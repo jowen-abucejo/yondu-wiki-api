@@ -2,9 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
-import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTO;
 import com.yondu.knowledgebase.services.DirectoryService;
-import com.yondu.knowledgebase.services.DirectoryUserAccessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +12,9 @@ import java.util.List;
 @RequestMapping("/directories")
 public class DirectoryController {
     private final DirectoryService directoryService;
-    private final DirectoryUserAccessService directoryUserAccessService;
 
-    public DirectoryController(DirectoryService directoryService, DirectoryUserAccessService directoryUserAccessService) {
+    public DirectoryController(DirectoryService directoryService) {
         this.directoryService = directoryService;
-        this.directoryUserAccessService = directoryUserAccessService;
     }
 
     @GetMapping("/{id}")
@@ -43,25 +39,5 @@ public class DirectoryController {
     public ResponseEntity<ApiResponse<?>> deleteDirectory(@PathVariable("id") Long id) {
         directoryService.removeDirectory(id);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
-    }
-
-
-    //  DIRECTORY USER ACCESS
-    @PostMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<?>> addDirectoryUserRights(@PathVariable Long directoryId, @RequestBody DirectoryUserAccessDTO.AddRequest request) {
-        DirectoryUserAccessDTO.BaseResponse data = directoryUserAccessService.addDirectoryUserRights(directoryId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory User Rights added successfully"));
-    }
-
-    @GetMapping("/{directoryId}/permissions")
-    public ResponseEntity<ApiResponse<List<?>>> getAllDirectoryUserRights(@PathVariable Long directoryId) {
-        List<DirectoryUserAccessDTO.BaseResponse> data = directoryUserAccessService.getAllDirectoryUserRights(directoryId);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Data retrieved successfully"));
-    }
-
-    @DeleteMapping("/{directoryId}/permissions/{userAccessId}")
-    public ResponseEntity<ApiResponse<?>> removeDirectoryUserAccess(@PathVariable Long directoryId, @PathVariable Long userAccessId) {
-        directoryUserAccessService.removeDirectoryUserRights(directoryId, userAccessId);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory User Rights removed successfully"));
     }
 }
