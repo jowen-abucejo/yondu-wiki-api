@@ -105,7 +105,6 @@ public class Page {
      * @param lockedBy
      * @param directory
      * @param pageVersions
-     * @param comments
      * @param categories
      * @param tags
      * @param pageRights
@@ -113,7 +112,7 @@ public class Page {
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
-            List<PageVersion> pageVersions, /*List<Comment> comments,*/ Set<Category> categories, Set<Tag> tags,
+            List<PageVersion> pageVersions, Set<Category> categories, Set<Tag> tags,
             Set<PageRights> pageRights, Set<UserPageRating> userPageRatings) {
         this.id = id;
         this.dateCreated = dateCreated;
@@ -126,7 +125,6 @@ public class Page {
         this.lockedBy = lockedBy;
         this.directory = directory;
         this.pageVersions = pageVersions;
-//        this.comments = comments;
         this.categories = categories;
         this.tags = tags;
         this.pageRights = pageRights;

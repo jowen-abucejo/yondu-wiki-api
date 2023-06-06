@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.comment.CommentCountResponseDTO;
 import com.yondu.knowledgebase.DTO.comment.CommentRequestDTO;
 import com.yondu.knowledgebase.DTO.comment.CommentResponseDTO;
-import com.yondu.knowledgebase.entities.Comment;
 
 import java.util.List;
 
