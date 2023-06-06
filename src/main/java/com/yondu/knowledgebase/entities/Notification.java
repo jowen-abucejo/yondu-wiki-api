@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
+import com.yondu.knowledgebase.enums.NotificationType;
 import jakarta.persistence.*;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -18,6 +19,8 @@ public class Notification {
     private String message;
     private LocalDateTime timestamp;
     private boolean isRead;
+    private String type;
+    private long typeId;
 
     public Notification() {
     }
@@ -28,6 +31,15 @@ public class Notification {
         this.message = message;
         this.timestamp = timestamp;
         this.isRead = isRead;
+        this.type = NotificationType.GENERAL.getCode();
+        this.typeId = -1;
+    }
+
+    public Notification(User user, String message, String type, long typeId) {
+        this.user = user;
+        this.message = message;
+        this.type = type;
+        this.typeId = typeId;
     }
 
     public long getId() {
@@ -68,5 +80,21 @@ public class Notification {
 
     public void setRead(boolean read) {
         isRead = read;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public long getTypeId() {
+        return typeId;
+    }
+
+    public void setTypeId(long typeId) {
+        this.typeId = typeId;
     }
 }

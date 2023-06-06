@@ -13,13 +13,24 @@ public class NotificationDTOMapper {
                 notification.isRead());
     }
 
-    public static Notification mapBaseToEntity(NotificationDTO.Base base) {
+    public static Notification mapBaseToEntity(NotificationDTO.BaseRequest base) {
         return new Notification(
-                base.id(),
                 new User(base.userId()),
                 base.message(),
-                base.timestamp(),
-                base.isRead()
+                base.type(),
+                base.typeId()
+        );
+    }
+
+    public static NotificationDTO.BaseResponse mapEntityToBaseResponse(Notification notification) {
+        return new NotificationDTO.BaseResponse(
+                notification.getId(),
+                notification.getUser().getId(),
+                notification.getMessage(),
+                notification.getTimestamp(),
+                notification.isRead(),
+                notification.getType(),
+                notification.getTypeId()
         );
     }
 }
