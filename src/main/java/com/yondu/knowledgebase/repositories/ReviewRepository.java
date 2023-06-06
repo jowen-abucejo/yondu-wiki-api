@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 
-    Page<Review> findAllByStatus (String status, Pageable pageable);
+    Page<Review> findAllByStatus (Review.Status status, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE lower(r.pageVersion.title) like %:title%")
     Page<Review> findAllByPageVersionTitle(String title, Pageable pageable);
