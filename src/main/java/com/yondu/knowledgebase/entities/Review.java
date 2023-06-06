@@ -1,13 +1,18 @@
 package com.yondu.knowledgebase.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
 
 @Entity
 public class Review {
+
+    public enum Status {
+        PENDING,
+        APPROVED,
+        DISAPPROVED
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -22,12 +27,13 @@ public class Review {
 
     private String comment;
     private LocalDate reviewDate;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private Status status;
 
     public Review() {
     }
 
-    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
+    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, Status status) {
         this.pageVersion = pageVersion;
         this.user = user;
         this.comment = comment;
@@ -57,7 +63,7 @@ public class Review {
         return reviewDate;
     }
 
-    public String getStatus() {
+    public Status getStatus() {
         return status;
     }
 
@@ -89,7 +95,7 @@ public class Review {
         this.reviewDate = reviewDate;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 

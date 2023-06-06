@@ -46,13 +46,19 @@ public class ReviewService {
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviewsByStatus(String status, int page, int size){
+        try {
+            Review.Status.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<Review> reviewPages = reviewRepository.findAllByStatus(status, pageRequest);
+        Page<Review> reviewPages = reviewRepository.findAllByStatus(Review.Status.valueOf(status), pageRequest);
         List<Review> reviews = reviewPages.getContent();
 
         if(reviews.isEmpty()) {
             throw new ResourceNotFoundException("No reviews found");
         }
+
             List<ReviewDTO.BaseResponse> review = reviews.stream()
                     .map(rev -> ReviewDTOMapper.mapToBaseResponse(rev))
                     .collect(Collectors.toList());
@@ -91,7 +97,7 @@ public class ReviewService {
             review.setUser(null);
             review.setComment("");
             review.setReviewDate(null);
-            review.setStatus("PENDING");
+            review.setStatus(Review.Status.PENDING);
 
             reviewRepository.save(review);
 
@@ -108,26 +114,16 @@ public class ReviewService {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
 
-        if (review.getStatus().toUpperCase().contains("APPROVED") || review.getStatus().toUpperCase().contains("DISAPPROVE")) {
-            throw new RequestValidationException("Content is already reviewed.");
+        if (review.getStatus().equals(Review.Status.APPROVED) || review.getStatus().equals(Review.Status.DISAPPROVED)) {
+            throw new RequestValidationException("Content is already reviewed. Submit your latest version instead");
         }
-
-        if (request.status().toUpperCase().contains("APPROVED") || request.status().toUpperCase().contains("DISAPPROVE")) {
 
             review.setUser(currentUser);
             review.setComment(request.comment());
             review.setReviewDate(LocalDate.now());
-            review.setStatus(request.status());
+            review.setStatus(Review.Status.valueOf(request.status()));
             Review updatedReview = reviewRepository.save(review);
             return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
-        } else {
-            throw new RequestValidationException("Invalid Status, try APPROVED or DISAPPROVE");
-        }
-
-
 
     }
-
-
-
 }
