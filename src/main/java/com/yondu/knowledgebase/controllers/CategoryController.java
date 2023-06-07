@@ -78,6 +78,9 @@ public class CategoryController {
     @PutMapping("/categories/{id}/delete")
     public ResponseEntity<ApiResponse<CategoryDTO>> deleteCategory(@PathVariable Long id) {
         Category category = categoryService.getCategory(id);
+        if (category.getDeleted()==true){
+            throw new RequestValidationException("Category is already deleted");
+        }
         Category updatedCategory = categoryService.deleteCategory(category);
         CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO,"Category has been successfully deleted"));
@@ -95,26 +98,24 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryDTO>> assignPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId) {
         // Retrieve the page by ID using the PageService
         Page page = pageService.getPage(pageId);
-        if (page == null) {
-            throw new ResourceNotFoundException("Page not found with ID: " + pageId);
-        }
     
         // Retrieve the category by ID using the CategoryService
-        Category category = categoryService.getCategory(categoryDto.getId());
-        if (category == null) {
-            throw new ResourceNotFoundException("Category not found with ID: " + categoryDto.getId());
+        Category category = categoryService.getCategory(categoryDto.getId()); 
+
+        // Check if the page is already assigned to the category
+        boolean pageAlreadyAssigned = category.getPages().stream()
+        .anyMatch(p -> p.getId().equals(page.getId()));
+
+        if (pageAlreadyAssigned) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Page is already assigned to the category"));
         }
 
-     
-    
         // Add the page to the category's pages list
         category.getPages().add(page);
     
         // Save the updated category
          
         Category updatedCategory = categoryService.addPageCategory(category);
-
-        //Category newCategory = categoryService.getCategory(categoryDto.getId());
 
         CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
     
@@ -128,14 +129,16 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryDTO>> editPageCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long pageId, @PathVariable Long newCategoryId) {
         // Retrieve the page by ID using the PageService
         Page page = pageService.getPage(pageId);
-        if (page == null) {
-            throw new ResourceNotFoundException("Page not found with ID: " + pageId);
-        }
-    
+
         // Retrieve the category by ID using the CategoryService
         Category category = categoryService.getCategory(newCategoryId);
-        if (category == null) {
-            throw new ResourceNotFoundException("Category not found with ID: " + newCategoryId);
+
+        // Check if the page is already assigned to the category
+        boolean pageAlreadyAssigned = category.getPages().stream()
+        .anyMatch(p -> p.getId().equals(page.getId()));
+        
+        if (pageAlreadyAssigned) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Page is already assigned to the category"));
         }
 
         Category oldCategory = categoryService.getCategory(categoryDto.getId());
@@ -159,17 +162,18 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryDTO>> assignPostCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long postId) {
         // Retrieve the page by ID using the PageService
         Post post = postService.getPost(postId);
-        if (post == null) {
-            throw new ResourceNotFoundException("Page not found with ID: " + postId);
-        }
+
     
         // Retrieve the category by ID using the CategoryService
         Category category = categoryService.getCategory(categoryDto.getId());
-        if (category == null) {
-            throw new ResourceNotFoundException("Category not found with ID: " + categoryDto.getId());
-        }
 
-     
+        // Check if the post is already assigned to the category
+        boolean postAlreadyAssigned = category.getPosts().stream()
+        .anyMatch(p -> p.getId().equals(post.getId()));
+
+        if (postAlreadyAssigned) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Post is already assigned to the category"));
+        }
     
         // Add the page to the category's pages list
         category.getPosts().add(post);
@@ -185,6 +189,40 @@ public class CategoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(newCategoryDTO, "Category added to post successfully"));
 
 
+    }
+
+    @PutMapping("/posts/{postId}/categories/{newCategoryId}")
+    public ResponseEntity<ApiResponse<CategoryDTO>> editPostCategory(@RequestBody CategoryDTO categoryDto, @PathVariable Long postId, @PathVariable Long newCategoryId) {
+        // Retrieve the page by ID using the PageService
+        Post post = postService.getPost(postId);
+
+    
+        // Retrieve the category by ID using the CategoryService
+        Category category = categoryService.getCategory(newCategoryId);
+
+        // Check if the post is already assigned to the category
+        boolean postAlreadyAssigned = category.getPosts().stream()
+        .anyMatch(p -> p.getId().equals(post.getId()));
+
+        if (postAlreadyAssigned) {
+        return ResponseEntity.badRequest().body(ApiResponse.error("Post is already assigned to the category"));
+        }
+
+
+        Category oldCategory = categoryService.getCategory(categoryDto.getId());
+    
+        // Remove the page from its current categories set
+        Set<Category> currentCategories = post.getCategories();
+        currentCategories.remove(oldCategory);
+    
+        // Add the page to the new category's pages list
+        category.getPosts().add(post);
+    
+        // Save the updated category and page
+        categoryService.editPageCategory(category);
+    
+        CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
+        return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Post category updated successfully"));
     }
 
 }

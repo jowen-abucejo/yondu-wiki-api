@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
@@ -322,7 +323,7 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public Page getPage(Long id) {
-        return pageRepository.findById(id).orElseThrow();
+        return pageRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Page with id: " + id +" not found!"));
     }
 
     public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,
