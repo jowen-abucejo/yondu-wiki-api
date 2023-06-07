@@ -9,9 +9,6 @@ public interface PageService {
 
         public PageDTO findById(Long id);
 
-        public PaginatedResponse<PageDTO> findAllVersionsByTagsAndCategories(String[] categories, String[] tags,
-                        Integer pageNumber, Integer pageSize, String[] sortBy);
-
         public PageDTO createNewPage(Long directoryId, PageVersionDTO page);
 
         public PageDTO updatePageDraft(Long pageId, Long versionId, PageVersionDTO page);
