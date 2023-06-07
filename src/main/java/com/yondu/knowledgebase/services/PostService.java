@@ -108,6 +108,6 @@ public class PostService {
     }
 
     public Post getPost(Long id){
-        return postRepository.findById(id).orElseThrow();
+        return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
     }
 }
