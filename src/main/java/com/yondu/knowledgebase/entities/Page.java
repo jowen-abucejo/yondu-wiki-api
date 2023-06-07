@@ -38,7 +38,7 @@ public class Page {
 
     @CreatedBy
     @ManyToOne
-    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
+    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false)
     private User author;
 
     @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT TRUE")

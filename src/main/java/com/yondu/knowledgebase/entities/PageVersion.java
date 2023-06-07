@@ -63,16 +63,18 @@ public class PageVersion {
      * @param id
      * @param title
      * @param content
+     * @param originalContent
      * @param dateModified
      * @param modifiedBy
      * @param reviews
      * @param page
      */
-    public PageVersion(Long id, String title, String content, LocalDateTime dateModified, User modifiedBy,
-            List<Review> reviews, Page page) {
+    public PageVersion(Long id, String title, String content, String originalContent, LocalDateTime dateModified,
+            User modifiedBy, List<Review> reviews, Page page) {
         this.id = id;
         this.title = title;
         this.content = content;
+        this.originalContent = originalContent;
         this.dateModified = dateModified;
         this.modifiedBy = modifiedBy;
         this.reviews = reviews;

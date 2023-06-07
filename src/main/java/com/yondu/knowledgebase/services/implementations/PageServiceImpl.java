@@ -3,9 +3,11 @@ package com.yondu.knowledgebase.services.implementations;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -191,7 +193,7 @@ public class PageServiceImpl implements PageService {
     public PageDTO findById(Long id) {
         var pageVersion = pageVersionRepository
                 .findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id, false,
-                        Review.Status.APPROVED.name())
+                        Review.Status.APPROVED)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Unable to find document"));
 
@@ -319,14 +321,43 @@ public class PageServiceImpl implements PageService {
     @Override
     public Page getPage(Long id) {
         var page = pageRepository.findById(id).orElseThrow();
+        Long directoryId = page.getDirectory().getId();
 
-        String requiredPermission = Permission.UPDATE_CONTENT.getCode();
+        String requiredPermission = Permission.READ_CONTENT.getCode();
         if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+                || directoryPermissionGranted(directoryId, requiredPermission)) {
             return page;
         }
 
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+    }
+
+    @Override
+    public PageDTO findByIdWithVersions(Long id) {
+        var page = getPage(id);
+
+        Long directoryId = page.getDirectory().getId();
+        List<Review.Status> reviewsStatus = new ArrayList<>();
+        reviewsStatus.add(Review.Status.APPROVED);
+
+        String requiredPermission = Permission.CONTENT_APPROVAL.getCode();
+        if (pagePermissionGranted(id, requiredPermission)
+                || directoryPermissionGranted(directoryId, requiredPermission)) {
+            reviewsStatus.add(Review.Status.PENDING);
+            reviewsStatus.add(Review.Status.DISAPPROVED);
+        }
+
+        requiredPermission = Permission.UPDATE_CONTENT.getCode();
+        if (pagePermissionGranted(id, requiredPermission)
+                || directoryPermissionGranted(directoryId, requiredPermission)) {
+            page = pageRepository.findTopByIdAndDeletedAndPageVersionsReviewsStatusInOrPageVersionsReviewsIsEmpty(id,
+                    false, reviewsStatus).orElseThrow();
+        } else {
+            page = pageRepository.findTopByIdAndDeletedAndPageVersionsReviewsStatusIn(id, false, reviewsStatus)
+                    .orElseThrow();
+        }
+
+        return pageWithVersionsDTODefault(page).build();
     }
 
     public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,

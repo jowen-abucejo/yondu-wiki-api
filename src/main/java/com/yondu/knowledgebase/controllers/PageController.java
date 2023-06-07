@@ -62,6 +62,11 @@ public class PageController {
                 pageNumber, pageSize, sortBy);
     }
 
+    @GetMapping(path = "pages/{id}/versions")
+    public PageDTO getPageWithVersions(@PathVariable(name = "id") Long pageId) {
+        return pageService.findByIdWithVersions(pageId);
+    }
+
     @PostMapping(path = "directories/{id}/pages")
     public PageDTO saveNewPage(@PathVariable(name = "id") Long directoryId,
             @RequestBody @Valid PageVersionDTO pageVersionDTO) {

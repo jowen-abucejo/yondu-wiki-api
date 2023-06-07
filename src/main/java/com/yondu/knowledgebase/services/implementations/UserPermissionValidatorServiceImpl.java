@@ -19,12 +19,12 @@ public class UserPermissionValidatorServiceImpl implements UserPermissionValidat
 
     @Override
     public Boolean userHasPagePermission(Long userId, Long pageId, String permission) {
-        return userRepository.userHasPagePermission(userId, pageId, permission);
+        return userRepository.userHasPagePermission(userId, pageId, permission) > 0;
     }
 
     @Override
     public Boolean userHasDirectoryPermission(Long userId, Long directoryId, String permission) {
-        return userRepository.userHasDirectoryPermission(userId, directoryId, permission);
+        return userRepository.userHasDirectoryPermission(userId, directoryId, permission) > 0;
     }
 
 }

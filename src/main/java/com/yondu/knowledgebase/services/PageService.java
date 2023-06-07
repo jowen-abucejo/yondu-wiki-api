@@ -21,6 +21,8 @@ public interface PageService {
 
         public Page getPage(Long pageId);
 
+        public PageDTO findByIdWithVersions(Long pageId);
+
         public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,
                         Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
                         Integer pageSize, String[] sortBy);
