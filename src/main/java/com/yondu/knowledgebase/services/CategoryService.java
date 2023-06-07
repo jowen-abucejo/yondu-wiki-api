@@ -8,6 +8,7 @@ import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 
 @Service
 public class CategoryService {
@@ -23,7 +24,8 @@ public class CategoryService {
 
 
     public Category getCategory(Long id){
-        return categoryRepository.findById(id).orElseThrow();
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category with id: " + id +" not found!"));
+        return category;
     }
 
    

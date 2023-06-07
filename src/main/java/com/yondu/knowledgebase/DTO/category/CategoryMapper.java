@@ -6,8 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.entities.Post;
 
 @Component
 public class CategoryMapper {
@@ -36,6 +38,25 @@ public class CategoryMapper {
 
         }
         categoryDto.setPages(pages);
+
+        Long oldPostId = 0L;
+
+        List<PostDTO> posts = new ArrayList<>();
+        // Assuming the PageDTO has the necessary fields to create a Page entity
+        for (Post post : category.getPosts()) {
+            if (post.getId() != oldPostId) {
+                oldPostId = post.getId();
+                PostDTO postDto = new PostDTO();
+                postDto.setId(post.getId());
+                posts.add(postDto);
+
+            }
+
+        }
+        categoryDto.setPosts(posts);
+
+
+
         return categoryDto;
     }
 
