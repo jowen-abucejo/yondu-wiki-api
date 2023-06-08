@@ -12,13 +12,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.Review;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 
 public interface PageVersionRepository extends JpaRepository<PageVersion, Long> {
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
     public Optional<PageVersion> findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
-            Long id, boolean isDeleted, Review.Status status);
+            Long id, boolean isDeleted, ReviewStatus status);
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
     public Optional<PageVersion> findByPageIdAndId(Long pageId, Long id);
