@@ -209,7 +209,7 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public PageDTO createNewPage(Long directoryId, PageVersionDTO pageDTO) {
-        if (directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode())) {
+        if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
