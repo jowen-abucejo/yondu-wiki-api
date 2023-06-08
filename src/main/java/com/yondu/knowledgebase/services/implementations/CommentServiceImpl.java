@@ -1,12 +1,13 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.UserDTO;
 import com.yondu.knowledgebase.DTO.comment.*;
+import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
 import com.yondu.knowledgebase.entities.Comment;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
+import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.CommentService;
 import org.springframework.stereotype.Service;
@@ -24,11 +25,15 @@ public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
     private  final UserRepository userRepository;
     private final PageRepository pageRepository;
+    private final PostRepository postRepository;
+    private final EmailServiceImpl emailService;
 
-    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PageRepository pageRepository) {
+    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PageRepository pageRepository, PostRepository postRepository, EmailServiceImpl emailService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.pageRepository = pageRepository;
+        this.postRepository = postRepository;
+        this.emailService = emailService;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class CommentServiceImpl implements CommentService {
         if (commentRequestDTO.getEntityType().equals("PAGE")){
             pageRepository.findById(commentRequestDTO.getEntityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", commentRequestDTO.getEntityId())));
         }else if (commentRequestDTO.getEntityType().equals("POST")){
-            return null; //postRepository.findById(commentRequestDTO.getEntityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", commentRequestDTO.getEntityId())));
+            postRepository.findById(commentRequestDTO.getEntityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", commentRequestDTO.getEntityId())));
         }
 
         LocalDateTime currentDate = LocalDateTime.now();
@@ -52,6 +57,10 @@ public class CommentServiceImpl implements CommentService {
         if(parentCommentId != null){
             if(commentRepository.existsById(parentCommentId)){
                 comment.setParentCommentId(parentCommentId);
+                //Notify the User of the Parent Comment being replied on
+                Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found : %d",parentCommentId)));
+                User parentCommentUser = userRepository.findById(parentComment.getUser().getId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found : %d",parentComment.getUser().getId())));
+                emailService.sendEmail(new EmailRequestDTO(parentCommentUser.getEmail(),"COMMENT","Comment","http://localhost:8080/comments/1"));
             }else{
                 throw new ResourceNotFoundException(String.format("Comment ID not found: %d",parentCommentId));
             }
