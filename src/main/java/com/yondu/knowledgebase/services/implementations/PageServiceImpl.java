@@ -31,7 +31,7 @@ import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.Review;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Permission;
 import com.yondu.knowledgebase.repositories.PageRepository;
@@ -194,7 +194,7 @@ public class PageServiceImpl implements PageService {
     public PageDTO findById(Long id) {
         var pageVersion = pageVersionRepository
                 .findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id, false,
-                        Review.Status.APPROVED)
+                        ReviewStatus.APPROVED)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Unable to find document"));
 
@@ -321,7 +321,8 @@ public class PageServiceImpl implements PageService {
 
     @Override
     public Page getPage(Long id) {
-        var page = pageRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Page with id: " + id +" not found!"));
+        var page = pageRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Page with id: " + id + " not found!"));
         Long directoryId = page.getDirectory().getId();
 
         String requiredPermission = Permission.READ_CONTENT.getCode();
@@ -338,14 +339,14 @@ public class PageServiceImpl implements PageService {
         var page = getPage(id);
 
         Long directoryId = page.getDirectory().getId();
-        List<Review.Status> reviewsStatus = new ArrayList<>();
-        reviewsStatus.add(Review.Status.APPROVED);
+        List<ReviewStatus> reviewsStatus = new ArrayList<>();
+        reviewsStatus.add(ReviewStatus.APPROVED);
 
         String requiredPermission = Permission.CONTENT_APPROVAL.getCode();
         if (pagePermissionGranted(id, requiredPermission)
                 || directoryPermissionGranted(directoryId, requiredPermission)) {
-            reviewsStatus.add(Review.Status.PENDING);
-            reviewsStatus.add(Review.Status.DISAPPROVED);
+            reviewsStatus.add(ReviewStatus.PENDING);
+            reviewsStatus.add(ReviewStatus.DISAPPROVED);
         }
 
         requiredPermission = Permission.UPDATE_CONTENT.getCode();
