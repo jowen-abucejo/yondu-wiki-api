@@ -1,9 +1,10 @@
 package com.yondu.knowledgebase.repositories;
 
+import com.yondu.knowledgebase.entities.Rights;
 import com.yondu.knowledgebase.entities.User;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     User findByFirstNameOrLastName(String firstName, String lastName);
+
+    @Query("SELECT u.rights FROM users u WHERE u.id = :userId ")
+    Set<Rights> findRightsById(Long userId);
+
 
     @Query(nativeQuery = true, value = """
             SELECT

@@ -1,13 +1,24 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.group.GroupDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTO;
 import com.yondu.knowledgebase.entities.Page;
 
-import java.util.List;
-import java.util.Set;
-
 public interface PageRightsService {
-    Set<PageRightsDTO.PageRightBaseResponse> getPageRightsOfPage(Long pageId);
+    PageRightsDTO.GetPageRightResponse getPageRightsOfPage(Long pageId);
+
+    PaginatedResponse<PageRightsDTO.GetPageRightResponse> getAllPageRightsOfPage(int page, int size);
+
+    PageRightsDTO.GetUserPageRightBaseResponse addUserToPageRights(Long pageId, Long rightsId, PageRightsDTO.AddUserRequest email);
+
+    PageRightsDTO.GetUserPageRightBaseResponse removeUserToPageRights(Long pageId, Long rightsId, PageRightsDTO.AddUserRequest email);
+
+    PageRightsDTO.GetUserPageRightResponse getPageRightsOfUser(Long userId);
+
+    PageRightsDTO.UserGroupBaseResponse addUserGroupToPageRights(Long pageId, Long rightsId, GroupDTO.AddRightsRequest groupId);
+
+    PageRightsDTO.UserGroupBaseResponse removeUserGroupToPageRights(Long pageId, Long rightsId, GroupDTO.AddRightsRequest groupId);
 
     //
     // public Set<PageRightsDTO.BaseResponse> addUserToPageAccess(Long pageId,
@@ -17,8 +28,9 @@ public interface PageRightsService {
     // PageRightsDTO.UserPermissionPair userPagePermission);
     //
     // public List<PageRightsDTO.BaseResponse> getAllPageOfUser(Long id);
+
     // public List<PageRightsDTO.BaseResponse> getAllUsersOfPage(Long id);
 
     public void createPageRights(Page page);
-
 }
+

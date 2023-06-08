@@ -128,11 +128,11 @@ INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(2, 2);
 --INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 2);
 
 -- INITIALIZE DIRECTORY RIGHTS FOR ROOT
-INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3);
-INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25);
+INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3), (4);
+INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25), (4, 1, 5);
 
 -- INITIALIZE USER RIGHTS
-INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3);
+INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
 
 -- Create a new page
 INSERT INTO page (date_created, author, is_active, is_deleted, lock_start, lock_end, locked_by, directory_id)

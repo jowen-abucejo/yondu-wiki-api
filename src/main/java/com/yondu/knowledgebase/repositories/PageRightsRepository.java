@@ -1,13 +1,11 @@
 package com.yondu.knowledgebase.repositories;
 
 import com.yondu.knowledgebase.entities.*;
-import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,5 +33,11 @@ public interface PageRightsRepository extends JpaRepository<PageRights, Long> {
     // List<UserPagePermission> findAllByPageAndIsActiveGroupByUser(Page page,
     // Boolean isActive);
 
-    Set<PageRights> findAllByPage(Page page);
+    Set<PageRights> findAllByPage(com.yondu.knowledgebase.entities.Page page);
+
+    @Query("SELECT DISTINCT pr FROM PageRights pr GROUP BY pr.page")
+    Page<PageRights> findAllGroupByPage(PageRequest pageRequest);
+
+    @Query("SELECT DISTINCT pr FROM PageRights pr WHERE pr.id=:rightsId AND  pr.page=:page")
+    Optional<PageRights> findByIdAndPage(Long rightsId, com.yondu.knowledgebase.entities.Page page);
 }
