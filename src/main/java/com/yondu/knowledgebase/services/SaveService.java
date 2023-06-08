@@ -44,6 +44,10 @@ public class SaveService {
 public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+    if (user == null) {
+        throw new ResourceNotFoundException("User not found, login first before saving");
+    }
+
   // validation
     switch (saves.entityType()) {
         case "POST" ->
@@ -57,7 +61,7 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
      Optional<Save> validate = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(saves.entityType(), saves.entityId(), user));
 
     if (validate.isPresent()) {
-        throw new RequestValidationException("This Post is already Saved");
+        throw new RequestValidationException("This " + saves.entityType() +" is already Saved");
     }
 
     Save save = new Save();
@@ -73,6 +77,11 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
 
 public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int size) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+    if (user == null) {
+        throw new ResourceNotFoundException("Login First");
+    }
+
     PageRequest pageRequest = PageRequest.of(page - 1, size);
     Page<Save> savePages = saveRepository.findAllByAuthor(user,pageRequest);
     List<Save> saves = savePages.getContent();
@@ -85,7 +94,9 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
 }
 
 public Save deleteSaved(Long id) {
-    saveRepository.deleteById(id);
+
+        Save save = saveRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Save "+ id +" not found."));
+    saveRepository.delete(save);
     return null;
 }
 }
