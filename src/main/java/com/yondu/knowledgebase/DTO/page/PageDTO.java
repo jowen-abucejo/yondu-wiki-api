@@ -67,20 +67,11 @@ public class PageDTO {
     @JsonProperty(value = "tags")
     private String[] tags;
 
-    // private DirectoryDTO directory;
-
     @JsonInclude(Include.NON_EMPTY)
     private List<PageVersionDTO> versions = new ArrayList<>();
 
     @JsonInclude(Include.NON_EMPTY)
     private PageVersionDTO body;
-
-    // private List<CommentDTO> comments = new ArrayList<>();
-    // private Set<CategoryDTO> categories = new HashSet<>();
-    // private Set<TagDTO> categories = new HashSet<>();
-    // private Set<PageRights> pageRights = new HashSet<>();
-    // private Set<UserPageRatingDTO> userPageRatings = new HashSet<>();
-    // private Set<RolePagePermissions> rolePagePermissions = new HashSet<>();
 
     public PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
@@ -99,14 +90,6 @@ public class PageDTO {
         this.totalRatings = builder.totalRatings;
         this.categories = builder.categories;
         this.tags = builder.tags;
-
-        // this.directory = builder.directory;
-        // this.comments = builder.comments;
-        // this.categories = builder.categories;
-        // this.tags = builder.tags;
-        // this.pageRights = builder.pageRights;
-        // this.userPageRatings = builder.userPageRatings;
-        // this.rolePagePermissions = builder.rolePagePermissions;
     }
 
     public PageDTO() {
@@ -244,13 +227,6 @@ public class PageDTO {
         private String[] categories;
         private String[] tags;
 
-        // private DirectoryDTO directory;
-        // private List<CommentDTO> comments = new ArrayList<>();
-        // private Set<CategoryDTO> categories = new HashSet<>();
-        // private Set<TagDTO> tags = new HashSet<>();
-        // private Set<PageRights> pageRights = new HashSet<>();
-        // private Set<UserPageRatingDTO> userPageRatings = new HashSet<>();
-        // private Set<RolePagePermissions> rolePagePermissions = new HashSet<>();
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
 
@@ -333,44 +309,6 @@ public class PageDTO {
             this.tags = tags;
             return this;
         }
-
-        // public PageDTOBuilder directory(DirectoryDTO directory) {
-        // this.directory = directory;
-        // return this;
-        // }
-
-        // public PageDTOBuilder comments(List<CommentDTO> comments) {
-        // this.comments = comments;
-        // return this;
-        // }
-
-        // public PageDTOBuilder categories(Set<CategoryDTO> categories) {
-        // this.categories = categories;
-        // return this;
-        // }
-
-        // public PageDTOBuilder tags(Set<TagDTO> tags) {
-        // this.tags = tags;
-        // return this;
-        // }
-
-        // public PageDTOBuilder pageRights(Set<PageRights>
-        // pageRights) {
-        // this.pageRights = pageRights;
-        // return this;
-        // }
-
-        // public PageDTOBuilder userPageRatings(Set<UserPageRatingDTO> userPageRatings)
-        // {
-        // this.userPageRatings = userPageRatings;
-        // return this;
-        // }
-
-        // public PageDTOBuilder rolePagePermissions(Set<RolePagePermissions>
-        // rolePagePermissions) {
-        // this.rolePagePermissions = rolePagePermissions;
-        // return this;
-        // }
 
         public PageDTO build() {
             return new PageDTO(this);

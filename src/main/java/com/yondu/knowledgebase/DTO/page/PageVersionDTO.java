@@ -32,9 +32,6 @@ public class PageVersionDTO {
     @JsonProperty(value = "last_edited_by")
     private UserDTO modifiedBy;
 
-    // @JsonInclude(Include.NON_EMPTY)
-    // private List<ReviewDTO> reviews = new ArrayList<>();
-
     @JsonInclude(Include.NON_NULL)
     private PageDTO page = null;
 

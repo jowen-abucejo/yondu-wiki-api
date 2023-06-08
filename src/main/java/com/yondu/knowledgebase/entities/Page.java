@@ -38,7 +38,7 @@ public class Page {
 
     @CreatedBy
     @ManyToOne
-    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
+    @JoinColumn(name = "author", referencedColumnName = "id", updatable = false)
     private User author;
 
     @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT TRUE")
@@ -67,11 +67,6 @@ public class Page {
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL)
     @OrderBy(value = "modified_by DESC")
     private List<PageVersion> pageVersions = new ArrayList<>();
-
-/*
-    @OneToMany(mappedBy = "page")
-    private List<Comment> comments = new ArrayList<>();
-*/
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "page_category", joinColumns = @JoinColumn(name = "page_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
@@ -208,13 +203,6 @@ public class Page {
     }
 
     /**
-     * @return the comments
-     */
-/*    public List<Comment> getComments() {
-        return comments;
-    }*/
-
-    /**
      * @return the categories
      */
     public Set<Category> getCategories() {
@@ -318,13 +306,6 @@ public class Page {
     public void setPageVersions(List<PageVersion> pageVersions) {
         this.pageVersions = pageVersions;
     }
-
-    /**
-     * @param comments the comments to set
-     */
-/*    public void setComments(List<Comment> comments) {
-        this.comments = comments;
-    }*/
 
     /**
      * @param categories the categories to set

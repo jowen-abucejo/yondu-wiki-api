@@ -9,9 +9,6 @@ public interface PageService {
 
         public PageDTO findById(Long id);
 
-        public PaginatedResponse<PageDTO> findAllVersionsByTagsAndCategories(String[] categories, String[] tags,
-                        Integer pageNumber, Integer pageSize, String[] sortBy);
-
         public PageDTO createNewPage(Long directoryId, PageVersionDTO page);
 
         public PageDTO updatePageDraft(Long pageId, Long versionId, PageVersionDTO page);
@@ -23,6 +20,8 @@ public interface PageService {
         public PageDTO updateCommenting(Long pageId, Boolean allowCommenting);
 
         public Page getPage(Long pageId);
+
+        public PageDTO findByIdWithVersions(Long pageId);
 
         public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,
                         Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,

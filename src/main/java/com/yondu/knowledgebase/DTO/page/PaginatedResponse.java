@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.DTO.page;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,7 +22,7 @@ public class PaginatedResponse<T> {
 
     @JsonProperty(index = 5)
     @JsonInclude(Include.NON_EMPTY)
-    private List<String> sortBy;
+    private Map<String, Object> sortBy;
 
     public PaginatedResponse(List<T> data, Integer page, Integer size, Long total) {
         this.data = data;
@@ -30,7 +31,7 @@ public class PaginatedResponse<T> {
         this.total = total;
     }
 
-    public PaginatedResponse(List<T> data, Integer page, Integer size, Long total, List<String> sortBy) {
+    public PaginatedResponse(List<T> data, Integer page, Integer size, Long total, Map<String, Object> sortBy) {
         this.data = data;
         this.page = page;
         this.size = size;
@@ -97,14 +98,14 @@ public class PaginatedResponse<T> {
     /**
      * @return the sortBy
      */
-    public List<String> getSortBy() {
+    public Map<String, Object> getSortBy() {
         return sortBy;
     }
 
     /**
      * @param sortBy the sortBy to set
      */
-    public void setSortBy(List<String> sortBy) {
+    public void setSortBy(Map<String, Object> sortBy) {
         this.sortBy = sortBy;
     }
 
