@@ -136,11 +136,11 @@ public class NotificationServiceImpl implements NotificationService {
 
     private String getLinkForEmailNotification (Notification notification){
         String link = "";
-        if (notification.getType().toUpperCase().equals(ContentType.COMMENT)){
+        if (notification.getType().equals(ContentType.COMMENT.getCode())){
             link = String.format("http://localhost:8080/comments/%d",notification.getTypeId());
-        } else if (notification.getType().toUpperCase().equals(ContentType.PAGE)) {
+        } else if (notification.getType().equals(ContentType.PAGE.getCode())) {
             link = String.format("http://localhost:8080/pages/%d",notification.getTypeId());
-        } else if (notification.getType().toUpperCase().equals(ContentType.POST)) {
+        } else if (notification.getType().equals(ContentType.POST.getCode())) {
             link = String.format("http://localhost:8080/post/%d",notification.getTypeId());
         }
         return link;

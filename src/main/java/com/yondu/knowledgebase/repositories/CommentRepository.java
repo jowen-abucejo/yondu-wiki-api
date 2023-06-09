@@ -16,4 +16,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findByEntityTypeAndEntityId(String entity, Long id);
 
     Long countByEntityTypeAndEntityId(String entity, Long id);
+
 }
