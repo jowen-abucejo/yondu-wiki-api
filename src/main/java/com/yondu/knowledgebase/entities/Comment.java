@@ -31,10 +31,12 @@ public class Comment {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "comment_mentions", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> commentMentions = new HashSet<>();
+
+    //Replies are turned on by default
+    private boolean allowReply = true;
 
     public Comment() {
     }
@@ -49,7 +51,7 @@ public class Comment {
      * @param user
      * @param commentMentions
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions, boolean allowReply) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
@@ -58,15 +60,15 @@ public class Comment {
         this.entityType = entityType;
         this.user = user;
         this.commentMentions = commentMentions;
+        this.allowReply = allowReply;
     }
 
-    public Comment(LocalDateTime dateCreated, String comment, Long entityId, String entityType, User user, Set<User> commentMentions) {
+    public Comment(LocalDateTime dateCreated, String comment, Long entityId, String entityType, User user) {
         this.dateCreated = dateCreated;
         this.comment = comment;
         this.entityId = entityId;
         this.entityType = entityType;
         this.user = user;
-        this.commentMentions = commentMentions;
     }
 
     public Long getId() {
@@ -131,5 +133,13 @@ public class Comment {
 
     public void setCommentMentions(Set<User> commentMentions) {
         this.commentMentions = commentMentions;
+    }
+
+    public boolean isAllowReply() {
+        return allowReply;
+    }
+
+    public void setAllowReply(boolean allowReply) {
+        this.allowReply = allowReply;
     }
 }

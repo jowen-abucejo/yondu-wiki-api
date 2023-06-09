@@ -11,4 +11,5 @@ public interface CommentService {
     public List<CommentDTO.BaseResponse> getAllComments(String entity, Long id);
     CommentDTO.CountResponse getTotalComments(String entity, Long id);
     CommentDTO.BaseResponse getComment (Long id);
+    CommentDTO.BaseResponse allowReply (Long id, boolean status);
 }
