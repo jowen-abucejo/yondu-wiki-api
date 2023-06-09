@@ -17,6 +17,7 @@ public class NotificationDTOMapper {
         return new Notification(
                 new User(base.userId()),
                 base.message(),
+                base.notificationType(),
                 base.type(),
                 base.typeId()
         );

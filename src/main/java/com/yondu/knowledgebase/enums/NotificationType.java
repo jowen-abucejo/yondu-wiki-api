@@ -5,7 +5,9 @@ public enum NotificationType {
     GENERAL("GENERAL"),
     COMMENT("COMMENT"),
     PAGE("PAGE"),
-    APPROVAL("APPROVAL");
+    APPROVAL("APPROVAL"),
+    MENTION("MENTION"),
+    RATE("RATE");
 
     String code;
 
