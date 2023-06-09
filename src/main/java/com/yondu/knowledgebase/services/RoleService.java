@@ -36,7 +36,7 @@ public class RoleService {
         this.userRepository = userRepository;
     }
 
-    public PaginatedResponse<RoleDTO> getAllRoles(int page, int size) {
+    public PaginatedResponse<RoleDTO> getAllRolesPaginated(int page, int size) {
         // Adjust the page number
         int adjustedPage = page - 1;
         int offset = adjustedPage * size + 1;
@@ -49,6 +49,18 @@ public class RoleService {
                 .collect(Collectors.toList());
         PaginatedResponse<RoleDTO> paginatedResponse = new PaginatedResponse<RoleDTO>(roleDTOs, offset, size, (long) roles.getTotalPages());
         return paginatedResponse;
+    }
+
+
+    public List<RoleDTO> getAllRoles() {
+        List<Role> roles = roleRepository.findAll();
+
+        List<RoleDTO> roleDTOs = roles.stream()
+                .map(RoleDTO::new)
+                .collect(Collectors.toList());
+
+        return roleDTOs;
+
     }
 
     public RoleDTO getRole(Long id) {
@@ -121,4 +133,5 @@ public class RoleService {
         // If all validations pass, proceed with deleting the role
         roleRepository.deleteById(id);
     }
+
 }

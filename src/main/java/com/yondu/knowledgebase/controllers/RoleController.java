@@ -22,9 +22,14 @@ public class RoleController {
         this.roleService = roleService;
     }
 
+    @GetMapping("/role/paginated")
+    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRolesPaginated(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRolesPaginated(page, size), "Success retrieving list of roles"));
+    }
+
     @GetMapping("/role")
-    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRoles(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(page, size), "Success retrieving list of roles"));
+    public ResponseEntity<ApiResponse<List<RoleDTO>>> getAllRoles(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(), "Success retrieving list of roles"));
     }
 
     @PostMapping("/role")
