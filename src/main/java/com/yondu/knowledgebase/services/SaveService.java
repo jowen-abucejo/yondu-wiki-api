@@ -3,6 +3,8 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTOMapper;
+import com.yondu.knowledgebase.entities.Comment;
+import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Save;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
@@ -50,18 +52,22 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
 
   // validation
     switch (saves.entityType()) {
-        case "POST" ->
-                postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d",saves.entityId())));
-        case "COMMENT" ->
-                commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d",saves.entityId())));
-        case "PAGE" ->
-                pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
-        default -> throw new RequestValidationException("Invalid Entity Type");
+        case "POST":
+          Post post = postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", saves.entityId())));
+            break;
+        case "COMMENT":
+          Comment comment = commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", saves.entityId())));
+            break;
+        case "PAGE":
+           com.yondu.knowledgebase.entities.Page page = pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
+            break;
+        default:
+            throw new RequestValidationException("Invalid Entity Type");
     }
      Optional<Save> validate = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(saves.entityType(), saves.entityId(), user));
 
     if (validate.isPresent()) {
-        throw new RequestValidationException("This " + saves.entityType() +" is already Saved");
+        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
     }
 
     Save save = new Save();
