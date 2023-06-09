@@ -1,56 +1,34 @@
 package com.yondu.knowledgebase.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 
 public interface PageRepository extends JpaRepository<Page, Long> {
-    @Query(value = "SELECT DISTINCT p FROM Page p JOIN FETCH p.pageVersions v LEFT JOIN FETCH p.author a " +
-            "LEFT JOIN FETCH v.modifiedBy m LEFT JOIN v.reviews r JOIN p.tags t " +
-            "JOIN p.categories c WHERE p.deleted =:deleted AND r.status  =:pageVersionReviewsStatus " +
-            "AND c.name IN :categories AND t.name IN :tags", countQuery = "SELECT COUNT(p) FROM "
-                    + "Page p JOIN p.pageVersions v LEFT JOIN p.author a LEFT JOIN v.modifiedBy m LEFT JOIN "
-                    + " v.reviews r WHERE p.deleted = :deleted AND r.status = :pageVersionReviewsStatus")
-    public Optional<org.springframework.data.domain.Page<Page>> findByCategoriesInAndTagsInAndDeletedAndPageVersionsReviewsStatus(
-            String[] categories,
-            String[] tags, boolean deleted, String pageVersionReviewsStatus, Pageable paging);
-
-    @Query(value = "SELECT DISTINCT p FROM Page p JOIN FETCH p.pageVersions v LEFT JOIN FETCH p.author a " +
-            "LEFT JOIN FETCH v.modifiedBy m LEFT JOIN v.reviews r JOIN p.tags t " +
-            "WHERE p.deleted =:deleted AND r.status =:pageVersionReviewsStatus " +
-            "AND t.name IN :tags", countQuery = "SELECT COUNT(p) FROM "
-                    + "Page p JOIN p.pageVersions v LEFT JOIN p.author a LEFT JOIN v.modifiedBy m LEFT JOIN "
-                    + " v.reviews r WHERE p.deleted = :deleted AND r.status = :pageVersionReviewsStatus")
-    public Optional<org.springframework.data.domain.Page<Page>> findByTagsInAndDeletedAndPageVersionsReviewsStatus(
-            String[] tags,
-            boolean deleted, String pageVersionReviewsStatus,
-            Pageable paging);
-
-    @Query(value = "SELECT DISTINCT p FROM Page p JOIN FETCH p.pageVersions v LEFT JOIN FETCH p.author a " +
-            "LEFT JOIN FETCH v.modifiedBy m LEFT JOIN v.reviews r JOIN p.categories c " +
-            "WHERE p.deleted =:deleted AND r.status =:pageVersionReviewsStatus AND c.name IN :categories", countQuery = "SELECT COUNT(p) FROM "
-                    + "Page p JOIN p.pageVersions v LEFT JOIN p.author a LEFT JOIN v.modifiedBy m LEFT JOIN "
-                    + " v.reviews r WHERE p.deleted = :deleted AND r.status = :pageVersionReviewsStatus")
-
-    public Optional<org.springframework.data.domain.Page<Page>> findByCategoriesInAndDeletedAndPageVersionsReviewsStatus(
-            String[] categories, boolean deleted, String pageVersionReviewsStatus,
-            Pageable paging);
-
-    @Query(value = "SELECT DISTINCT p FROM Page p JOIN FETCH p.pageVersions v LEFT JOIN FETCH p.author a " +
-            "LEFT JOIN FETCH v.modifiedBy m LEFT JOIN v.reviews r " +
-            "WHERE p.deleted =:deleted AND r.status =:pageVersionReviewsStatus", countQuery = "SELECT COUNT(p) FROM "
-                    + "Page p JOIN p.pageVersions v LEFT JOIN p.author a LEFT JOIN v.modifiedBy m LEFT JOIN "
-                    + " v.reviews r WHERE p.deleted = :deleted AND r.status = :pageVersionReviewsStatus")
-    public Optional<org.springframework.data.domain.Page<Page>> findByDeletedAndPageVersionsReviewsStatus(
+    @Query("SELECT DISTINCT p FROM Page p LEFT JOIN FETCH p.pageVersions pv LEFT JOIN pv.reviews r WHERE p.id = :id AND p.deleted = :deleted AND r.status IN :reviewsStatus")
+    public Optional<Page> findTopByIdAndDeletedAndPageVersionsReviewsStatusIn(
+            @Param("id") Long pageId,
             @Param("deleted") boolean deleted,
-            @Param("pageVersionReviewsStatus") String pageVersionReviewsStatus, Pageable paging);
+            @Param("reviewsStatus") List<ReviewStatus> reviewsStatus);
+
+    @Query("SELECT DISTINCT p FROM Page p LEFT JOIN FETCH p.pageVersions pv LEFT JOIN pv.reviews r WHERE p.id = :id AND p.deleted = :deleted AND (r.status IN :reviewsStatus OR pv.reviews IS EMPTY)")
+    public Optional<Page> findTopByIdAndDeletedAndPageVersionsReviewsStatusInOrPageVersionsReviewsIsEmpty(
+            @Param("id") Long pageId,
+            @Param("deleted") boolean deleted,
+            @Param("reviewsStatus") List<ReviewStatus> reviewsStatus);
 
     public Optional<Page> findByIdAndActive(Long id, Boolean isActive);
 
     public Optional<Page> findByIdAndDeleted(Long id, Boolean isDeleted);
+
+    @EntityGraph(attributePaths = { "directory" })
+    public Optional<Page> findById(Long id);
+
 }

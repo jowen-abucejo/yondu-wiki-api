@@ -44,8 +44,8 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.deletePost(id),"Post with id: " + id + "successfully deleted!"));
     }
 
-    @PostMapping("/post/{id}/archive")
+    @PostMapping("/post/{id}/active")
     public ResponseEntity<ApiResponse<PostDTO>> setPostArchive(@PathVariable Long id){
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.setPostArchive(id), "success"));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.setActive(id), "success"));
     }
 }

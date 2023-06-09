@@ -58,7 +58,7 @@ public class PostService {
             return tagRepository.findById(tag.getId()).get();
         }).collect(Collectors.toSet());
 
-        Post post = new Post(postDTO.getId(), user, postDTO.getContent().replaceAll("<[^>]+>", ""), LocalDateTime.now(), postDTO.getDateModified(), true, false, categories, tags);
+        Post post = new Post(postDTO.getId(), user, postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, categories, tags);
         postRepository.save(post);
 
         return new PostDTO(post);
@@ -76,7 +76,7 @@ public class PostService {
             return tagRepository.findById(tag.getId()).get();
         }).collect(Collectors.toSet());
 
-        post.setContent(postDTO.getContent().replaceAll("<[^>]+>", ""));
+        post.setContent(postDTO.getContent());
         post.setCategories(categories);
         post.setTags(tags);
         post.setDateModified(LocalDateTime.now());
@@ -96,10 +96,10 @@ public class PostService {
         return new PostDTO(post);
     }
 
-    public PostDTO setPostArchive(Long id) {
+    public PostDTO setActive(Long id) {
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
-        post.setActive(false);
+        post.setActive(!post.getActive());
 
         postRepository.save(post);
 
@@ -108,6 +108,6 @@ public class PostService {
     }
 
     public Post getPost(Long id){
-        return postRepository.findById(id).orElseThrow();
+        return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
     }
 }

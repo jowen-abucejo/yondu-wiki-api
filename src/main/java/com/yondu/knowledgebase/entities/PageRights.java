@@ -42,4 +42,13 @@ public class PageRights extends Rights{
     public boolean equals(Object obj) {
         return super.equals(obj);
     }
+
+    @Override
+    public String toString() {
+        return "PageRights{" +
+                "page=" + page +
+                ", permission=" + permission +
+                ", id=" + id +
+                '}';
+    }
 }

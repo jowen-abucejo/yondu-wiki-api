@@ -1,6 +1,8 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
+import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
@@ -9,6 +11,7 @@ import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,13 +36,31 @@ public class RoleService {
         this.userRepository = userRepository;
     }
 
-    public List<RoleDTO> getAllRoles(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public PaginatedResponse<RoleDTO> getAllRolesPaginated(int page, int size) {
+        // Adjust the page number
+        int adjustedPage = page - 1;
+        int offset = adjustedPage * size + 1;
+
+        Pageable pageable = PageRequest.of(adjustedPage, size);
         Page<Role> roles = roleRepository.findAll(pageable);
 
-        return roles.getContent().stream()
+        List<RoleDTO> roleDTOs = roles.getContent().stream()
                 .map(RoleDTO::new)
                 .collect(Collectors.toList());
+        PaginatedResponse<RoleDTO> paginatedResponse = new PaginatedResponse<RoleDTO>(roleDTOs, offset, size, (long) roles.getTotalPages());
+        return paginatedResponse;
+    }
+
+
+    public List<RoleDTO> getAllRoles() {
+        List<Role> roles = roleRepository.findAll();
+
+        List<RoleDTO> roleDTOs = roles.stream()
+                .map(RoleDTO::new)
+                .collect(Collectors.toList());
+
+        return roleDTOs;
+
     }
 
     public RoleDTO getRole(Long id) {
@@ -112,4 +133,5 @@ public class RoleService {
         // If all validations pass, proceed with deleting the role
         roleRepository.deleteById(id);
     }
+
 }

@@ -58,7 +58,13 @@ public class PageController {
             @RequestParam(defaultValue = "50", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAllVersionsByTagsAndCategories(categories, tags, pageNumber, pageSize, sortBy);
+        return pageService.findAllByFullTextSearch("", categories, tags, false, true, false,
+                pageNumber, pageSize, sortBy);
+    }
+
+    @GetMapping(path = "pages/{id}/versions")
+    public PageDTO getPageWithVersions(@PathVariable(name = "id") Long pageId) {
+        return pageService.findByIdWithVersions(pageId);
     }
 
     @PostMapping(path = "directories/{id}/pages")

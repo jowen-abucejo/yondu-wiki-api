@@ -15,4 +15,11 @@ public class GroupDTOMapper {
                 group.getUsers().stream().map(UserDTOMapper::mapToShortResponse).collect(Collectors.toSet()),
                 group.getRights().stream().map(RightsDTOMapper::mapToBaseResponse).collect(Collectors.toSet()));
     }
+
+    public static GroupDTO.ShortResponse mapToShortResponse(Group group) {
+        return new GroupDTO.ShortResponse(
+                group.getId(),
+                group.getName(),
+                group.getDescription());
+    }
 }

@@ -12,12 +12,12 @@ public class ReviewDTO {
                                PageVerDTO.BaseResponse version,
                                String comment,
                                LocalDate reviewDate,
-                               Review.Status status){}
+                               String status){}
 
     public record UpdatedResponse(Long id, PageVerDTO.BaseResponse version,
                                   String comment,
                                   LocalDate reviewDate, UserDTO.GeneralResponse user,
-                                  Review.Status status){}
+                                  String status){}
 
     public record UpdateRequest(String comment, String status) {}
 }
