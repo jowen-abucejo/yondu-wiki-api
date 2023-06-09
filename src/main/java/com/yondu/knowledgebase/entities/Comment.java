@@ -1,5 +1,8 @@
 package com.yondu.knowledgebase.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yondu.knowledgebase.DTO.comment.CommentDTO;
+import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -28,6 +31,7 @@ public class Comment {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "comment_mentions", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> commentMentions = new HashSet<>();
@@ -45,11 +49,20 @@ public class Comment {
      * @param user
      * @param commentMentions
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set commentMentions) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
         this.parentCommentId = parentCommentId;
+        this.entityId = entityId;
+        this.entityType = entityType;
+        this.user = user;
+        this.commentMentions = commentMentions;
+    }
+
+    public Comment(LocalDateTime dateCreated, String comment, Long entityId, String entityType, User user, Set<User> commentMentions) {
+        this.dateCreated = dateCreated;
+        this.comment = comment;
         this.entityId = entityId;
         this.entityType = entityType;
         this.user = user;

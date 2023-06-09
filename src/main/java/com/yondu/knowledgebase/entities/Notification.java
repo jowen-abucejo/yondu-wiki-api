@@ -19,6 +19,7 @@ public class Notification {
     private String message;
     private LocalDateTime timestamp;
     private boolean isRead;
+    private String notificationType;
     private String type;
     private long typeId;
 
@@ -35,9 +36,10 @@ public class Notification {
         this.typeId = -1;
     }
 
-    public Notification(User user, String message, String type, long typeId) {
+    public Notification(User user, String message, String notificationType, String type, long typeId) {
         this.user = user;
         this.message = message;
+        this.notificationType = notificationType;
         this.type = type;
         this.typeId = typeId;
     }
@@ -80,6 +82,14 @@ public class Notification {
 
     public void setRead(boolean read) {
         isRead = read;
+    }
+
+    public String getNotificationType() {
+        return notificationType;
+    }
+
+    public void setNotificationType(String notificationType) {
+        this.notificationType = notificationType;
     }
 
     public String getType() {
