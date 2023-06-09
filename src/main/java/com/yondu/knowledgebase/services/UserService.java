@@ -30,6 +30,7 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired PasswordChangesService passwordChangesService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -148,7 +149,12 @@ public class UserService implements UserDetailsService {
             throw new InvalidCredentialsException();
         }
 
+        if(passwordChangesService.isPasswordExist(user, request.newPassword())){
+           throw new PasswordRepeatException();
+        }
+
         User updatedUser = userRepository.save(user);
+        passwordChangesService.saveNewPassword(user, request.newPassword());
         return updatedUser;
     }
 
