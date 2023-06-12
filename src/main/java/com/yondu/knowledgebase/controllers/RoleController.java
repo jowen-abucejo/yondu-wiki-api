@@ -1,10 +1,12 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.services.RoleService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +22,14 @@ public class RoleController {
         this.roleService = roleService;
     }
 
+    @GetMapping("/role/paginated")
+    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRolesPaginated(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRolesPaginated(page, size), "Success retrieving list of roles"));
+    }
+
     @GetMapping("/role")
-    public ResponseEntity<ApiResponse<List<RoleDTO>>> getAllRoles(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(page, size), "Success retrieving list of roles"));
+    public ResponseEntity<ApiResponse<List<RoleDTO>>> getAllRoles(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRoles(), "Success retrieving list of roles"));
     }
 
     @PostMapping("/role")

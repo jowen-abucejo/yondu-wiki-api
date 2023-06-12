@@ -1,11 +1,13 @@
 package com.yondu.knowledgebase.services.implementations;
 
+import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.Notification;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
@@ -23,14 +25,23 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
-    @Autowired
     private NotificationRepository notificationRepository;
+    private UserRepository userRepository;
+    private EmailServiceImpl emailService;
+
+    public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository,EmailServiceImpl emailService) {
+        this.notificationRepository = notificationRepository;
+        this.userRepository = userRepository;
+        this.emailService = emailService;
+    }
 
     private final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
@@ -46,6 +57,8 @@ public class NotificationServiceImpl implements NotificationService {
             throw new MissingFieldException("message");
         }
 
+        User user = userRepository.findById(notification.userId()).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",notification.userId())));
+
         Notification newNotification = NotificationDTOMapper.mapBaseToEntity(notification);
         newNotification.setTimestamp(LocalDateTime.now());
         newNotification.setRead(false);
@@ -59,6 +72,9 @@ public class NotificationServiceImpl implements NotificationService {
         if(newNotification.getType() == null){
             newNotification.setType(NotificationType.GENERAL.getCode());
         }
+
+        String redirectingLink = getLinkForEmailNotification(newNotification);
+        emailService.sendEmail(new EmailRequestDTO(user.getEmail(),newNotification.getNotificationType(),newNotification.getType(),redirectingLink));
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
         return notificationBase;
@@ -116,5 +132,17 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.readAllNotification(user);
 
         return true;
+    }
+
+    private String getLinkForEmailNotification (Notification notification){
+        String link = "";
+        if (notification.getType().equals(ContentType.COMMENT.getCode())){
+            link = String.format("http://localhost:8080/comments/%d",notification.getTypeId());
+        } else if (notification.getType().equals(ContentType.PAGE.getCode())) {
+            link = String.format("http://localhost:8080/pages/%d",notification.getTypeId());
+        } else if (notification.getType().equals(ContentType.POST.getCode())) {
+            link = String.format("http://localhost:8080/post/%d",notification.getTypeId());
+        }
+        return link;
     }
 }

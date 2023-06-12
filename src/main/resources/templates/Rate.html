@@ -6,7 +6,8 @@
 </head>
 <body>
 <h1>Your <span th:text="${contentType}"></span> has a new rating</h1>
-<h3>Click the following <a th:href="@{${contentLink}}">link</a> to view the details.</a></h3>
+<h3>Click the link below for more details:</h3> <br>
+<a th:href="${contentLink}" th:text="${contentLink}"></a>
 <p>
     Thank you for using our application. We hope that the notification we sent was helpful to you. If you have any further inquiries or need assistance, please feel free to reach out to us at <a href="mailto:knowledgebase0630@gmail.com">knowledgebase0630@gmail.com</a>.
 </p>
