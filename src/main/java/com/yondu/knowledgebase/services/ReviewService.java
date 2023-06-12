@@ -131,11 +131,6 @@ public class ReviewService {
         notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(),
                 "Your content has been disapproved due to "+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
     }
-
-
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
-
-
-
     }
 }
