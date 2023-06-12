@@ -8,20 +8,25 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 import java.util.Set;
 
 public class PageRightsDTO {
-    public record RightsPermissionResponse(Long rights_id, PermissionDTO.BaseResponse permissions){}
+    public record RightsPermissionResponse(Long rightsId, PermissionDTO.BaseResponse permissions){}
+
 
     // Page Rights
-    public record GetPageRightResponse(PageDTO.BaseResponse page, Set<RightsPermissionResponse> page_rights){}
+    public record GetPageRightResponse(PageDTO.BaseResponse page, Set<RightsPermissionResponse> pageRights){}
 
-    // Add User
+
+    // For Users
     public record AddUserRequest(String email){}
-    public record UserBaseResponse(Long rights_id, UserDTO.ShortResponse user, PageDTO.BaseResponse page, PermissionDTO.BaseResponse permissions){}
-    public record GetUserPageRightResponse(UserDTO.ShortResponse user, Set<GetPageRightResponse> user_page_rights){}
-    public record GetUserPageRightBaseResponse(UserDTO.ShortResponse user, GetPageRightResponse user_page_rights){}
+    public record GetUserPageRightResponse(UserDTO.ShortResponse user, Set<GetPageRightResponse> userPageRights){}
+    public record GetUserPageRightBaseResponse(UserDTO.ShortResponse user, GetPageRightResponse userPageRights){}
 
-    // Add UserGroup
-    public record AddUserGroupRequest(String usergroupId){}
-    public record UserGroupBaseResponse(GroupDTO.ShortResponse group,GetPageRightResponse user_page_rights){}
-    public record GetUserGroupPageRightResponse(GroupDTO.ShortResponse group, Set<GetPageRightResponse> user_page_rights){}
+
+    // For UserGroups
+    public record UserGroupBaseResponse(GroupDTO.ShortResponse group,GetPageRightResponse userPageRights){}
+    public record GetUserGroupPageRightResponse(GroupDTO.ShortResponse group, Set<GetPageRightResponse> userPageRights){}
+
+
+    // Get Users and UserGroups
+    public record GetPageRightOfPageResponse(PageDTO.BaseResponse page, Set<PageRightsDTO.GetUserGroupPageRightResponse> userGroups, Set<PageRightsDTO.GetUserPageRightBaseResponse> users){}
 
 }

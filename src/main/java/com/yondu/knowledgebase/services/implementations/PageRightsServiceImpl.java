@@ -188,22 +188,48 @@ public class PageRightsServiceImpl implements PageRightsService {
         userRepository.save(currentUser);
     }
 
-    // public boolean hasManagePagePermission(){
-    // String email =
-    // SecurityContextHolder.getContext().getAuthentication().getName();
-    // User currentUser = userRepository.findByEmail(email).orElseThrow(()-> new
-    // ResourceNotFoundException("User not found with email: " + email));
-    //
-    // Long requiredPermission = 26L;
-    // Permission permission =
-    // permissionRepository.findById(requiredPermission).orElseThrow(()-> new
-    // ResourceNotFoundException("Page Permission not found with ID: "+
-    // requiredPermission));
-    //
-    // return currentUser.getPageRights()
-    // .stream()
-    // .noneMatch(access ->
-    // access.getPermission().getId().equals(permission.getId()));
-    // }
+
+
+    @Override
+    public PageRightsDTO.GetUserGroupPageRightResponse getPageRightsOfUserGroup(Long userGroupId) {
+        Group group = groupRepository.findById(userGroupId).orElseThrow(()-> new ResourceNotFoundException("User Group does not exist."));
+
+
+        Set<Rights> rights = groupRepository.findRightsById(userGroupId);
+
+
+        Set<PageRights> pageRights = rights.stream().filter(right -> right instanceof PageRights).map(pageRight-> (PageRights) pageRight).collect(Collectors.toSet());
+
+
+        Set<Map.Entry<Page, Set<PageRightsDTO.RightsPermissionResponse>>> resultMapPage = pageRights.stream()
+                .collect(Collectors.groupingBy(PageRights::getPage,Collectors.mapping(PageRightsDTOMapper::mapToBaseResponse, Collectors.toSet()))).entrySet();
+
+
+        Set<PageRightsDTO.GetPageRightResponse> dto = new HashSet<>();
+        for (Map.Entry<Page, Set<PageRightsDTO.RightsPermissionResponse>> resultMap : resultMapPage){
+            dto.add(PageRightsDTOMapper.mapToPageRightResponse(resultMap.getKey(), resultMap.getValue()));
+        }
+
+
+        return PageRightsDTOMapper.mapToUserGroupRightResponse(group, dto);
+    }
+
+
+    @Override
+    public PageRightsDTO.GetPageRightOfPageResponse getAllUsersOfPage(Long pageId) {
+        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(() -> new ResourceNotFoundException("Page with PageID " + pageId + " does not exist."));
+//        Set<Rights> rights = groupRepository.findRightsById(userGroupId);
+//
+//        Set<PageRights> pageRights = rights.stream().filter(right -> right instanceof PageRights).map(pageRight-> (PageRights) pageRight).collect(Collectors.toSet());
+//
+//        Set<Map.Entry<Page, Set<PageRightsDTO.RightsPermissionResponse>>> resultMapPage = pageRights.stream()
+//                .collect(Collectors.groupingBy(PageRights::getPage,Collectors.mapping(PageRightsDTOMapper::mapToBaseResponse, Collectors.toSet()))).entrySet();
+//
+//        Set<PageRightsDTO.GetPageRightResponse> dto = new HashSet<>();
+//        for (Map.Entry<Page, Set<PageRightsDTO.RightsPermissionResponse>> resultMap : resultMapPage){
+//            dto.add(PageRightsDTOMapper.mapToPageRightResponse(resultMap.getKey(), resultMap.getValue()));
+//        }
+        return null;
+    }
 
 }

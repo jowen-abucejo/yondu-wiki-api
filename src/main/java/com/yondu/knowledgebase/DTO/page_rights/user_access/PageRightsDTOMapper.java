@@ -16,30 +16,40 @@ public class PageRightsDTOMapper {
         return new PageRightsDTO.RightsPermissionResponse(pageRights.getId(),
                 PermissionDTOMapper.mapToBaseResponse(pageRights.getPermission()));
     }
-    public static PageRightsDTO.GetPageRightResponse mapToPageRightResponse(Page page, Set<PageRightsDTO.RightsPermissionResponse> page_rights) {
+    public static PageRightsDTO.GetPageRightResponse mapToPageRightResponse(Page page, Set<PageRightsDTO.RightsPermissionResponse> pageRights) {
         return new PageRightsDTO.GetPageRightResponse(PageDTOMapper.mapToBaseResponse(page),
-                page_rights);
+                pageRights);
     }
 
-    public static PageRightsDTO.UserBaseResponse mapToAddPageRightResponse(User user, PageRights pageRights) {
-        return new PageRightsDTO.UserBaseResponse(pageRights.getId(),
-                UserDTOMapper.mapToShortResponse(user), PageDTOMapper.mapToBaseResponse(pageRights.getPage()),
-                PermissionDTOMapper.mapToBaseResponse(pageRights.getPermission()));
-    }
 
-    public static PageRightsDTO.GetUserPageRightResponse mapToUserRightResponse(User user, Set<PageRightsDTO.GetPageRightResponse> user_rights) {
+    public static PageRightsDTO.GetUserPageRightResponse mapToUserRightResponse(User user, Set<PageRightsDTO.GetPageRightResponse> userRights) {
         return new PageRightsDTO.GetUserPageRightResponse(UserDTOMapper.mapToShortResponse(user),
-                user_rights);
+                userRights);
     }
 
-    public static PageRightsDTO.GetUserPageRightBaseResponse mapToUserRightBaseResponse(User user, PageRightsDTO.GetPageRightResponse user_rights) {
+
+    public static PageRightsDTO.GetUserPageRightBaseResponse mapToUserRightBaseResponse(User user, PageRightsDTO.GetPageRightResponse userRights) {
         return new PageRightsDTO.GetUserPageRightBaseResponse(UserDTOMapper.mapToShortResponse(user),
-                user_rights);
+                userRights);
     }
 
-    public static PageRightsDTO.UserGroupBaseResponse mapToAddPageRightResponse(Group group, PageRightsDTO.GetPageRightResponse user_rights) {
+
+    public static PageRightsDTO.UserGroupBaseResponse mapToAddPageRightResponse(Group group, PageRightsDTO.GetPageRightResponse userRights) {
         return new PageRightsDTO.UserGroupBaseResponse(GroupDTOMapper.mapToShortResponse(group),
-                user_rights);
+                userRights);
     }
+
+
+    public static PageRightsDTO.GetUserGroupPageRightResponse mapToUserGroupRightResponse(Group group, Set<PageRightsDTO.GetPageRightResponse> userRights) {
+        return new PageRightsDTO.GetUserGroupPageRightResponse(GroupDTOMapper.mapToShortResponse(group),
+                userRights);
+    }
+
+
+    public static PageRightsDTO.GetPageRightOfPageResponse mapToPageRightsOfPageResponse(Page page, Set<PageRightsDTO.GetUserGroupPageRightResponse> userGroups, Set<PageRightsDTO.GetUserPageRightBaseResponse> users) {
+        return new PageRightsDTO.GetPageRightOfPageResponse(PageDTOMapper.mapToBaseResponse(page),
+                userGroups, users);
+    }
+
 
 }

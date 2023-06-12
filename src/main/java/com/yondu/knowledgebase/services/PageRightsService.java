@@ -32,5 +32,10 @@ public interface PageRightsService {
     // public List<PageRightsDTO.BaseResponse> getAllUsersOfPage(Long id);
 
     public void createPageRights(Page page);
-}
+
+
+    PageRightsDTO.GetUserGroupPageRightResponse getPageRightsOfUserGroup(Long userGroupId);
+
+
+    PageRightsDTO.GetPageRightOfPageResponse getAllUsersOfPage(Long pageId);}
 
