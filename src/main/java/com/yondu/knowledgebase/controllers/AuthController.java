@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.token.TokenDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.config.TokenUtil;
@@ -34,11 +35,11 @@ public class AuthController {
 
         User fetchedUser = authService.login(request);
         UserDTO.WithRolesResponse userDTO = UserDTOMapper.mapToWithRolesResponse(fetchedUser);
-        String token = tokenUtil.generateToken(fetchedUser);
+        TokenDTO.Base token = tokenUtil.generateToken(fetchedUser);
 
         Map<String, Object> res = new HashMap<>();
         res.put("user", userDTO);
-        res.put("token", token);
+        res.put("jwt", token);
 
         ApiResponse apiResponse = ApiResponse.success(res, "success");
         return ResponseEntity.ok(apiResponse);
