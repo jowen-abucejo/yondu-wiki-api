@@ -67,7 +67,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         Comment comment = CommentDTOMapper.mapToComment(request, user);
-        comment.setCommentMentions(getMentionedUsers(request.mentionedUsersId()));
+        comment.setCommentMentions(getMentionedUsers(request.commentMentions()));
         //If comment is a reply
         if(parentCommentId != null){
             if(commentRepository.existsById(parentCommentId)){
