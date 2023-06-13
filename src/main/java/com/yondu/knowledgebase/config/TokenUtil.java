@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.config;
 
+import com.yondu.knowledgebase.DTO.token.TokenDTO;
+import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.User;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.io.Decoders;
@@ -12,8 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class TokenUtil {
@@ -23,15 +28,15 @@ public class TokenUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    private final long EXPIRATION = 14 * 24 * 60 * 60 * 100;
+    private final long EXPIRATION = 14 * 24 * 60 * 60 * 1000;
 
-    public String generateToken(User user) {
+    public TokenDTO.Base generateToken(User user) {
         log.info("TokenUtil.generateToken()");
         log.info("user : " + user.toString());
 
         Calendar now = Calendar.getInstance();
-        Calendar expiration = now;
-        expiration.setTimeInMillis(now.getTimeInMillis() + EXPIRATION);
+        Calendar expiration = Calendar.getInstance();
+        expiration.setTimeInMillis(expiration.getTimeInMillis() + EXPIRATION);
 
         String token = Jwts.builder()
                 .setHeaderParam("email", user.getEmail())
@@ -44,7 +49,10 @@ public class TokenUtil {
                 .signWith(generateSigningKey())
                 .compact();
 
-        return token;
+        LocalDateTime ldtIssued = Util.convertCalendarToLDT(now);
+        LocalDateTime ldtExpiration = Util.convertCalendarToLDT(expiration);
+
+        return new TokenDTO.Base(token, ldtIssued, ldtExpiration);
     }
 
     public Jwt readJwt(String token) throws JwtException {
