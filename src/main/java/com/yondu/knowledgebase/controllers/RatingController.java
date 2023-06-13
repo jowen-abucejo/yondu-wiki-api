@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
@@ -31,7 +32,12 @@ public class RatingController {
 	}
 	
 	@GetMapping("/upvotes")
-	public TotalUpvoteDTO totalUpvoteByEntityIdAndEntityType(@RequestBody RatingDTO ratingDto) {
-		return ratingService.totalUpvote(ratingDto);
+	public TotalUpvoteDTO totalUpvoteByEntityIdAndEntityType(@RequestParam(value="id") Long entityId, @RequestParam(value="type") String entityType) {
+		return ratingService.totalUpvote(entityId, entityType);
+	}
+	
+	@GetMapping("/users/upvotes")
+	public RatingDTO checkIfEntityUpvoted(@RequestParam(value="entity_id") Long entityId, @RequestParam(value="type") String entityType) {
+		return ratingService.ratingByEntityIdAndEntityType(entityId,entityType);
 	}
 }
