@@ -125,11 +125,11 @@ public class ReviewService {
             Review updatedReview = reviewRepository.save(review);
 
     if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
-        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(),
-                "Your Content has been Approved!", NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
+        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(), currentUser.getId(),
+                String.format("Your Content has been Approved by %s!", currentUser.getEmail()), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
     } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())){
-        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(),
-                "Your content has been disapproved due to "+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
+        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(), currentUser.getId(),
+                String.format("Your content has been disapproved by %s due to ", currentUser.getEmail())+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
     }
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
     }

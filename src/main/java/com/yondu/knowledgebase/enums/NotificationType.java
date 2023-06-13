@@ -4,7 +4,6 @@ public enum NotificationType {
 
     GENERAL("GENERAL"),
     COMMENT("COMMENT"),
-    PAGE("PAGE"),
     APPROVAL("APPROVAL"),
     MENTION("MENTION"),
     RATE("RATE");

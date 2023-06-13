@@ -15,6 +15,9 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
+    @ManyToOne
+    @JoinColumn(name="from_user_id")
+    private User fromUser;
     @Column(nullable = false)
     private String message;
     private LocalDateTime timestamp;
@@ -26,9 +29,10 @@ public class Notification {
     public Notification() {
     }
 
-    public Notification(long id, User user, String message, LocalDateTime timestamp, boolean isRead) {
+    public Notification(long id, User user, User fromUser, String message, LocalDateTime timestamp, boolean isRead) {
         this.id = id;
         this.user = user;
+        this.fromUser = fromUser;
         this.message = message;
         this.timestamp = timestamp;
         this.isRead = isRead;
@@ -36,8 +40,9 @@ public class Notification {
         this.typeId = -1;
     }
 
-    public Notification(User user, String message, String notificationType, String type, long typeId) {
+    public Notification(User user, User fromUser, String message, String notificationType, String type, long typeId) {
         this.user = user;
+        this.fromUser = fromUser;
         this.message = message;
         this.notificationType = notificationType;
         this.type = type;
@@ -58,6 +63,14 @@ public class Notification {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public User getFromUser() {
+        return fromUser;
+    }
+
+    public void setFromUser(User fromUser) {
+        this.fromUser = fromUser;
     }
 
     public String getMessage() {

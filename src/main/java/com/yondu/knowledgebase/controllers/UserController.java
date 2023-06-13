@@ -96,6 +96,19 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PostMapping("{id}/update")
+    @PreAuthorize("hasAuthority('UPDATE_USERS')")
+    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> updateUser(@PathVariable long id, @RequestBody UserDTO.WithRolesRequest user) {
+        log.info("UserController.updateUser()");
+        log.info("id : " + id);
+        log.info("user : " + user);
+
+        User updatedUser = userService.updateUser(id, user);
+        UserDTO.WithRolesResponse response = UserDTOMapper.mapToWithRolesResponse(updatedUser);
+
+        return ResponseEntity.ok(ApiResponse.success(response, "success"));
+    }
+
     /*
      *  TODO
      *   Create endpoint uploading new profile picture

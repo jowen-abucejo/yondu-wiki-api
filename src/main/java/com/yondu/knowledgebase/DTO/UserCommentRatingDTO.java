@@ -1,7 +1,5 @@
 package com.yondu.knowledgebase.DTO;
 
-import com.yondu.knowledgebase.entities.UserCommentRating;
-
 public class UserCommentRatingDTO {
     private String rating;
     private Long userId;
