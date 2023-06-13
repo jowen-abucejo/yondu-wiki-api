@@ -24,6 +24,9 @@ public class Group {
     @JoinTable(name = "group_rights", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
     private Set<Rights> rights;
 
+    @OneToMany(mappedBy="group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<GroupPageAccess> groupPageAccess = new HashSet<>();
+
     public Group() {
     }
 
@@ -32,6 +35,7 @@ public class Group {
         this.description = description;
         this.users = new HashSet<>();
         this.rights = new HashSet<>();
+        this.groupPageAccess = new HashSet<>();
     }
 
     public Long getId() {
@@ -72,6 +76,14 @@ public class Group {
 
     public void setRights(Set<Rights> rights) {
         this.rights = rights;
+    }
+
+    public Set<GroupPageAccess> getGroupPageAccess() {
+        return groupPageAccess;
+    }
+
+    public void setGroupPageAccess(Set<GroupPageAccess> groupPageAccess) {
+        this.groupPageAccess = groupPageAccess;
     }
 
     @Override

@@ -64,7 +64,10 @@ public class User implements UserDetails {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_rights", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
-    private Set<Rights> rights;
+    private Set<Rights> rights; // To Delete
+
+    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
     public User(long id) {
         this.id = id;
@@ -113,7 +116,8 @@ public class User implements UserDetails {
         this.status = status;
         this.createdAt = createdAt;
         this.role = role;
-        this.rights = new HashSet<>();
+        this.rights = new HashSet<>(); // To delete
+        this.userPageAccess = new HashSet<>();
     }
 
     public User() {
@@ -203,24 +207,24 @@ public class User implements UserDetails {
         return role;
     }
 
-//    public Set<PageRights> getPageRights() {
-//        return pageRights;
-//    }
-
-//    public void setPageRights(Set<PageRights> pageRights) {
-//        this.pageRights = pageRights;
-//    }
-
     public Set<Notification> getNotifications() {
         return notifications;
     }
 
     public Set<Rights> getRights() {
         return rights;
-    }
+    } // to delete
 
     public void setRights(Set<Rights> rights) {
         this.rights = rights;
+    } // To delete
+
+    public Set<UserPageAccess> getUserPageAccess() {
+        return userPageAccess;
+    }
+
+    public void setUserPageAccess(Set<UserPageAccess> userPageAccess) {
+        this.userPageAccess = userPageAccess;
     }
 
     @Override

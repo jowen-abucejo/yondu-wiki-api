@@ -27,6 +27,8 @@ public class PageRightsDTO {
 
 
     // Get Users and UserGroups
-    public record GetPageRightOfPageResponse(PageDTO.BaseResponse page, Set<PageRightsDTO.GetUserGroupPageRightResponse> userGroups, Set<PageRightsDTO.GetUserPageRightBaseResponse> users){}
+    public record GetPageRightOfPageResponse(PageDTO.BaseResponse page, Set<PageRightsDTO.GetPageRightOfGroups> userGroups, Set<PageRightsDTO.GetPageRightOfUsers> users){}
+    public record GetPageRightOfGroups(GroupDTO.ShortResponse group, Set<RightsPermissionResponse> userPageRights){}
+    public record GetPageRightOfUsers(UserDTO.ShortResponse user, Set<RightsPermissionResponse> userPageRights){}
 
 }

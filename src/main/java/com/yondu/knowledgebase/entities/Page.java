@@ -80,6 +80,12 @@ public class Page {
     private Set<PageRights> pageRights = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
+    private Set<UserPageAccess> userPageAccess = new HashSet<>();
+
+    @OneToMany(mappedBy = "page")
+    private Set<GroupPageAccess> groupPageAccess = new HashSet<>();
+
+    @OneToMany(mappedBy = "page")
     private Set<UserPageRating> userPageRatings = new HashSet<>();
 
     /**
@@ -103,12 +109,12 @@ public class Page {
      * @param categories
      * @param tags
      * @param pageRights
-     * @param userPageRatings
      */
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, Set<Category> categories, Set<Tag> tags,
-            Set<PageRights> pageRights, Set<UserPageRating> userPageRatings) {
+            Set<PageRights> pageRights,
+            Set<UserPageAccess> userPageAccess,Set<GroupPageAccess> groupPageAccesses) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
@@ -122,7 +128,9 @@ public class Page {
         this.pageVersions = pageVersions;
         this.categories = categories;
         this.tags = tags;
-        this.pageRights = pageRights;
+        this.pageRights = pageRights; // To Remove
+        this.userPageAccess = userPageAccess;
+        this.groupPageAccess = groupPageAccesses;
     }
 
     /**
@@ -221,6 +229,20 @@ public class Page {
      */
     public Set<PageRights> getPageRights() {
         return pageRights;
+    }
+
+    /**
+     * @return the userPageAccess
+     */
+    public Set<UserPageAccess> getUserPageAccesses() {
+        return userPageAccess;
+    } // To delete
+
+    /**
+     * @return the groupPageAccess
+     */
+    public Set<GroupPageAccess> getGroupPageAccesses() {
+        return groupPageAccess;
     }
 
     /**
@@ -326,6 +348,20 @@ public class Page {
      */
     public void setPageRights(Set<PageRights> pageRights) {
         this.pageRights = pageRights;
+    } // To delete
+
+    /**
+     * @param userPageAccess the userPageAccess to set
+     */
+    public void setUserPageAccess(Set<UserPageAccess> userPageAccess) {
+        this.userPageAccess = userPageAccess;
+    }
+
+    /**
+     * @param groupPageAccess the userPageAccess to set
+     */
+    public void setGroupPageAccess(Set<GroupPageAccess> groupPageAccess) {
+        this.groupPageAccess = groupPageAccess;
     }
 
     /**
