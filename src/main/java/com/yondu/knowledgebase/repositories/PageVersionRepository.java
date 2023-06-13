@@ -104,21 +104,20 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         p10.name = 'READ_CONTENT'
                                             AND u10.id = :userId) pTable05
                             )
-                            OR EXISTS(
+                            AND (EXISTS(
                                 SELECT
                                     1
                                 FROM
                                     (SELECT
-                                        pr10.page_id
+                                        upa10.page_id
                                     FROM
                                         users u10
-                                    LEFT JOIN user_rights ur10 ON u10.id = ur10.user_id
-                                    LEFT JOIN page_rights pr10 ON ur10.rights_id = pr10.id
-                                    LEFT JOIN permission p10 ON pr10.permission_id = p10.id
+                                    LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id
+                                    LEFT JOIN permission p10 ON upa10.permission_id = p10.id
                                     WHERE
                                         p10.name = 'READ_CONTENT'
                                             AND u10.id = :userId
-                                            AND pr10.page_id = p.id) pTable00
+                                            AND upa10.page_id = p.id) pTable00
                             )
                             OR EXISTS(
                                 SELECT
@@ -141,17 +140,16 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                     1
                                 FROM
                                     (SELECT
-                                        pr10.page_id
+                                        gpa10.page_id
                                     FROM
                                         users u10
                                     LEFT JOIN group_users gu10 ON u10.id = gu10.user_id
-                                    LEFT JOIN group_rights gr10 ON gu10.group_id = gr10.group_id
-                                    LEFT JOIN page_rights pr10 ON gr10.rights_id = pr10.id
-                                    LEFT JOIN permission p10 ON pr10.permission_id = p10.id
+                                    LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id
+                                    LEFT JOIN permission p10 ON gpa10.permission_id = p.id
                                     WHERE
                                         p10.name = 'READ_CONTENT'
                                             AND u10.id = :userId
-                                            AND pr10.page_id = p.id) pTable02
+                                            AND gpa10.page_id = p.id) pTable02
                             )
                             OR EXISTS(
                                 SELECT
@@ -169,7 +167,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         p10.name = 'READ_CONTENT'
                                             AND u10.id = :userId
                                             AND dr10.directory_id = p.directory_id) pTable03
-                            )
+                            ))
                         ))
                     ELSE
                         ((v.page_id, v.id) IN (
@@ -192,21 +190,20 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         p10.name = 'CONTENT_APPROVAL'
                                             AND u10.id = :userId) pTable05
                             )
-                            OR EXISTS(
+                            AND (EXISTS(
                                 SELECT
                                     1
                                 FROM
                                     (SELECT
-                                        pr10.page_id
+                                        upa10.page_id
                                     FROM
                                         users u10
-                                    LEFT JOIN user_rights ur10 ON u10.id = ur10.user_id
-                                    LEFT JOIN page_rights pr10 ON ur10.rights_id = pr10.id
-                                    LEFT JOIN permission p10 ON pr10.permission_id = p10.id
+                                    LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id
+                                    LEFT JOIN permission p10 ON upa10.permission_id = p10.id
                                     WHERE
                                         p10.name = 'CONTENT_APPROVAL'
                                             AND u10.id = :userId
-                                            AND pr10.page_id = p.id) pTable00
+                                            AND upa10.page_id = p.id) pTable00
                             )
                             OR EXISTS(
                                 SELECT
@@ -229,17 +226,16 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                     1
                                 FROM
                                     (SELECT
-                                        pr10.page_id
+                                        gpa10.page_id
                                     FROM
                                         users u10
                                     LEFT JOIN group_users gu10 ON u10.id = gu10.user_id
-                                    LEFT JOIN group_rights gr10 ON gu10.group_id = gr10.group_id
-                                    LEFT JOIN page_rights pr10 ON gr10.rights_id = pr10.id
-                                    LEFT JOIN permission p10 ON pr10.permission_id = p10.id
+                                    LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id
+                                    LEFT JOIN permission p10 ON gpa10.permission_id = p.id
                                     WHERE
                                         p10.name = 'CONTENT_APPROVAL'
                                             AND u10.id = :userId
-                                            AND pr10.page_id = p.id) pTable02
+                                            AND gpa10.page_id = p.id) pTable02
                             )
                             OR EXISTS(
                                 SELECT
@@ -257,7 +253,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         p10.name = 'CONTENT_APPROVAL'
                                             AND u10.id = :userId
                                             AND dr10.directory_id = p.directory_id) pTable03
-                            )
+                            ))
                         ))
                     END
                 AND p.is_active <> :isArchived
