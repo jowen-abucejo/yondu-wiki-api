@@ -114,7 +114,7 @@ public class UserService implements UserDetailsService {
                 .map(user -> UserDTOMapper.mapToWithRolesResponse(user))
                 .collect(Collectors.toList());
 
-        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<UserDTO.WithRolesResponse>(userDTOs, page, size, (long)userDTOs.size());
+        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<UserDTO.WithRolesResponse>(userDTOs, page, size, (long) userPages.getTotalPages());
 
         return paginatedResponse;
     }
