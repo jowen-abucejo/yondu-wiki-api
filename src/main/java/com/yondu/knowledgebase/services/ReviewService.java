@@ -1,9 +1,12 @@
 package com.yondu.knowledgebase.services;
 
+import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.enums.ContentType;
+import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
@@ -18,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,12 +28,14 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final PageVersionRepository pageVersionRepository;
+    private final NotificationService notificationService;
 
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository) {
+    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, NotificationService notificationService) {
         this.reviewRepository = reviewRepository;
         this.pageVersionRepository = pageVersionRepository;
+        this.notificationService = notificationService;
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviews( int page, int size){
@@ -117,9 +121,16 @@ public class ReviewService {
             review.setUser(currentUser);
             review.setComment(request.comment());
             review.setReviewDate(LocalDate.now());
-            review.setStatus(review.getStatus());
+            review.setStatus(request.status());
             Review updatedReview = reviewRepository.save(review);
-            return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
 
+    if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
+        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(),
+                "Your Content has been Approved!", NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
+    } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())){
+        notificationService.createNotification(new NotificationDTO.BaseRequest(review.getPageVersion().getPage().getAuthor().getId(),
+                "Your content has been disapproved due to "+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),review.getPageVersion().getPage().getId()));
+    }
+        return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
     }
 }
