@@ -3,6 +3,8 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTOMapper;
+import com.yondu.knowledgebase.entities.Comment;
+import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Save;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
@@ -44,20 +46,28 @@ public class SaveService {
 public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+    if (user == null) {
+        throw new ResourceNotFoundException("User not found, login first before saving");
+    }
+
   // validation
     switch (saves.entityType()) {
-        case "POST" ->
-                postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d",saves.entityId())));
-        case "COMMENT" ->
-                commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d",saves.entityId())));
-        case "PAGE" ->
-                pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
-        default -> throw new RequestValidationException("Invalid Entity Type");
+        case "POST":
+          Post post = postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", saves.entityId())));
+            break;
+        case "COMMENT":
+          Comment comment = commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", saves.entityId())));
+            break;
+        case "PAGE":
+           com.yondu.knowledgebase.entities.Page page = pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
+            break;
+        default:
+            throw new RequestValidationException("Invalid Entity Type");
     }
      Optional<Save> validate = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(saves.entityType(), saves.entityId(), user));
 
     if (validate.isPresent()) {
-        throw new RequestValidationException("This Post is already Saved");
+        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
     }
 
     Save save = new Save();
@@ -73,6 +83,11 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
 
 public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int size) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+    if (user == null) {
+        throw new ResourceNotFoundException("Login First");
+    }
+
     PageRequest pageRequest = PageRequest.of(page - 1, size);
     Page<Save> savePages = saveRepository.findAllByAuthor(user,pageRequest);
     List<Save> saves = savePages.getContent();
@@ -85,7 +100,9 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
 }
 
 public Save deleteSaved(Long id) {
-    saveRepository.deleteById(id);
+
+        Save save = saveRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Save "+ id +" not found."));
+    saveRepository.delete(save);
     return null;
 }
 }
