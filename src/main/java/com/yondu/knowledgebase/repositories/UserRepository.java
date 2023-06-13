@@ -34,6 +34,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.rights FROM users u WHERE u.id = :userId ")
     Set<Rights> findRightsById(Long userId);
 
+    @Query("SELECT u FROM users u JOIN u.role r JOIN r.permissions p WHERE p.name = 'CONTENT_APPROVAL'")
+    Set<User> findUsersWithContentApprovalPermission();
+
     @Query(nativeQuery = true, value = """
             SELECT
                 (EXISTS( SELECT
