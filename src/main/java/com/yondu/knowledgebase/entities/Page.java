@@ -77,9 +77,6 @@ public class Page {
     private Set<Tag> tags = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
-    private Set<PageRights> pageRights = new HashSet<>();
-
-    @OneToMany(mappedBy = "page")
     private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
     @OneToMany(mappedBy = "page")
@@ -113,8 +110,7 @@ public class Page {
     public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
             LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
             List<PageVersion> pageVersions, Set<Category> categories, Set<Tag> tags,
-            Set<PageRights> pageRights,
-            Set<UserPageAccess> userPageAccess,Set<GroupPageAccess> groupPageAccesses) {
+            Set<UserPageAccess> userPageAccess, Set<GroupPageAccess> groupPageAccesses) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
@@ -128,7 +124,6 @@ public class Page {
         this.pageVersions = pageVersions;
         this.categories = categories;
         this.tags = tags;
-        this.pageRights = pageRights; // To Remove
         this.userPageAccess = userPageAccess;
         this.groupPageAccess = groupPageAccesses;
     }
@@ -222,13 +217,6 @@ public class Page {
      */
     public Set<Tag> getTags() {
         return tags;
-    }
-
-    /**
-     * @return the pageRights
-     */
-    public Set<PageRights> getPageRights() {
-        return pageRights;
     }
 
     /**
@@ -342,13 +330,6 @@ public class Page {
     public void setTags(Set<Tag> tags) {
         this.tags = tags;
     }
-
-    /**
-     * @param pageRights the pageRights to set
-     */
-    public void setPageRights(Set<PageRights> pageRights) {
-        this.pageRights = pageRights;
-    } // To delete
 
     /**
      * @param userPageAccess the userPageAccess to set

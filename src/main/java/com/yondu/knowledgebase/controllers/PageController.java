@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
@@ -63,44 +64,55 @@ public class PageController {
     }
 
     @GetMapping(path = "pages/{id}/versions")
-    public PageDTO getPageWithVersions(@PathVariable(name = "id") Long pageId) {
-        return pageService.findByIdWithVersions(pageId);
+    public ApiResponse<PageDTO> getPageWithVersions(@PathVariable(name = "id") Long pageId) {
+        var page = pageService.findByIdWithVersions(pageId);
+        return new ApiResponse<PageDTO>("success", page, "Page retrieved");
     }
 
     @PostMapping(path = "directories/{id}/pages")
-    public PageDTO saveNewPage(@PathVariable(name = "id") Long directoryId,
+    public ApiResponse<PageDTO> saveNewPage(@PathVariable(name = "id") Long directoryId,
             @RequestBody @Valid PageVersionDTO pageVersionDTO) {
-        return pageService.createNewPage(directoryId, pageVersionDTO);
+        var page = pageService.createNewPage(directoryId, pageVersionDTO);
+        return new ApiResponse<PageDTO>("success", page, "New page created");
     }
 
     @PutMapping(path = "pages/{pageId}/versions/{versionId}")
-    public PageDTO updatePageVersion(@PathVariable Long pageId, @PathVariable Long versionId,
+    public ApiResponse<PageDTO> updatePageVersion(@PathVariable Long pageId, @PathVariable Long versionId,
             @RequestBody @Valid PageVersionDTO pageVersionDTO) {
-        return pageService.updatePageDraft(pageId, versionId, pageVersionDTO);
+        var page = pageService.updatePageDraft(pageId, versionId, pageVersionDTO);
+        return new ApiResponse<PageDTO>("success", page, "Page version updated");
     }
 
     @DeleteMapping(path = "pages/{pageId}/delete")
-    public PageDTO deletePage(@PathVariable Long pageId) {
-        return pageService.deletePage(pageId);
+    public ApiResponse<PageDTO> deletePage(@PathVariable Long pageId) {
+        var page = pageService.deletePage(pageId);
+        return new ApiResponse<PageDTO>("success", page, "Page Deleted");
     }
 
     @PatchMapping(path = "pages/{pageId}/archive")
-    public PageDTO archivePage(@PathVariable Long pageId) {
-        return pageService.updateActiveStatus(pageId, false);
+    public ApiResponse<PageDTO> archivePage(@PathVariable Long pageId) {
+        var page = pageService.updateActiveStatus(pageId, false);
+        return new ApiResponse<PageDTO>("success", page, "Page set as archive");
+
     }
 
     @PatchMapping(path = "pages/{pageId}/unarchive")
-    public PageDTO unArchivePage(@PathVariable Long pageId) {
-        return pageService.updateActiveStatus(pageId, true);
+    public ApiResponse<PageDTO> unArchivePage(@PathVariable Long pageId) {
+        var page = pageService.updateActiveStatus(pageId, true);
+        return new ApiResponse<PageDTO>("success", page, "Page set as not archive");
+
     }
 
     @PatchMapping(path = "pages/{pageId}/settings/comments-off")
-    public PageDTO turnOffCommenting(@PathVariable Long pageId) {
-        return pageService.updateCommenting(pageId, false);
+    public ApiResponse<PageDTO> turnOffCommenting(@PathVariable Long pageId) {
+        var page = pageService.updateCommenting(pageId, false);
+        return new ApiResponse<PageDTO>("success", page, "Page commenting off");
+
     }
 
     @PatchMapping(path = "pages/{pageId}/settings/comments-on")
-    public PageDTO turnOnCommenting(@PathVariable Long pageId) {
-        return pageService.updateCommenting(pageId, true);
+    public ApiResponse<PageDTO> turnOnCommenting(@PathVariable Long pageId) {
+        var page = pageService.updateCommenting(pageId, true);
+        return new ApiResponse<PageDTO>("success", page, "Page commenting on");
     }
 }
