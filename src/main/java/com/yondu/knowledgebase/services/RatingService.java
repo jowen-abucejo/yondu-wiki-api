@@ -9,5 +9,7 @@ public interface RatingService {
 
 	public ApiResponse<RatingDTO> updateRating(RatingDTO ratingDto);
 
-	public TotalUpvoteDTO totalUpvote(RatingDTO ratingDto);
+	public TotalUpvoteDTO totalUpvote(Long entityId, String entityType);
+
+	public RatingDTO ratingByEntityIdAndEntityType(Long entityId, String entityType);
 }
