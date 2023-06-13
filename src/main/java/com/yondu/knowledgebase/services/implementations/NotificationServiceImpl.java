@@ -58,6 +58,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         User user = userRepository.findById(notification.userId()).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",notification.userId())));
+        User fromUser = userRepository.findById(notification.fromUserId()).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",notification.userId())));
 
         Notification newNotification = NotificationDTOMapper.mapBaseToEntity(notification);
         newNotification.setTimestamp(LocalDateTime.now());
@@ -73,8 +74,9 @@ public class NotificationServiceImpl implements NotificationService {
             newNotification.setType(NotificationType.GENERAL.getCode());
         }
 
-        String redirectingLink = getLinkForEmailNotification(newNotification);
-        emailService.sendEmail(new EmailRequestDTO(user.getEmail(),newNotification.getNotificationType(),newNotification.getType(),redirectingLink));
+        Map <String,String> links = getLinksForEmailNotificationTemplate(newNotification);
+        EmailRequestDTO email = new EmailRequestDTO(user.getEmail(),fromUser.getEmail(),links.get("fromUserLink"),newNotification.getNotificationType(),newNotification.getType(),links.get("contentLink"));
+        emailService.sendEmail(email);
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
         return notificationBase;
@@ -134,15 +136,18 @@ public class NotificationServiceImpl implements NotificationService {
         return true;
     }
 
-    private String getLinkForEmailNotification (Notification notification){
-        String link = "";
-        if (notification.getType().equals(ContentType.COMMENT.getCode())){
-            link = String.format("http://localhost:8080/comments/%d",notification.getTypeId());
+    private Map <String,String> getLinksForEmailNotificationTemplate (Notification notification){
+        Map <String,String> data = new HashMap<>();
+        if (notification.getType().equals(ContentType.REPLY.getCode())){
+            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
+            data.put("contentLink",String.format("http://localhost:8080/comments/%d",notification.getTypeId()));
         } else if (notification.getType().equals(ContentType.PAGE.getCode())) {
-            link = String.format("http://localhost:8080/pages/%d",notification.getTypeId());
+            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
+            data.put("contentLink",String.format("http://localhost:8080/pages/%d",notification.getTypeId()));
         } else if (notification.getType().equals(ContentType.POST.getCode())) {
-            link = String.format("http://localhost:8080/post/%d",notification.getTypeId());
+            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
+            data.put("contentLink",String.format("http://localhost:8080/posts/%d",notification.getTypeId()));
         }
-        return link;
+        return data;
     }
 }

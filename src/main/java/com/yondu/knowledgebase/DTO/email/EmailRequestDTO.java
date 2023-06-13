@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.DTO.email;
 
 public class EmailRequestDTO {
     private String to;
+    private String from;
+    private String fromLink;
     private String notificationType;
     private String contentType;
     private String contentLink;
@@ -9,8 +11,10 @@ public class EmailRequestDTO {
     public EmailRequestDTO() {
     }
 
-    public EmailRequestDTO(String to, String notificationType, String contentType, String contentLink) {
+    public EmailRequestDTO(String to, String from, String fromLink, String notificationType, String contentType, String contentLink) {
         this.to = to;
+        this.from = from;
+        this.fromLink = fromLink;
         this.notificationType = notificationType;
         this.contentType = contentType;
         this.contentLink = contentLink;
@@ -22,6 +26,22 @@ public class EmailRequestDTO {
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getFromLink() {
+        return fromLink;
+    }
+
+    public void setFromLink(String fromLink) {
+        this.fromLink = fromLink;
     }
 
     public String getNotificationType() {

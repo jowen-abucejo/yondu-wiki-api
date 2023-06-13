@@ -37,6 +37,9 @@ public class Post {
     @Column(name = "is_deleted", columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean deleted = false;
 
+    @Column(name = "allow_comment", columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean allowComment = true;
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(name = "post_category", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "category_id"))
     private Set<Category> categories = new HashSet<>();
@@ -49,10 +52,14 @@ public class Post {
     )
     private Set<Tag> tags = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "post_mentions", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> postMentions = new HashSet<>();
+
     public Post() {
     }
 
-    public Post(Long id, User author, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Set<Category> categories, Set<Tag> tags) {
+    public Post(Long id, User author, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions) {
         this.id = id;
         this.author = author;
         this.content = content;
@@ -60,8 +67,10 @@ public class Post {
         this.dateModified = dateModified;
         this.active = active;
         this.deleted = deleted;
+        this.allowComment = allowComment;
         this.categories = categories;
         this.tags = tags;
+        this.postMentions = postMentions;
     }
 
     public Long getId() {
@@ -120,6 +129,14 @@ public class Post {
         this.deleted = deleted;
     }
 
+    public Boolean getAllowComment() {
+        return allowComment;
+    }
+
+    public void setAllowComment(Boolean allowComment) {
+        this.allowComment = allowComment;
+    }
+
     public Set<Category> getCategories() {
         return categories;
     }
@@ -136,6 +153,14 @@ public class Post {
         this.tags = tags;
     }
 
+    public Set<User> getPostMentions() {
+        return postMentions;
+    }
+
+    public void setPostMentions(Set<User> postMentions) {
+        this.postMentions = postMentions;
+    }
+
     @Override
     public String toString() {
         return "Post{" +
@@ -146,10 +171,10 @@ public class Post {
                 ", dateModified=" + dateModified +
                 ", active=" + active +
                 ", deleted=" + deleted +
+                ", allowComment=" + allowComment +
                 ", categories=" + categories +
                 ", tags=" + tags +
+                ", postMentions=" + postMentions +
                 '}';
     }
-
-
 }
