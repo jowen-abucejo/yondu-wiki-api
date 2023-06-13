@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yondu.knowledgebase.DTO.comment.CommentDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public class Comment {
     private Long id;
 
     @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime dateCreated;
 
     private String comment;
@@ -27,6 +29,7 @@ public class Comment {
 
     private String entityType;
 
+    @CreatedBy
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
@@ -35,7 +38,7 @@ public class Comment {
     @JoinTable(name = "comment_mentions", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> commentMentions = new HashSet<>();
 
-    //Replies are turned on by default
+    @Column(name = "allow_reply", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean allowReply = true;
 
     public Comment() {

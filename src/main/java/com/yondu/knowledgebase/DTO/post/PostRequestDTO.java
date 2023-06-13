@@ -8,13 +8,14 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class PostDTO {
+public class PostRequestDTO {
 
     private Long id;
     private UserDTO.BaseResponse author;
@@ -26,36 +27,9 @@ public class PostDTO {
     private Boolean allowComment = true;
     private Set<CategoryDTO> categories = new HashSet<>();
     private Set<TagDTO> tags = new HashSet<>();
-    private Set<UserDTO.GeneralResponse> postMentions = new HashSet<>();
-    public PostDTO() {
+    private Long [] postMentions;
+    public PostRequestDTO() {
     }
-
-    public PostDTO(Post post) {
-        this.id = post.getId();
-        this.author = UserDTOMapper.mapToBaseResponse(post.getAuthor());
-        this.content = post.getContent();
-        this.dateCreated = post.getDateCreated();
-        this.dateModified = post.getDateModified();
-        this.active = post.getActive();
-        this.deleted = post.getDeleted();
-        this.allowComment = post.getAllowComment();
-        this.tags = post.getTags().stream()
-                .map(tag -> {
-                    return new TagMapper().toDto(tag);
-                })
-                .collect(Collectors.toSet());
-        this.categories = post.getCategories().stream()
-                .map(category -> {
-                    return new CategoryMapper().toDto(category);
-                })
-                .collect(Collectors.toSet());
-        this.postMentions = post.getPostMentions().stream()
-                .map(mentions -> {
-                    return UserDTOMapper.mapToGeneralResponse(mentions);
-                })
-                .collect(Collectors.toSet());
-    }
-
 
     public Long getId() {
         return id;
@@ -137,11 +111,11 @@ public class PostDTO {
         this.tags = tags;
     }
 
-    public Set<UserDTO.GeneralResponse> getPostMentions() {
+    public Long[] getPostMentions() {
         return postMentions;
     }
 
-    public void setPostMentions(Set<UserDTO.GeneralResponse> postMentions) {
+    public void setPostMentions(Long[] postMentions) {
         this.postMentions = postMentions;
     }
 

@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.comment.*;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
@@ -14,6 +15,7 @@ import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.CommentService;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,44 +24,46 @@ import java.util.stream.Collectors;
 @Service
 public class CommentServiceImpl implements CommentService {
     private final CommentRepository commentRepository;
-    private  final UserRepository userRepository;
-    private final PageRepository pageRepository;
+    private final UserRepository userRepository;
     private final PostRepository postRepository;
+    private final PageRepository pageRepository;
     private final NotificationServiceImpl notificationService;
+    private final PageServiceImpl pageService;
 
 
-    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PageRepository pageRepository, PostRepository postRepository, NotificationServiceImpl notificationService) {
+    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
-        this.pageRepository = pageRepository;
         this.postRepository = postRepository;
+        this.pageRepository = pageRepository;
         this.notificationService = notificationService;
-
+        this.pageService = pageService;
     }
 
     @Override
     public CommentDTO.BaseResponse createComment(CommentDTO.BaseRequest request, Long parentCommentId) {
         Map<String,Object> data = new HashMap<>();
-
-        User user = userRepository.findById(request.userId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found: %d", request.userId())));
+        //Get current User
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (request.entityType().equals(ContentType.PAGE.getCode())){
-            Page page = pageRepository.findById(request.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", request.entityId())));
-            if(page==null)
-                throw  new ResourceNotFoundException(String.format("Page ID not found or not yet published: %d", page.getId()));
-            else if (!page.getAllowComment())
-                throw new CommentIsNotAllowed("Comment are turned off in this page");
+            PageDTO page = pageService.findById(request.entityId());
+            if (page!=null && !page.getAllowComment())
+                throw new CommentIsNotAllowed("Comments are turned off in this page");
             else{
-                data.put("contentType","Page");
-                data.put("authorId",page.getAuthor().getId());
+                Page selectedPage = pageRepository.findById(page.getId()).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", page.getId())));
+                data.put("contentType","PAGE");
+                data.put("authorId",selectedPage.getAuthor().getId());
                 data.put("contentId",page.getId());
             }
         }else if (request.entityType().equals(ContentType.POST.getCode())){
             Post post = postRepository.findById(request.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", request.entityId())));
-            data.put("contentType","Post");
-            data.put("authorId",post.getAuthor().getId());
-            data.put("contentId",post.getId());
-        }else {
-            data.put("contentType",ContentType.COMMENT.getCode());
+            if (post.getActive() && post.getAllowComment()){
+                data.put("contentType","POST");
+                data.put("authorId",post.getAuthor().getId());
+                data.put("contentId",post.getId());
+            }else {
+                throw new CommentIsNotAllowed("Comments are turned off in this post");
+            }
         }
 
         Comment comment = CommentDTOMapper.mapToComment(request, user);
@@ -73,19 +77,19 @@ public class CommentServiceImpl implements CommentService {
                 if(!parentComment.isAllowReply())
                     throw new CommentIsNotAllowed("Replies are turned off in this comment");
                 User parentCommentUser = userRepository.findById(parentComment.getUser().getId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found : %d",parentComment.getUser().getId())));
-                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),"Someone replied on your comment!", NotificationType.COMMENT.getCode(), ContentType.COMMENT.getCode(),parentCommentId));
+                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),user.getId(),"Someone replied on your comment!", NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
             }else{
                 throw new ResourceNotFoundException(String.format("Comment ID not found: %d",parentCommentId));
             }
         }else {
             //User to be notified that there is a new comment in the content
-            notificationService.createNotification(new NotificationDTO.BaseRequest((Long)data.get("authorId"),"Someone added a comment on your content!", NotificationType.COMMENT.getCode(), data.get("contentType").toString(), (Long)data.get("contentId")));
+            notificationService.createNotification(new NotificationDTO.BaseRequest((Long)data.get("authorId"),user.getId(),"Someone added a comment on your content!", NotificationType.COMMENT.getCode(), data.get("contentType").toString(), (long)data.get("contentId")));
         }
         commentRepository.save(comment);
 
         for (User mentionedUser:comment.getCommentMentions()){
             //Notify all mentioned users in the created comment
-            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),"Someone mentioned you in a comment!", NotificationType.MENTION.getCode(), data.get("contentType").toString(), comment.getId()));
+            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),user.getId(),"Someone mentioned you in a comment!", NotificationType.MENTION.getCode(), data.get("contentType").toString(), comment.getId()));
         }
 
         return CommentDTOMapper.mapToBaseResponse(comment,mapUsersToShortResponse(comment.getCommentMentions()),commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));

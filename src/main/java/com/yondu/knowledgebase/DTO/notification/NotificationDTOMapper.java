@@ -8,6 +8,7 @@ public class NotificationDTOMapper {
     public static NotificationDTO.Base mapEntityToBase(Notification notification){
         return new NotificationDTO.Base(notification.getId(),
                 notification.getUser().getId(),
+                notification.getFromUser().getId(),
                 notification.getMessage(),
                 notification.getTimestamp(),
                 notification.isRead());
@@ -16,6 +17,7 @@ public class NotificationDTOMapper {
     public static Notification mapBaseToEntity(NotificationDTO.BaseRequest base) {
         return new Notification(
                 new User(base.userId()),
+                new User(base.fromUserId()),
                 base.message(),
                 base.notificationType(),
                 base.type(),
@@ -27,6 +29,7 @@ public class NotificationDTOMapper {
         return new NotificationDTO.BaseResponse(
                 notification.getId(),
                 notification.getUser().getId(),
+                notification.getFromUser().getId(),
                 notification.getMessage(),
                 notification.getTimestamp(),
                 notification.isRead(),

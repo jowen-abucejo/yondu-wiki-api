@@ -37,6 +37,8 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(email, "UTF-8");
 
             Context context = new Context();
+            context.setVariable("userProfileLink",emailRequestDTO.getFromLink());
+            context.setVariable("fromUser", emailRequestDTO.getFrom());
             context.setVariable("contentType", emailRequestDTO.getContentType().toLowerCase());
             context.setVariable("contentLink", emailRequestDTO.getContentLink());
 
