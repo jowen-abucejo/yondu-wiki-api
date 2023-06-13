@@ -194,7 +194,7 @@ public class PageServiceImpl implements PageService {
     public PageDTO findById(Long id) {
         var pageVersion = pageVersionRepository
                 .findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id, false,
-                        ReviewStatus.APPROVED)
+                        ReviewStatus.APPROVED.getCode())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Unable to find document"));
 
