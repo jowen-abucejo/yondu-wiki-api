@@ -99,14 +99,14 @@ public class UserService implements UserDetailsService {
 
         if(!Util.isNullOrWhiteSpace(user.email())) {
             fetchedUser.setEmail(user.email());
-        }else if(!Util.isNullOrWhiteSpace(user.username())){
+        }if(!Util.isNullOrWhiteSpace(user.username())){
             fetchedUser.setUsername(user.username());
-        }else if(!Util.isNullOrWhiteSpace(user.password())){
+        }if(!Util.isNullOrWhiteSpace(user.password())){
             String encryptPassword = passwordEncoder.encode(user.password());
             fetchedUser.setPassword(encryptPassword);
-        }else if(!Util.isNullOrWhiteSpace(user.firstName())){
+        }if(!Util.isNullOrWhiteSpace(user.firstName())){
             fetchedUser.setFirstName(user.firstName());
-        }else if(!Util.isNullOrWhiteSpace(user.lastName())){
+        }if(!Util.isNullOrWhiteSpace(user.lastName())){
             fetchedUser.setLastName(user.lastName());
         }
 
