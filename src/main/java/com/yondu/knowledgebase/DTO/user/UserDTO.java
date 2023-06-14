@@ -19,6 +19,6 @@ public class UserDTO {
     public record WithRolesResponse(Long id, String email , String username, String profilePhoto, String position, String firstName, String lastName, String status, LocalDate createdAt, Set<RoleDTO> roles) {}
 
 
-    public record ChangePassRequest(String oldPassword, String newPassword) {}
+    public record ChangePassRequest(@JsonProperty("old_password") String oldPassword, @JsonProperty("new_password") String newPassword) {}
 
 }
