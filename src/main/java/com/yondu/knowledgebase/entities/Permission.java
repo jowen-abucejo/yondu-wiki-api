@@ -23,6 +23,9 @@ public class Permission {
     @OneToMany(fetch = FetchType.LAZY)
     private Set<GroupPageAccess> groupPageAccess;
 
+    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryUserAccess> directoryUserAccesses;
+
     public Permission() {
     }
 
@@ -65,6 +68,14 @@ public class Permission {
 
     public Set<GroupPageAccess> getGroupPageAccess() {
         return groupPageAccess;
+    }
+
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
+    }
+
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     @Override
