@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.config.WebSocketHandler;
 import com.yondu.knowledgebase.entities.Notification;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.ContentType;
@@ -24,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,9 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationRepository notificationRepository;
     private UserRepository userRepository;
     private EmailServiceImpl emailService;
+
+    @Autowired
+    private WebSocketHandler webSocketHandler;
 
     public NotificationServiceImpl(NotificationRepository notificationRepository, UserRepository userRepository,EmailServiceImpl emailService) {
         this.notificationRepository = notificationRepository;
@@ -79,6 +84,11 @@ public class NotificationServiceImpl implements NotificationService {
         emailService.sendEmail(email);
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
+        try {
+            webSocketHandler.sendMessageToClient(notificationBase.userId(), notificationBase);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return notificationBase;
     }
 

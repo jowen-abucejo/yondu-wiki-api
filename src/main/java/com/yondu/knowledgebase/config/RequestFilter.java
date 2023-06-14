@@ -42,6 +42,8 @@ public class RequestFilter extends OncePerRequestFilter {
         String email = null;
         String token = null;
 
+        log.info("requestTokenHeader : " + requestTokenHeader);
+
         if(requestTokenHeader != null && requestTokenHeader.startsWith("Bearer")){
             token = requestTokenHeader.substring("Bearer ".length());
 
