@@ -24,13 +24,11 @@ public class DirectoryService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
-    private final DirectoryRightsRepository directoryRightsRepository;
 
-    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository, DirectoryRightsRepository directoryRightsRepository) {
+    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
-        this.directoryRightsRepository = directoryRightsRepository;
     }
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
@@ -41,9 +39,9 @@ public class DirectoryService {
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
 
-        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-            throw new AccessDeniedException();
-        }
+//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
+//            throw new AccessDeniedException();
+//        }
 
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
@@ -62,26 +60,15 @@ public class DirectoryService {
 
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
-        if (!hasDirectoryUserRights(currentUser, parent, permission)) {
-            throw new AccessDeniedException();
-        }
+//        if (!hasDirectoryUserRights(currentUser, parent, permission)) {
+//            throw new AccessDeniedException();
+//        }
 
         if (isDirectoryExists(request.name(), parent)) {
             throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
         }
 
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser));
-        List<DirectoryRights> savedRights = directoryRightsRepository
-                .saveAll(permissionRepository
-                        .findAllByCategory("Directory")
-                        .stream()
-                        .map(obj -> directoryRightsRepository.save(new DirectoryRights(savedDirectory, obj))).toList());
-
-        Set<Rights> updatedRights = new HashSet<>(currentUser.getRights());
-        updatedRights.addAll(savedRights);
-
-        currentUser.setRights(updatedRights);
-        userRepository.save(currentUser);
 
         return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
@@ -100,9 +87,9 @@ public class DirectoryService {
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
         Directory parent = directory.getParent();
 
-        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-            throw new AccessDeniedException();
-        }
+//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
+//            throw new AccessDeniedException();
+//        }
 
 
         if (isDirectoryExists(request.name(), parent)) {
@@ -123,9 +110,9 @@ public class DirectoryService {
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Directory not found: " + id));
 
-        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-            throw new AccessDeniedException();
-        }
+//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
+//            throw new AccessDeniedException();
+//        }
 
 
         if (isNotEmptyDirectory(directory)) {
@@ -153,13 +140,5 @@ public class DirectoryService {
         Directory existingDirectory = directoryRepository.findByNameAndParent(name, parent).orElse(null);
         return existingDirectory != null;
     }
-
-    public boolean hasDirectoryUserRights(User user, Directory directory, Permission desiredPermission) {
-        return user.getRights().stream().anyMatch(rights ->
-            ((DirectoryRights) rights).getDirectory().equals(directory) &&
-                    ((DirectoryRights) rights).getPermission().equals(desiredPermission)
-        );
-    }
-
 
 }
