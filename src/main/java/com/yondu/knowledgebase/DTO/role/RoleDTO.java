@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.DTO.role;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTOMapper;
 import com.yondu.knowledgebase.entities.Role;
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 public class RoleDTO {
 
     private Long id;
+    @JsonProperty("role_name")
     private String roleName;
     private Set<PermissionDTO.BaseResponse> permission;
 
