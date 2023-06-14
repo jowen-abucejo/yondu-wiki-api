@@ -1,9 +1,7 @@
 package com.yondu.knowledgebase.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.yondu.knowledgebase.DTO.comment.CommentDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Pattern;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -21,12 +19,16 @@ public class Comment {
     @Column(updatable = false)
     private LocalDateTime dateCreated;
 
+    @Column(columnDefinition = "TEXT")
     private String comment;
 
     private Long parentCommentId;
 
+    @Column(nullable = false)
     private Long entityId;
 
+    @Pattern(regexp="^(PAGE|POST)$",message="This field can only accept 'PAGE' and 'POST'")
+    @Column(nullable = false)
     private String entityType;
 
     @CreatedBy
@@ -41,6 +43,9 @@ public class Comment {
     @Column(name = "allow_reply", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean allowReply = true;
 
+    @Column(name = "is_Deleted", columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isDeleted = false;
+
     public Comment() {
     }
 
@@ -53,8 +58,9 @@ public class Comment {
      * @param entityType
      * @param user
      * @param commentMentions
+     * @param isDeleted
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions, boolean allowReply) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions, boolean allowReply, boolean isDeleted) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
@@ -64,6 +70,7 @@ public class Comment {
         this.user = user;
         this.commentMentions = commentMentions;
         this.allowReply = allowReply;
+        this.isDeleted = isDeleted;
     }
 
     public Comment(LocalDateTime dateCreated, String comment, Long entityId, String entityType, User user) {
@@ -144,5 +151,13 @@ public class Comment {
 
     public void setAllowReply(boolean allowReply) {
         this.allowReply = allowReply;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
     }
 }

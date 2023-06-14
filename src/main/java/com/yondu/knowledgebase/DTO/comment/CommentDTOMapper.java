@@ -23,7 +23,12 @@ public class CommentDTOMapper {
         );
     }
 
-    public static CommentDTO.BaseComment mapToBaseComment(Comment comment, Set<UserDTO.GeneralResponse> commentMentions) {
+    public static CommentDTO.BaseComment mapToBaseComment(Comment comment) {
+        Set<User> users = comment.getCommentMentions();
+        Set<UserDTO.GeneralResponse> commentMentions = new HashSet<>();
+        for (User user : users){
+            commentMentions.add(UserDTOMapper.mapToGeneralResponse(user));
+        }
         return new CommentDTO.BaseComment(
                 comment.getId(),
                 comment.getDateCreated(),
@@ -32,28 +37,13 @@ public class CommentDTOMapper {
                 comment.getParentCommentId(),
                 comment.getEntityId(),
                 comment.getEntityType(),
-                commentMentions,
-                comment.isAllowReply()
+                comment.isAllowReply(),
+                commentMentions
         );
     }
 
-    public static CommentDTO.ShortResponse mapToShortResponse(Comment comment) {
-        Set<User> users = comment.getCommentMentions();
-        Set<UserDTO.GeneralResponse> userResponse = new HashSet<>();
-        for (User user : users){
-            userResponse.add(UserDTOMapper.mapToGeneralResponse(user));
-        }
-        return new CommentDTO.ShortResponse(
-                comment.getId(),
-                comment.getDateCreated(),
-                comment.getComment(),
-                comment.getUser().getId(),
-                userResponse
-        );
-    }
-
-    public static CommentDTO.BaseResponse mapToBaseResponse(Comment comment, Set<UserDTO.GeneralResponse> commentMentions, Long totalReplies, List<CommentDTO.ShortResponse> replies) {
-        CommentDTO.BaseComment baseComment = mapToBaseComment(comment, commentMentions);
+    public static CommentDTO.BaseResponse mapToBaseResponse(Comment comment, Long totalReplies, List<CommentDTO.BaseComment> replies) {
+        CommentDTO.BaseComment baseComment = mapToBaseComment(comment);
         return new CommentDTO.BaseResponse(
                 baseComment,
                 totalReplies,

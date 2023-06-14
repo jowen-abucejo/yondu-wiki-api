@@ -76,7 +76,8 @@ public class PostService {
         //Notify mentioned Users in a POST
         for (User mentionedUser:mentions){
             //Notify all mentioned users in the created comment
-            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),post.getAuthor().getId(),"Someone mentioned you in a post!", NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
+            String fromUser = post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
+            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),post.getAuthor().getId(),String.format("%s mentioned you in their post", fromUser), NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
         }
         return new PostDTO(post);
     }
