@@ -9,12 +9,15 @@ import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.CommentIsNotAllowed;
+import com.yondu.knowledgebase.exceptions.InvalidNotificationTypeException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.CommentService;
+import jakarta.validation.Valid;
+import org.hibernate.annotations.DialectOverride;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -64,10 +67,15 @@ public class CommentServiceImpl implements CommentService {
             }else {
                 throw new CommentIsNotAllowed("Comments are turned off in this post");
             }
-        }
+        }else throw new InvalidNotificationTypeException("Invalid entity type");
 
         Comment comment = CommentDTOMapper.mapToComment(request, user);
         comment.setCommentMentions(getMentionedUsers(request.commentMentions()));
+        String fromUser = user.getFirstName() + " " + user.getLastName();
+        String contentType = data.get("contentType").toString();
+        Long toUserId = (Long)data.get("authorId");
+        Long contentId = (Long)data.get("contentId");
+
         //If comment is a reply
         if(parentCommentId != null){
             if(commentRepository.existsById(parentCommentId)){
@@ -77,31 +85,42 @@ public class CommentServiceImpl implements CommentService {
                 if(!parentComment.isAllowReply())
                     throw new CommentIsNotAllowed("Replies are turned off in this comment");
                 User parentCommentUser = userRepository.findById(parentComment.getUser().getId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found : %d",parentComment.getUser().getId())));
-                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),user.getId(),"Someone replied on your comment!", NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
+                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),user.getId(),String.format("%s replied on your comment", fromUser), NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
             }else{
                 throw new ResourceNotFoundException(String.format("Comment ID not found: %d",parentCommentId));
             }
         }else {
             //User to be notified that there is a new comment in the content
-            notificationService.createNotification(new NotificationDTO.BaseRequest((Long)data.get("authorId"),user.getId(),"Someone added a comment on your content!", NotificationType.COMMENT.getCode(), data.get("contentType").toString(), (long)data.get("contentId")));
+            notificationService.createNotification(new NotificationDTO.BaseRequest(toUserId,user.getId(),String.format("%s added a comment on your %s", fromUser, contentType.toLowerCase()), NotificationType.COMMENT.getCode(), contentType, contentId));
         }
         commentRepository.save(comment);
 
         for (User mentionedUser:comment.getCommentMentions()){
             //Notify all mentioned users in the created comment
-            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),user.getId(),"Someone mentioned you in a comment!", NotificationType.MENTION.getCode(), data.get("contentType").toString(), comment.getId()));
+            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),user.getId(),String.format("%s mentioned you in a comment", fromUser), NotificationType.MENTION.getCode(), contentType, comment.getId()));
         }
 
-        return CommentDTOMapper.mapToBaseResponse(comment,mapUsersToShortResponse(comment.getCommentMentions()),commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+        return CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
     }
 
     @Override
     public List<CommentDTO.BaseResponse> getAllComments(String entity, Long id) {
-        List<Comment> comments = commentRepository.findByEntityTypeAndEntityId(entity,id);
+        List<Comment> comments = commentRepository.getAllComments(entity,id);
         List <CommentDTO.BaseResponse> commentResponseList = new ArrayList<>();
         for (Comment comment : comments){
-            CommentDTO.BaseResponse baseResponse = CommentDTOMapper.mapToBaseResponse(comment,mapUsersToShortResponse(comment.getCommentMentions()),commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+            CommentDTO.BaseResponse baseResponse = CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
             commentResponseList.add(baseResponse);
+        }
+        return commentResponseList;
+    }
+
+    @Override
+    public List<CommentDTO.BaseComment> getAllParentComments (String entity, Long id){
+        List<Comment> comments = commentRepository.getAllParentComments(entity,id);
+        List <CommentDTO.BaseComment> commentResponseList = new ArrayList<>();
+        for (Comment comment: comments){
+            CommentDTO.BaseComment baseComment = CommentDTOMapper.mapToBaseComment(comment);
+            commentResponseList.add(baseComment);
         }
         return commentResponseList;
     }
@@ -115,17 +134,29 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO.BaseResponse getComment (Long commentId){
         Comment comment = commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", commentId)));
-        return CommentDTOMapper.mapToBaseResponse(comment,mapUsersToShortResponse(comment.getCommentMentions()),commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+        return CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
     }
 
     @Override
-    public CommentDTO.BaseResponse allowReply (Long id, boolean status){
+    public CommentDTO.BaseComment allowReply (Long id){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
-        if(status)
-            comment.setAllowReply(true);
-        else comment.setAllowReply(false);
+        comment.setAllowReply(!comment.isAllowReply());
         commentRepository.save(comment);
-        return CommentDTOMapper.mapToBaseResponse(comment,mapUsersToShortResponse(comment.getCommentMentions()),commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+        return CommentDTOMapper.mapToBaseComment(comment);
+    }
+
+    @Override
+    public CommentDTO.BaseComment deleteComment(Long id){
+        Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
+        comment.setDeleted(!comment.isDeleted());
+        commentRepository.save(comment);
+        return CommentDTOMapper.mapToBaseComment(comment);
+    }
+
+    @Override
+    public List <CommentDTO.BaseComment> getReplies (Long id){
+        Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
+        return getAllReplies(comment);
     }
 
     private Set<User> getMentionedUsers(Long[] userIds) {
@@ -139,20 +170,10 @@ public class CommentServiceImpl implements CommentService {
         return mentionedUsers;
     }
 
-    private Set<UserDTO.GeneralResponse> mapUsersToShortResponse(Set<User> users) {
-        Set<UserDTO.GeneralResponse> mentionedUsers = new HashSet<>();
-        for (User user : users) {
-            if (user != null) {
-                mentionedUsers.add(UserDTOMapper.mapToGeneralResponse(user));
-            }
-        }
-        return mentionedUsers;
-    }
-
-    private List<CommentDTO.ShortResponse> getAllReplies(Comment comment) {
+    private List<CommentDTO.BaseComment> getAllReplies(Comment comment) {
         List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
         if (comments != null)
-            return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
+            return comments.stream().map(CommentDTOMapper::mapToBaseComment).collect(Collectors.toList());
         return null;
     }
 }
