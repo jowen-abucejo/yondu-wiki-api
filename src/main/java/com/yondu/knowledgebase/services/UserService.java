@@ -95,44 +95,23 @@ public class UserService implements UserDetailsService {
         log.info("id : " + id);
         log.info("user : " + user);
 
-        if (Util.isNullOrWhiteSpace(user.email()))
-            throw new MissingFieldException("email");
-        else if (Util.isNullOrWhiteSpace(user.username()))
-            throw new MissingFieldException("username");
-        else if (Util.isNullOrWhiteSpace(user.password()))
-            throw new MissingFieldException("password");
-        else if (Util.isNullOrWhiteSpace(user.firstName()))
-            throw new MissingFieldException("first name");
-        else if (Util.isNullOrWhiteSpace(user.lastName()))
-            throw new MissingFieldException("last name");
-        else if (!Util.isEmailValid(user.email()))
-            throw new InvalidEmailException();
+        User fetchedUser = userRepository.findById(id).orElseThrow(() -> new UserException("User not found."));
 
-        User userOldInfo = userRepository.findById(id).orElseThrow(() -> new UserException("User not found."));
-
-        User userNewInfo = new User(user);
-        userNewInfo.setId(userOldInfo.getId());
-        userNewInfo.setStatus(Status.ACTIVE.getCode());
-        userNewInfo.setCreatedAt(LocalDate.now());
-
-        // If password does not match, it means admin changed it.
-        if(!passwordEncoder.matches(user.password(), userOldInfo.getPassword())){
-            if(passwordChangesService.isPasswordExist(userOldInfo, userNewInfo.getPassword())){
-                throw new PasswordRepeatException();
-            }
-
-            //Encrypt the password
-            String encryptPassword = passwordEncoder.encode(userNewInfo.getPassword());
-            userNewInfo.setPassword(encryptPassword);
-            userNewInfo.setStatus(Status.ACTIVE.getCode());
-            userNewInfo.setCreatedAt(LocalDate.now());
-
-            return userRepository.save(userNewInfo);
-        }else{
-            userNewInfo.setPassword(userOldInfo.getPassword());
+        if(!Util.isNullOrWhiteSpace(user.email())) {
+            fetchedUser.setEmail(user.email());
+        }else if(!Util.isNullOrWhiteSpace(user.username())){
+            fetchedUser.setUsername(user.username());
+        }else if(!Util.isNullOrWhiteSpace(user.password())){
+            String encryptPassword = passwordEncoder.encode(user.password());
+            fetchedUser.setPassword(encryptPassword);
+        }else if(!Util.isNullOrWhiteSpace(user.firstName())){
+            fetchedUser.setFirstName(user.firstName());
+        }else if(!Util.isNullOrWhiteSpace(user.lastName())){
+            fetchedUser.setLastName(user.lastName());
         }
 
-        return userRepository.save(userNewInfo);
+        User updatedUser = userRepository.save(fetchedUser);
+        return updatedUser;
     }
 
     @Override
