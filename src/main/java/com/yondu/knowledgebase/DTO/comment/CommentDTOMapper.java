@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.entities.User;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,13 +24,13 @@ public class CommentDTOMapper {
         );
     }
 
-    public static CommentDTO.BaseComment mapToBaseComment(Comment comment) {
+    public static CommentDTO.ShortResponse mapToBaseComment(Comment comment) {
         Set<User> users = comment.getCommentMentions();
         Set<UserDTO.GeneralResponse> commentMentions = new HashSet<>();
         for (User user : users){
             commentMentions.add(UserDTOMapper.mapToGeneralResponse(user));
         }
-        return new CommentDTO.BaseComment(
+        return new CommentDTO.ShortResponse(
                 comment.getId(),
                 comment.getDateCreated(),
                 comment.getComment(),
@@ -38,16 +39,21 @@ public class CommentDTOMapper {
                 comment.getEntityId(),
                 comment.getEntityType(),
                 comment.isAllowReply(),
-                commentMentions
+                commentMentions,
+                (long) comment.getCommentReplies().size()
         );
     }
 
-    public static CommentDTO.BaseResponse mapToBaseResponse(Comment comment, Long totalReplies, List<CommentDTO.BaseComment> replies) {
-        CommentDTO.BaseComment baseComment = mapToBaseComment(comment);
+    public static CommentDTO.BaseResponse mapToBaseResponse(Comment comment) {
+        CommentDTO.ShortResponse shortResponse = mapToBaseComment(comment);
+        Set<Comment> replies = comment.getCommentReplies();
+        List<CommentDTO.ShortResponse> commentReplies = new ArrayList<>();
+        for (Comment reply: replies){
+            commentReplies.add(CommentDTOMapper.mapToBaseComment(reply));
+        }
         return new CommentDTO.BaseResponse(
-                baseComment,
-                totalReplies,
-                replies
+                shortResponse,
+                commentReplies
         );
     }
 

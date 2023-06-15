@@ -40,6 +40,10 @@ public class Comment {
     @JoinTable(name = "comment_mentions", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> commentMentions = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "comment_replies", joinColumns = @JoinColumn(name = "comment_id"), inverseJoinColumns = @JoinColumn(name = "reply_id"))
+    private Set<Comment> commentReplies = new HashSet<>();
+
     @Column(name = "allow_reply", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean allowReply = true;
 
@@ -60,7 +64,7 @@ public class Comment {
      * @param commentMentions
      * @param isDeleted
      */
-    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions, boolean allowReply, boolean isDeleted) {
+    public Comment(Long id, LocalDateTime dateCreated, String comment, Long parentCommentId, Long entityId, String entityType, User user, Set<User> commentMentions, Set<Comment> commentReplies, boolean allowReply, boolean isDeleted) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.comment = comment;
@@ -69,6 +73,7 @@ public class Comment {
         this.entityType = entityType;
         this.user = user;
         this.commentMentions = commentMentions;
+        this.commentReplies = commentReplies;
         this.allowReply = allowReply;
         this.isDeleted = isDeleted;
     }
@@ -143,6 +148,14 @@ public class Comment {
 
     public void setCommentMentions(Set<User> commentMentions) {
         this.commentMentions = commentMentions;
+    }
+
+    public Set<Comment> getCommentReplies() {
+        return commentReplies;
+    }
+
+    public void setCommentReplies(Set<Comment> commentReplies) {
+        this.commentReplies = commentReplies;
     }
 
     public boolean isAllowReply() {

@@ -9,12 +9,12 @@ public interface CommentService {
 
     CommentDTO.BaseResponse createComment(CommentDTO.BaseRequest request, Long parentCommentId);
     public List<CommentDTO.BaseResponse> getAllComments(String entity, Long id);
-    public List<CommentDTO.BaseComment> getAllParentComments(String entity, Long id);
+    public List<CommentDTO.ShortResponse> getAllParentComments(String entity, Long id);
     CommentDTO.CountResponse getTotalComments(String entity, Long id);
     CommentDTO.BaseResponse getComment (Long id);
-    CommentDTO.BaseComment allowReply (Long id);
+    CommentDTO.ShortResponse allowReply (Long id);
 
-    CommentDTO.BaseComment deleteComment(Long id);
+    CommentDTO.ShortResponse deleteComment(Long id);
 
-    List <CommentDTO.BaseComment> getReplies(Long commentId);
+    List <CommentDTO.ShortResponse> getReplies(Long commentId);
 }
