@@ -31,6 +31,7 @@ import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
+import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Permission;
@@ -74,6 +75,7 @@ public class PageServiceImpl implements PageService {
                 .allowComment(version.getPage().getAllowComment())
                 .lockStart(version.getPage().getLockStart())
                 .lockEnd(version.getPage().getLockEnd())
+                .pageType(version.getPage().getType())
                 .body(pageVersionDTODefault(version).build());
     }
 
@@ -88,7 +90,8 @@ public class PageServiceImpl implements PageService {
                 .active(page.getActive())
                 .allowComment(page.getAllowComment())
                 .lockStart(page.getLockStart())
-                .lockEnd(page.getLockEnd());
+                .lockEnd(page.getLockEnd())
+                .pageType(page.getType());
     }
 
     private PageVersionDTOBuilder pageVersionDTODefault(PageVersion version) {
@@ -133,6 +136,7 @@ public class PageServiceImpl implements PageService {
                         .build())
                 .categories(getAsArray(pageVersion.getOrDefault("pageCategories", null)))
                 .tags(getAsArray(pageVersion.getOrDefault("pageTags", null)))
+                .pageType((String) pageVersion.getOrDefault("pageType", "wiki"))
                 .build();
 
     }
@@ -180,14 +184,16 @@ public class PageServiceImpl implements PageService {
 
     private boolean pagePermissionGranted(Long pageId, String permission) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
-        return userPermissionValidatorService.userHasPagePermission(userId, pageId,
-                permission);
+        return userPermissionValidatorService.currentUserIsSuperAdmin()
+                || userPermissionValidatorService.userHasPagePermission(userId, pageId,
+                        permission);
     }
 
     private boolean directoryPermissionGranted(Long directoryId, String permission) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
-        return userPermissionValidatorService.userHasDirectoryPermission(userId, directoryId,
-                permission);
+        return userPermissionValidatorService.currentUserIsSuperAdmin()
+                || userPermissionValidatorService.userHasDirectoryPermission(userId, directoryId,
+                        permission);
     }
 
     @Override
