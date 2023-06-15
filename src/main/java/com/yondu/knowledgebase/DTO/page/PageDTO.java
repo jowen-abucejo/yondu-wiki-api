@@ -76,7 +76,7 @@ public class PageDTO {
     @JsonProperty(value = "type")
     private String pageType;
 
-    public PageDTO(PageDTOBuilder builder) {
+    private PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
         this.dateCreated = builder.dateCreated;
         this.author = builder.author;
@@ -94,9 +94,6 @@ public class PageDTO {
         this.categories = builder.categories;
         this.tags = builder.tags;
         this.pageType = builder.pageType;
-    }
-
-    public PageDTO() {
     }
 
     /**

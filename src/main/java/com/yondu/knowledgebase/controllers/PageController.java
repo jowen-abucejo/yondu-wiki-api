@@ -115,4 +115,11 @@ public class PageController {
         var page = pageService.updateCommenting(pageId, true);
         return new ApiResponse<PageDTO>("success", page, "Page commenting on");
     }
+
+    @PostMapping(path = "directories/{id}/announcements")
+    public ApiResponse<PageDTO> saveNewAnnouncement(@PathVariable(name = "id") Long directoryId,
+            @RequestBody @Valid PageVersionDTO pageVersionDTO) {
+        var page = pageService.createNewAnnouncement(directoryId, pageVersionDTO);
+        return new ApiResponse<PageDTO>("success", page, "New announcement created");
+    }
 }

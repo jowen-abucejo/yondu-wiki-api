@@ -50,15 +50,31 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         user_page_rating upr
                     WHERE
                         upr.page_id = p.id AND upr.rating = 'UP') AS totalRatings,
+                (SELECT
+                        COUNT(*)
+                    FROM
+                        review rv
+                    WHERE
+                        rv.page_version_id = v.id AND rv.status='APPROVED') AS totalApprovedReviews,
+                (SELECT
+                        COUNT(*)
+                    FROM
+                        review rv
+                    WHERE
+                        rv.page_version_id = v.id AND rv.status='DISAPPROVED') AS totalDisapprovedReviews,
                 v.id AS versionId,
                 v.title AS versionTitle,
                 v.original_content AS versionContent,
                 a.first_name AS authorFirstName,
                 a.last_name AS authorLastName,
                 a.email AS authorEmail,
+                a.profile_photo AS authorProfilePhoto,
+                a.position AS authorPosition,
                 mb.first_name AS modifiedByFirstName,
                 mb.last_name AS modifiedByLastName,
                 mb.email AS modifiedByEmail,
+                mb.profile_photo AS modifiedByProfilePhoto,
+                mb.position AS modifiedByPosition,
                 p.id AS pageId,
                 p.is_active AS isActive,
                 p.allow_comment AS allowComment,

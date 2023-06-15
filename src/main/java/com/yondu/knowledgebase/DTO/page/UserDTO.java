@@ -23,99 +23,37 @@ public class UserDTO {
     @JsonProperty(value = "first_name")
     private String firstName;
 
-    @JsonInclude(Include.NON_EMPTY)
     @JsonProperty(value = "last_name")
     private String lastName;
+
+    @JsonProperty(value = "profile_photo")
+    private String profilePhoto;
+
+    @JsonProperty(value = "position")
+    private String position;
 
     @JsonInclude(Include.NON_EMPTY)
     private String status;
 
-    // @JsonInclude(Include.NON_EMPTY)
-    // private Set<PageRightsDTO> pageRights = new HashSet<>();
-
-    // @JsonInclude(Include.NON_EMPTY)
-    // private List<UserCommentRatingDTO> userCommentRating = new ArrayList<>();
-
-    // @JsonInclude(Include.NON_EMPTY)
-    // private List<CommentDTO> comment = new ArrayList<>();
-
-    // @JsonInclude(Include.NON_EMPTY)
-    // private Set<UserDirectoryAccessDTO> userDirectoryAccesses;
-
-    // @JsonInclude(Include.NON_EMPTY)
-    // private Set<RoleDTO> role = new HashSet<>();
-
     @JsonInclude(Include.NON_EMPTY)
     private LocalDate createdAt;
 
+    private UserDTO(UserDTOBuilder builder) {
+        this.id = builder.id;
+        this.username = builder.username;
+        this.email = builder.email;
+        this.password = builder.password;
+        this.firstName = builder.firstName;
+        this.lastName = builder.lastName;
+        this.profilePhoto = builder.profilePhoto;
+        this.position = builder.position;
+        this.status = builder.status;
+        this.createdAt = builder.createdAt;
+
+    }
+
     public static UserDTOBuilder builder() {
         return new UserDTOBuilder();
-    }
-
-    // Getters and setters
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public LocalDate getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDate createdAt) {
-        this.createdAt = createdAt;
     }
 
     // Builder class
@@ -127,6 +65,8 @@ public class UserDTO {
         private String firstName;
         private String lastName;
         private String status;
+        private String profilePhoto;
+        private String position;
         private LocalDate createdAt;
 
         public UserDTOBuilder id(Long id) {
@@ -164,22 +104,23 @@ public class UserDTO {
             return this;
         }
 
+        public UserDTOBuilder profilePhoto(String profilePhoto) {
+            this.profilePhoto = profilePhoto;
+            return this;
+        }
+
+        public UserDTOBuilder position(String position) {
+            this.position = position;
+            return this;
+        }
+
         public UserDTOBuilder createdAt(LocalDate createdAt) {
             this.createdAt = createdAt;
             return this;
         }
 
         public UserDTO build() {
-            UserDTO userDTO = new UserDTO();
-            userDTO.setId(id);
-            userDTO.setUsername(username);
-            userDTO.setEmail(email);
-            userDTO.setPassword(password);
-            userDTO.setFirstName(firstName);
-            userDTO.setLastName(lastName);
-            userDTO.setStatus(status);
-            userDTO.setCreatedAt(createdAt);
-            return userDTO;
+            return new UserDTO(this);
         }
     }
 }

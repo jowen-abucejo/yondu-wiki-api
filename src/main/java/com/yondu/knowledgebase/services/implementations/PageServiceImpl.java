@@ -31,9 +31,11 @@ import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
+import com.yondu.knowledgebase.entities.Review;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
@@ -95,11 +97,14 @@ public class PageServiceImpl implements PageService {
     }
 
     private PageVersionDTOBuilder pageVersionDTODefault(PageVersion version) {
+        var reviewsCount = getReviewsCountByStatus(version);
         return PageVersionDTO.builder()
                 .id(version.getId())
                 .title(version.getTitle())
                 .content(version.getOriginalContent())
                 .dateModified(version.getDateModified())
+                .totalApprovedReviews(reviewsCount[0])
+                .totalDisapprovedReviews(reviewsCount[1])
                 .modifiedBy(convertToUserDTO(version.getModifiedBy()));
     }
 
@@ -122,16 +127,22 @@ public class PageServiceImpl implements PageService {
                         .email((String) pageVersion.getOrDefault("authorEmail", ""))
                         .firstName((String) pageVersion.getOrDefault("authorFirstName", ""))
                         .lastName((String) pageVersion.getOrDefault("authorLastName", ""))
+                        .profilePhoto((String) pageVersion.getOrDefault("authorProfilePhoto", ""))
+                        .position((String) pageVersion.getOrDefault("authorPosition", ""))
                         .build())
                 .body(PageVersionDTO.builder()
                         .id((Long) pageVersion.getOrDefault("versionId", 0L))
                         .content((String) pageVersion.getOrDefault("versionContent", ""))
                         .title((String) pageVersion.getOrDefault("versionTitle", ""))
                         .dateModified(parseAndFormat(dateModified))
+                        .totalApprovedReviews((Long) pageVersion.getOrDefault("totalApprovedReviews", 0L))
+                        .totalDisapprovedReviews((Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L))
                         .modifiedBy(UserDTO.builder()
                                 .email((String) pageVersion.getOrDefault("modifiedByEmail", ""))
                                 .firstName((String) pageVersion.getOrDefault("modifiedByFirstName", ""))
                                 .lastName((String) pageVersion.getOrDefault("modifiedByLastName", ""))
+                                .profilePhoto((String) pageVersion.getOrDefault("modifiedByProfilePhoto", ""))
+                                .position((String) pageVersion.getOrDefault("modifiedByPosition", ""))
                                 .build())
                         .build())
                 .categories(getAsArray(pageVersion.getOrDefault("pageCategories", null)))
@@ -196,6 +207,43 @@ public class PageServiceImpl implements PageService {
                         permission);
     }
 
+    private Long[] getReviewsCountByStatus(PageVersion pageVersion) {
+        Long totalApproved = 0L;
+        Long totalDisapproved = 0L;
+
+        for (Review review : pageVersion.getReviews()) {
+            if (review.getStatus().equals(ReviewStatus.APPROVED.getCode())) {
+                totalApproved += 1;
+            } else if (review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
+                totalDisapproved += 1;
+            }
+        }
+
+        return new Long[] { totalApproved, totalDisapproved };
+    }
+
+    private PageVersion saveNewPageWithType(Long directoryId, PageVersionDTO pageDTO, PageType pageType) {
+        var newPageVersion = new PageVersion();
+        var newPage = new Page();
+        var newDirectory = new Directory();
+
+        newPageVersion.setTitle(pageDTO.getTitle());
+        newPageVersion.setContent(pageDTO.getContent().replaceAll("<[^>]+>", ""));
+        newPageVersion.setOriginalContent(pageDTO.getContent());
+        newPageVersion.setPage(newPage);
+
+        newDirectory.setId(directoryId);
+
+        newPage.setDirectory(newDirectory);
+        newPage.getPageVersions().add(newPageVersion);
+        newPage.setType(pageType.getCode());
+
+        newPage = pageRepository.save(newPage);
+
+        pageRightsService.createPageRights(newPage);
+        return newPageVersion;
+    }
+
     @Override
     public PageDTO findById(Long id) {
         var pageVersion = pageVersionRepository
@@ -219,23 +267,7 @@ public class PageServiceImpl implements PageService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        var newPageVersion = new PageVersion();
-        var newPage = new Page();
-        var newDirectory = new Directory();
-
-        newPageVersion.setTitle(pageDTO.getTitle());
-        newPageVersion.setContent(pageDTO.getContent().replaceAll("<[^>]+>", ""));
-        newPageVersion.setOriginalContent(pageDTO.getContent());
-        newPageVersion.setPage(newPage);
-
-        newDirectory.setId(directoryId);
-
-        newPage.setDirectory(newDirectory);
-        newPage.getPageVersions().add(newPageVersion);
-
-        newPage = pageRepository.save(newPage);
-
-        pageRightsService.createPageRights(newPage);
+        var newPageVersion = saveNewPageWithType(directoryId, pageDTO, PageType.WIKI);
 
         return pageDTODefault(newPageVersion).build();
 
@@ -257,6 +289,10 @@ public class PageServiceImpl implements PageService {
             // lock the page
             lockPage(pageDraft.getPage());
 
+            var reviewsCount = getReviewsCountByStatus(pageDraft);
+            var pageVersionIsApproved = reviewsCount[0] > 0;
+            if (pageVersionIsApproved)
+                pageDraft.setId(null);
             pageDraft = pageVersionRepository.save(pageDraft);
 
             return pageDTODefault(pageDraft).build();
@@ -345,14 +381,14 @@ public class PageServiceImpl implements PageService {
         var page = getPage(id);
 
         Long directoryId = page.getDirectory().getId();
-        List<ReviewStatus> reviewsStatus = new ArrayList<>();
-        reviewsStatus.add(ReviewStatus.APPROVED);
+        List<String> reviewsStatus = new ArrayList<>();
+        reviewsStatus.add(ReviewStatus.APPROVED.getCode());
 
         String requiredPermission = Permission.CONTENT_APPROVAL.getCode();
         if (pagePermissionGranted(id, requiredPermission)
                 || directoryPermissionGranted(directoryId, requiredPermission)) {
-            reviewsStatus.add(ReviewStatus.PENDING);
-            reviewsStatus.add(ReviewStatus.DISAPPROVED);
+            reviewsStatus.add(ReviewStatus.PENDING.getCode());
+            reviewsStatus.add(ReviewStatus.DISAPPROVED.getCode());
         }
 
         requiredPermission = Permission.UPDATE_CONTENT.getCode();
@@ -402,5 +438,16 @@ public class PageServiceImpl implements PageService {
         return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
                 optionalPageVersions.getTotalElements(), otherConfiguration);
 
+    }
+
+    @Override
+    public PageDTO createNewAnnouncement(Long directoryId, PageVersionDTO pageDTO) {
+        if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+        }
+
+        var newPageVersion = saveNewPageWithType(directoryId, pageDTO, PageType.ANNOUNCEMENT);
+
+        return pageDTODefault(newPageVersion).build();
     }
 }

@@ -32,6 +32,12 @@ public class PageVersionDTO {
     @JsonProperty(value = "last_edited_by")
     private UserDTO modifiedBy;
 
+    @JsonProperty(value = "approved_reviews_count")
+    private Long totalApprovedReviews;
+
+    @JsonProperty(value = "disapproved_reviews_count")
+    private Long totalDisapprovedReviews;
+
     @JsonInclude(Include.NON_NULL)
     private PageDTO page = null;
 
@@ -53,6 +59,8 @@ public class PageVersionDTO {
         this.dateModified = builder.dateModified;
         this.modifiedBy = builder.modifiedBy;
         this.page = builder.page;
+        this.totalApprovedReviews = builder.totalApprovedReviews;
+        totalDisapprovedReviews = builder.totalDisapprovedReviews;
     }
 
     public static PageVersionDTOBuilder builder() {
@@ -95,6 +103,20 @@ public class PageVersionDTO {
     }
 
     /**
+     * @return the totalApprovedReviews
+     */
+    public Long getTotalApprovedReviews() {
+        return totalApprovedReviews;
+    }
+
+    /**
+     * @return the totalDisapprovedReviews
+     */
+    public Long getTotalDisapprovedReviews() {
+        return totalDisapprovedReviews;
+    }
+
+    /**
      * @return the page
      */
     public PageDTO getPage() {
@@ -108,6 +130,8 @@ public class PageVersionDTO {
         private LocalDateTime dateModified;
         private UserDTO modifiedBy;
         private PageDTO page;
+        private Long totalApprovedReviews;
+        private Long totalDisapprovedReviews;
 
         public PageVersionDTOBuilder() {
         }
@@ -139,6 +163,16 @@ public class PageVersionDTO {
 
         public PageVersionDTOBuilder page(PageDTO page) {
             this.page = page;
+            return this;
+        }
+
+        public PageVersionDTOBuilder totalApprovedReviews(Long totalApprovedReviews) {
+            this.totalApprovedReviews = totalApprovedReviews;
+            return this;
+        }
+
+        public PageVersionDTOBuilder totalDisapprovedReviews(Long totalDisapprovedReviews) {
+            this.totalDisapprovedReviews = totalDisapprovedReviews;
             return this;
         }
 
