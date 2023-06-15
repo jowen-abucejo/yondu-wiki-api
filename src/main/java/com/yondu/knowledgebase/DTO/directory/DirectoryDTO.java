@@ -20,6 +20,7 @@ public class DirectoryDTO {
                               UserDTO.GeneralResponse createdBy,
                               LocalDate dateCreated,
                               LocalDate dateModified,
+                              String fullPath,
                               Set<BaseResponse> subdirectories){}
 
     public record ShortResponse(Long id,
