@@ -16,6 +16,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM users u WHERE email = ?1 AND status = 'ACT'")
     Optional<User> fetchUserByEmail(String email);
 
+    @Query("SELECT u FROM users u WHERE email = ?1 AND status = 'INA'")
+    Optional<User> fetchUserInactiveByEmail(String email);
+
     @Query("SELECT u FROM users u WHERE email = ?1 AND status = 'ACT'")
     User getUserByEmail(String email);
 

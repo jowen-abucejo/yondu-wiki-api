@@ -96,6 +96,20 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @PostMapping("/activate")
+    @PreAuthorize("hasAuthority('DEACTIVATE_USERS')")
+    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> activateUser(@RequestBody UserDTO.ShortRequest user) {
+        log.info("UserController.activateUser()");
+        log.info("user : " + user.toString());
+
+        User activatedUser = userService.activateUser(user);
+
+        UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(activatedUser);
+        ApiResponse apiResponse = ApiResponse.success(userResponse, "success");
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PostMapping("{id}/update")
     @PreAuthorize("hasAuthority('UPDATE_USERS')")
     public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> updateUser(@PathVariable long id, @RequestBody UserDTO.WithRolesRequest user) {
