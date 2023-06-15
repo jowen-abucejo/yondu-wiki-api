@@ -14,12 +14,12 @@ import java.util.Set;
 
 public class CommentDTOMapper {
 
-    public static Comment mapToComment(CommentDTO.BaseRequest request, User user) {
+    public static Comment mapToComment(CommentDTO.BaseRequest request, User user, String entityType, Long entityId) {
         return new Comment(
                 LocalDateTime.now(),
                 request.comment(),
-                request.entityId(),
-                request.entityType(),
+                entityId,
+                entityType,
                 user
         );
     }

@@ -40,12 +40,12 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDTO.BaseResponse createComment(CommentDTO.BaseRequest request, Long parentCommentId) {
+    public CommentDTO.BaseResponse createComment(CommentDTO.BaseRequest request, Long parentCommentId, String entityType, Long entityId) {
         Map<String,Object> data = new HashMap<>();
         //Get current User
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (request.entityType().equals(ContentType.PAGE.getCode())){
-            PageDTO page = pageService.findById(request.entityId());
+        if (entityType.equals(ContentType.PAGE.getCode())){
+            PageDTO page = pageService.findById(entityId);
             if (page!=null && !page.getAllowComment())
                 throw new CommentIsNotAllowed("Comments are turned off in this page");
             else{
@@ -54,8 +54,8 @@ public class CommentServiceImpl implements CommentService {
                 data.put("authorId",selectedPage.getAuthor().getId());
                 data.put("contentId",page.getId());
             }
-        }else if (request.entityType().equals(ContentType.POST.getCode())){
-            Post post = postRepository.findById(request.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", request.entityId())));
+        }else if (entityType.equals(ContentType.POST.getCode())){
+            Post post = postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
             if (post.getActive() && post.getAllowComment()){
                 data.put("contentType","POST");
                 data.put("authorId",post.getAuthor().getId());
@@ -65,8 +65,7 @@ public class CommentServiceImpl implements CommentService {
             }
         }else throw new InvalidNotificationTypeException("Invalid entity type");
 
-        Comment comment = CommentDTOMapper.mapToComment(request, user);
-        comment.setCommentMentions(getMentionedUsers(request.commentMentions()));
+        Comment comment = CommentDTOMapper.mapToComment(request, user, entityType, entityId);
         String fromUser = user.getFirstName() + " " + user.getLastName();
         String contentType = data.get("contentType").toString();
         Long toUserId = (Long)data.get("authorId");
