@@ -237,6 +237,7 @@ public class PageServiceImpl implements PageService {
         newPage.setDirectory(newDirectory);
         newPage.getPageVersions().add(newPageVersion);
         newPage.setType(pageType.getCode());
+        newPage.setLockEnd(LocalDateTime.now().plusHours(1));
 
         newPage = pageRepository.save(newPage);
 

@@ -53,12 +53,14 @@ public class Page {
     @Column(name = "allow_comment", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean allowComment = true;
 
-    @Column(name = "lock_start", nullable = true)
+    @CreatedDate
+    @Column(name = "lock_start", nullable = false)
     private LocalDateTime lockStart;
 
-    @Column(name = "lock_end", nullable = true)
+    @Column(name = "lock_end", nullable = false)
     private LocalDateTime lockEnd;
 
+    @CreatedBy
     @ManyToOne
     @JoinColumn(name = "locked_by", referencedColumnName = "id")
     private User lockedBy;

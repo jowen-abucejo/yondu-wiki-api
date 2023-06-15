@@ -13,13 +13,13 @@ import jakarta.validation.constraints.NotBlank;
 
 public class PageVersionDTO {
     @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty(value = "version_id")
     private Long id;
 
     @NotBlank(message = "Page title cannot be empty.")
     @JsonInclude(Include.ALWAYS)
     private String title;
 
-    @NotBlank(message = "Page content is required.")
     @JsonInclude(Include.ALWAYS)
     private String content;
 
