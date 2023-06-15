@@ -39,8 +39,8 @@ public class DirectoryDTOMapper {
     }
 
     private static String traverse(Directory directory) {
-        if (directory.getParent() == null) return directory.getName();
-        return traverse(directory.getParent()) + "/" + directory.getName();
+        if (directory.getParent() == null) return directory.getId() + "->" + directory.getName();
+        return traverse(directory.getParent()) + "/" + directory.getId() + "->" + directory.getName();
     }
 
 }
