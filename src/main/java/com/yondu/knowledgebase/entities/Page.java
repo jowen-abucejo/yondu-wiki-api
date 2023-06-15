@@ -41,6 +41,9 @@ public class Page {
     @JoinColumn(name = "author", referencedColumnName = "id", updatable = false)
     private User author;
 
+    @Column(name = "page_type", updatable = false, columnDefinition = "VARCHAR(20) DEFAULT 'WIKI'", length = 20)
+    private String type = "WIKI";
+
     @Column(name = "is_active", columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean active = true;
 
@@ -95,6 +98,7 @@ public class Page {
      * @param id
      * @param dateCreated
      * @param author
+     * @param type
      * @param active
      * @param deleted
      * @param allowComment
@@ -105,15 +109,18 @@ public class Page {
      * @param pageVersions
      * @param categories
      * @param tags
-     * @param pageRights
+     * @param userPageAccess
+     * @param groupPageAccess
+     * @param userPageRatings
      */
-    public Page(Long id, LocalDateTime dateCreated, User author, Boolean active, Boolean deleted, Boolean allowComment,
-            LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
-            List<PageVersion> pageVersions, Set<Category> categories, Set<Tag> tags,
-            Set<UserPageAccess> userPageAccess, Set<GroupPageAccess> groupPageAccesses) {
+    public Page(Long id, LocalDateTime dateCreated, User author, String type, Boolean active, Boolean deleted,
+            Boolean allowComment, LocalDateTime lockStart, LocalDateTime lockEnd, User lockedBy, Directory directory,
+            List<PageVersion> pageVersions, Set<Category> categories, Set<Tag> tags, Set<UserPageAccess> userPageAccess,
+            Set<GroupPageAccess> groupPageAccess, Set<UserPageRating> userPageRatings) {
         this.id = id;
         this.dateCreated = dateCreated;
         this.author = author;
+        this.type = type;
         this.active = active;
         this.deleted = deleted;
         this.allowComment = allowComment;
@@ -125,7 +132,8 @@ public class Page {
         this.categories = categories;
         this.tags = tags;
         this.userPageAccess = userPageAccess;
-        this.groupPageAccess = groupPageAccesses;
+        this.groupPageAccess = groupPageAccess;
+        this.userPageRatings = userPageRatings;
     }
 
     /**
@@ -350,6 +358,34 @@ public class Page {
      */
     public void setUserPageRatings(Set<UserPageRating> userPageRatings) {
         this.userPageRatings = userPageRatings;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getType() {
+        return type;
+    }
+
+    /**
+     * @param type the type to set
+     */
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    /**
+     * @return the userPageAccess
+     */
+    public Set<UserPageAccess> getUserPageAccess() {
+        return userPageAccess;
+    }
+
+    /**
+     * @return the groupPageAccess
+     */
+    public Set<GroupPageAccess> getGroupPageAccess() {
+        return groupPageAccess;
     }
 
 }

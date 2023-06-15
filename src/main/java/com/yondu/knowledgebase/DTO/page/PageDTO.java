@@ -73,6 +73,9 @@ public class PageDTO {
     @JsonInclude(Include.NON_EMPTY)
     private PageVersionDTO body;
 
+    @JsonProperty(value = "type")
+    private String pageType;
+
     public PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
         this.dateCreated = builder.dateCreated;
@@ -90,6 +93,7 @@ public class PageDTO {
         this.totalRatings = builder.totalRatings;
         this.categories = builder.categories;
         this.tags = builder.tags;
+        this.pageType = builder.pageType;
     }
 
     public PageDTO() {
@@ -212,6 +216,7 @@ public class PageDTO {
     }
 
     public static class PageDTOBuilder {
+        private String pageType;
         private BigDecimal relevance;
         private Long id;
         private LocalDateTime dateCreated;
@@ -226,7 +231,6 @@ public class PageDTO {
         private Long totalRatings;
         private String[] categories;
         private String[] tags;
-
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
 
@@ -307,6 +311,11 @@ public class PageDTO {
 
         public PageDTOBuilder tags(String[] tags) {
             this.tags = tags;
+            return this;
+        }
+
+        public PageDTOBuilder pageType(String pageType) {
+            this.pageType = pageType;
             return this;
         }
 
