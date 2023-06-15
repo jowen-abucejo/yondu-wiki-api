@@ -11,6 +11,8 @@ public interface PageService {
 
         public PageDTO createNewPage(Long directoryId, PageVersionDTO page);
 
+        public PageDTO createNewAnnouncement(Long directoryId, PageVersionDTO page);
+
         public PageDTO updatePageDraft(Long pageId, Long versionId, PageVersionDTO page);
 
         public PageDTO deletePage(Long pageId);
