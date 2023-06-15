@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.comment.*;
+import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.services.CommentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/comments")
 public class CommentController {
 
     private final CommentService commentService;
@@ -20,51 +20,85 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<CommentDTO.BaseResponse>> createComment(@Valid @RequestBody CommentDTO.BaseRequest commentRequest, @RequestParam(required = false) Long parentCommentId) {
-        CommentDTO.BaseResponse comment = commentService.createComment(commentRequest, parentCommentId);
+    //ADD a COMMENT / REPLY to a COMMENT in a PAGE
+    @PostMapping ("/pages/{id}/comments")
+    public ResponseEntity<ApiResponse<CommentDTO.BaseResponse>> addCommentInPage(@Valid @RequestBody CommentDTO.BaseRequest commentRequest, @PathVariable Long id, @RequestParam(required = false) Long parentCommentId) {
+        CommentDTO.BaseResponse comment = commentService.createComment(commentRequest, parentCommentId, ContentType.PAGE.getCode(), id);
         String message = (parentCommentId == null) ? "Comment added successfully" : "Reply added successfully";
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, message));
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<CommentDTO.BaseResponse>>> getAllComments(@RequestParam String entity, @RequestParam Long id) {
-        List<CommentDTO.BaseResponse> comment = commentService.getAllComments(entity, id);
+    //ADD a COMMENT / REPLY to a COMMENT in a POST
+    @PostMapping ("/posts/{id}/comments")
+    public ResponseEntity<ApiResponse<CommentDTO.BaseResponse>> addCommentInPost(@Valid @RequestBody CommentDTO.BaseRequest commentRequest, @PathVariable Long id, @RequestParam(required = false) Long parentCommentId) {
+        CommentDTO.BaseResponse comment = commentService.createComment(commentRequest, parentCommentId, ContentType.POST.getCode(), id);
+        String message = (parentCommentId == null) ? "Comment added successfully" : "Reply added successfully";
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, message));
+    }
+
+    //GET ALL comments in a PAGE
+    @GetMapping ("/pages/{id}/comments")
+    public ResponseEntity<ApiResponse<List<CommentDTO.BaseResponse>>> getAllCommentsInPage(@PathVariable Long id) {
+        List<CommentDTO.BaseResponse> comment = commentService.getAllComments(ContentType.PAGE.getCode(), id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, "All comments retrieved successfully"));
+    }
+
+    //GET ALL comments in a POST
+    @GetMapping ("/posts/{id}/comments")
+    public ResponseEntity<ApiResponse<List<CommentDTO.BaseResponse>>> getAllCommentsInPost(@PathVariable Long id) {
+        List<CommentDTO.BaseResponse> comment = commentService.getAllComments(ContentType.POST.getCode(), id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, "All comments retrieved successfully"));
+    }
+
+    //GET ALL PARENT comments in a PAGE
+    @GetMapping ("/pages/{id}/comments/parent-comment")
+    public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getAllParentCommentsInPage(@PathVariable Long id) {
+        List<CommentDTO.ShortResponse> comment = commentService.getAllParentComments(ContentType.PAGE.getCode(), id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, "All parent comments retrieved successfully"));
     }
 
-    @GetMapping ("/parent-comment")
-    public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getAllParentComments(@RequestParam String entity, @RequestParam Long id) {
-        List<CommentDTO.ShortResponse> comment = commentService.getAllParentComments(entity, id);
+    //GET ALL PARENT comments in a POST
+    @GetMapping ("/posts/{id}/comments/parent-comment")
+    public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getAllParentCommentsInPost(@PathVariable Long id) {
+        List<CommentDTO.ShortResponse> comment = commentService.getAllParentComments(ContentType.POST.getCode(), id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, "All parent comments retrieved successfully"));
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<ApiResponse<CommentDTO.CountResponse>> getTotalComments(@RequestParam String entity, @RequestParam Long id) {
-        CommentDTO.CountResponse response = commentService.getTotalComments(entity, id);
+    //GET TOTAL comment COUNT in a PAGE
+    @GetMapping("/pages/{id}/comments/count")
+    public ResponseEntity<ApiResponse<CommentDTO.CountResponse>> getTotalCommentsInPage(@PathVariable Long id) {
+        CommentDTO.CountResponse response = commentService.getTotalComments(ContentType.PAGE.getCode(), id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Total Comment Count retrieved successfully"));
 
     }
 
-    @GetMapping("/{commentId}")
+    //GET TOTAL comment COUNT in a POST
+    @GetMapping("/posts/{id}/comments/count")
+    public ResponseEntity<ApiResponse<CommentDTO.CountResponse>> getTotalCommentsInPost(@PathVariable Long id) {
+        CommentDTO.CountResponse response = commentService.getTotalComments(ContentType.POST.getCode(), id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Total Comment Count retrieved successfully"));
+
+    }
+
+    @GetMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<CommentDTO.BaseResponse>> getComment(@PathVariable Long commentId) {
         CommentDTO.BaseResponse response = commentService.getComment(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Comment retrieved successfully"));
     }
 
-    @PatchMapping("/{commentId}/allow-reply")
+    @PatchMapping("/comments/{commentId}/allow-reply")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> allowReply(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.allowReply(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("allowReply is successfully updated", commentId)));
     }
 
-    @DeleteMapping("/{commentId}/delete")
+    @DeleteMapping("/comments/{commentId}/delete")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> deleteComment(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.deleteComment(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("isDeleted successfully updated", commentId)));
     }
 
-    @GetMapping("/{commentId}/reply")
+    @GetMapping("/comments/{commentId}/reply")
     public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getReplies(@PathVariable Long commentId) {
         List<CommentDTO.ShortResponse> response = commentService.getReplies(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("All replies retrieved for comment with ID %d", commentId)));

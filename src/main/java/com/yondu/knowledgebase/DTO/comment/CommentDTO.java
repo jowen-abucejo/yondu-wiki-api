@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 public class CommentDTO {
-    public record BaseRequest (String comment, @JsonProperty("entity_id") Long entityId, @JsonProperty("entity_type") String entityType, @JsonProperty("comment_mentions") Long[] commentMentions) {}
+    public record BaseRequest (String comment, @JsonProperty("comment_mentions") Long[] commentMentions) {}
     public record ShortResponse (Long id, LocalDateTime dataCreated, String comment, UserDTO.GeneralResponse user, Long parentCommentId, Long entityId, String entityType, boolean allowReply, Set<UserDTO.GeneralResponse> commentMentions, Long totalReplies){}
     public record BaseResponse (ShortResponse comment, List<ShortResponse> replies){}
     public record CountResponse (Long entityId, String entityType, Long totalComment){}
