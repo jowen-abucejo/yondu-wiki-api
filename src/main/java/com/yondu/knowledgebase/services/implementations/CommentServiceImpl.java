@@ -3,8 +3,6 @@ package com.yondu.knowledgebase.services.implementations;
 import com.yondu.knowledgebase.DTO.comment.*;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
@@ -16,8 +14,6 @@ import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.CommentService;
-import jakarta.validation.Valid;
-import org.hibernate.annotations.DialectOverride;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -100,7 +96,15 @@ public class CommentServiceImpl implements CommentService {
             notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),user.getId(),String.format("%s mentioned you in a comment", fromUser), NotificationType.MENTION.getCode(), contentType, comment.getId()));
         }
 
-        return CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+        if(parentCommentId!=null){
+            Comment parentComment = commentRepository.findById(parentCommentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found : %d",parentCommentId)));
+            Set<Comment> commentReplies = parentComment.getCommentReplies();
+            commentReplies.add(comment);
+            parentComment.setCommentReplies(commentReplies);
+            commentRepository.save(parentComment);
+        }
+
+        return CommentDTOMapper.mapToBaseResponse(comment);
     }
 
     @Override
@@ -108,19 +112,19 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.getAllComments(entity,id);
         List <CommentDTO.BaseResponse> commentResponseList = new ArrayList<>();
         for (Comment comment : comments){
-            CommentDTO.BaseResponse baseResponse = CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+            CommentDTO.BaseResponse baseResponse = CommentDTOMapper.mapToBaseResponse(comment);
             commentResponseList.add(baseResponse);
         }
         return commentResponseList;
     }
 
     @Override
-    public List<CommentDTO.BaseComment> getAllParentComments (String entity, Long id){
+    public List<CommentDTO.ShortResponse> getAllParentComments (String entity, Long id){
         List<Comment> comments = commentRepository.getAllParentComments(entity,id);
-        List <CommentDTO.BaseComment> commentResponseList = new ArrayList<>();
+        List <CommentDTO.ShortResponse> commentResponseList = new ArrayList<>();
         for (Comment comment: comments){
-            CommentDTO.BaseComment baseComment = CommentDTOMapper.mapToBaseComment(comment);
-            commentResponseList.add(baseComment);
+            CommentDTO.ShortResponse shortResponse = CommentDTOMapper.mapToBaseComment(comment);
+            commentResponseList.add(shortResponse);
         }
         return commentResponseList;
     }
@@ -134,11 +138,11 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO.BaseResponse getComment (Long commentId){
         Comment comment = commentRepository.findById(commentId).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", commentId)));
-        return CommentDTOMapper.mapToBaseResponse(comment,commentRepository.countAllReplies(comment.getId()),getAllReplies(comment));
+        return CommentDTOMapper.mapToBaseResponse(comment);
     }
 
     @Override
-    public CommentDTO.BaseComment allowReply (Long id){
+    public CommentDTO.ShortResponse allowReply (Long id){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
         comment.setAllowReply(!comment.isAllowReply());
         commentRepository.save(comment);
@@ -146,7 +150,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDTO.BaseComment deleteComment(Long id){
+    public CommentDTO.ShortResponse deleteComment(Long id){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
         comment.setDeleted(!comment.isDeleted());
         commentRepository.save(comment);
@@ -154,7 +158,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List <CommentDTO.BaseComment> getReplies (Long id){
+    public List <CommentDTO.ShortResponse> getReplies (Long id){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
         return getAllReplies(comment);
     }
@@ -170,7 +174,7 @@ public class CommentServiceImpl implements CommentService {
         return mentionedUsers;
     }
 
-    private List<CommentDTO.BaseComment> getAllReplies(Comment comment) {
+    private List<CommentDTO.ShortResponse> getAllReplies(Comment comment) {
         List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
         if (comments != null)
             return comments.stream().map(CommentDTOMapper::mapToBaseComment).collect(Collectors.toList());
