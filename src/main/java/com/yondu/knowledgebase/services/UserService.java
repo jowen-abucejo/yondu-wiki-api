@@ -4,6 +4,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Status;
 import com.yondu.knowledgebase.exceptions.*;
@@ -23,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -99,15 +101,40 @@ public class UserService implements UserDetailsService {
 
         if(!Util.isNullOrWhiteSpace(user.email())) {
             fetchedUser.setEmail(user.email());
-        }if(!Util.isNullOrWhiteSpace(user.username())){
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.username())){
             fetchedUser.setUsername(user.username());
-        }if(!Util.isNullOrWhiteSpace(user.password())){
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.password())){
             String encryptPassword = passwordEncoder.encode(user.password());
             fetchedUser.setPassword(encryptPassword);
-        }if(!Util.isNullOrWhiteSpace(user.firstName())){
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.firstName())){
             fetchedUser.setFirstName(user.firstName());
-        }if(!Util.isNullOrWhiteSpace(user.lastName())){
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.lastName())){
             fetchedUser.setLastName(user.lastName());
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.profilePhoto())) {
+            fetchedUser.setProfilePhoto(user.profilePhoto());
+        }
+
+        if(!Util.isNullOrWhiteSpace(user.position())){
+            fetchedUser.setPosition(user.position());
+        }
+
+        if(user.roles() != null) {
+            Set<Role> roles = user.roles()
+                    .stream()
+                    .map(r -> new Role(r.getId()))
+                    .collect(Collectors.toSet());
+
+            fetchedUser.setRole(roles);
         }
 
         User updatedUser = userRepository.save(fetchedUser);
