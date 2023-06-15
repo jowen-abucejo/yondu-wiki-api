@@ -17,6 +17,12 @@ public class DirectoryController {
         this.directoryService = directoryService;
     }
 
+    @GetMapping
+    public  ResponseEntity<ApiResponse<?>> getDefaultDirectory() {
+        DirectoryDTO.GetResponse data = directoryService.getDefaultDirectory();
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory found"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getDirectory(@PathVariable("id") Long id) {
         DirectoryDTO.GetResponse data = directoryService.getDirectory(id);

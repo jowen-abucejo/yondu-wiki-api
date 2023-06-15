@@ -26,6 +26,7 @@ public class DirectoryDTOMapper {
                 UserDTOMapper.mapToGeneralResponse(directory.getCreatedBy()),
                 directory.getDateCreated(),
                 directory.getDateModified(),
+                traverse(directory),
                 directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToBaseResponse).collect(Collectors.toSet())
         );
     }
@@ -35,6 +36,11 @@ public class DirectoryDTOMapper {
                 directory.getId(),
                 directory.getName(),
                 directory.getDescription());
+    }
+
+    private static String traverse(Directory directory) {
+        if (directory.getParent() == null) return directory.getId() + "->" + directory.getName();
+        return traverse(directory.getParent()) + "/" + directory.getId() + "->" + directory.getName();
     }
 
 }

@@ -31,6 +31,17 @@ public class DirectoryService {
         this.permissionRepository = permissionRepository;
     }
 
+    public DirectoryDTO.GetResponse getDefaultDirectory() {
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (currentUser.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
+            Directory directory = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", 1)));
+            return DirectoryDTOMapper.mapToGetResponse(directory);
+        }
+
+        return null;
+    }
+
     public DirectoryDTO.GetResponse getDirectory(Long id) {
         Long permissionId = 19L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
@@ -140,5 +151,6 @@ public class DirectoryService {
         Directory existingDirectory = directoryRepository.findByNameAndParent(name, parent).orElse(null);
         return existingDirectory != null;
     }
+
 
 }
