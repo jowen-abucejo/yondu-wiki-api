@@ -86,10 +86,22 @@ public class UserService implements UserDetailsService {
         User oldUser = userRepository.fetchUserByEmail(user.email()).orElseThrow(() -> new UserException("User not found"));
         oldUser.setStatus(Status.INACTIVE.getCode());
 
-        User updatedUser = userRepository.save(oldUser);
-        updatedUser.setPassword("");
+        return userRepository.save(oldUser);
+    }
 
-        return updatedUser;
+    public User activateUser(UserDTO.ShortRequest user) {
+        log.info("UserService.activateUser()");
+        log.info("user : " + user.toString());
+
+        // Check for nulls
+        if (Util.isNullOrWhiteSpace(user.email()))
+            throw new MissingFieldException("email");
+        System.out.println(user.email());
+        User oldUser = userRepository.fetchUserInactiveByEmail(user.email()).orElseThrow(() -> new UserException("User not found"));
+        System.out.println(user.email());
+        oldUser.setStatus(Status.ACTIVE.getCode());
+
+        return userRepository.save(oldUser);
     }
 
     public User updateUser(long id, UserDTO.WithRolesRequest user) {
@@ -214,4 +226,6 @@ public class UserService implements UserDetailsService {
 
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+
 }
