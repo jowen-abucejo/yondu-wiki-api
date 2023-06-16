@@ -53,20 +53,19 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
   // validation
     switch (saves.entityType()) {
         case "POST":
-          Post post = postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", saves.entityId())));
+          postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", saves.entityId())));
             break;
         case "COMMENT":
-          Comment comment = commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", saves.entityId())));
+          commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", saves.entityId())));
             break;
         case "PAGE":
-           com.yondu.knowledgebase.entities.Page page = pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
+            pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
             break;
         default:
             throw new RequestValidationException("Invalid Entity Type");
     }
-     Optional<Save> validate = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(saves.entityType(), saves.entityId(), user));
 
-    if (validate.isPresent()) {
+    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
         throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
     }
 
@@ -80,6 +79,26 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
 
     return SaveDTOMapper.mapToBaseResponse(save);
 }
+
+    public boolean hasEntitySaved(String entityType, Long entityId, User user) {
+        // Validate the entity type and find the entity
+        switch (entityType) {
+            case "POST":
+                postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+                break;
+            case "COMMENT":
+                commentRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
+                break;
+            case "PAGE":
+                pageRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+                break;
+            default:
+                throw new RequestValidationException("Invalid Entity Type");
+        }
+
+        // Check if the entity is already saved
+        return isEntitySaved(entityType, entityId, user);
+    }
 
 public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int size) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -105,4 +124,8 @@ public Save deleteSaved(Long id) {
     saveRepository.delete(save);
     return null;
 }
+    public boolean isEntitySaved(String entityType, Long entityId, User user) {
+        Optional<Save> savedEntity = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user));
+        return savedEntity.isPresent();
+    }
 }

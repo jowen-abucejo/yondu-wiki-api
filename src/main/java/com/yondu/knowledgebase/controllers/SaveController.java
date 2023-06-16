@@ -3,10 +3,12 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
+import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.services.SaveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -40,5 +42,15 @@ public class SaveController {
     public ResponseEntity<ApiResponse<?>> removeSave(@PathVariable Long id) {
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(saveService.deleteSaved(id),"Save with id: " + id + "successfully deleted!"));
+    }
+
+    @GetMapping("/{entityType}/{entityId}")
+    public ResponseEntity<Boolean> isEntitySaved(@PathVariable String entityType, @PathVariable Long entityId,
+            Authentication authentication
+    ) {
+        User user = (User) authentication.getPrincipal();
+        boolean isSaved = saveService.hasEntitySaved(entityType, entityId, user);
+
+        return ResponseEntity.ok(isSaved);
     }
 }
