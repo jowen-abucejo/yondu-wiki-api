@@ -34,12 +34,12 @@ public class DirectoryService {
     public DirectoryDTO.GetResponse getDefaultDirectory() {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (currentUser.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
-            Directory directory = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", 1)));
-            return DirectoryDTOMapper.mapToGetResponse(directory);
+        if (!hasPermission(currentUser, null, null)) {
+            throw new AccessDeniedException();
         }
 
-        return null;
+        Directory directory = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", 1)));
+        return DirectoryDTOMapper.mapToGetResponse(directory);
     }
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
@@ -50,9 +50,9 @@ public class DirectoryService {
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
 
-//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-//            throw new AccessDeniedException();
-//        }
+        if (!hasPermission(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
 
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
@@ -71,9 +71,9 @@ public class DirectoryService {
 
         Directory parent = directoryRepository.findById(parentId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", parentId)));
 
-//        if (!hasDirectoryUserRights(currentUser, parent, permission)) {
-//            throw new AccessDeniedException();
-//        }
+        if (!hasPermission(currentUser, parent, permission)) {
+            throw new AccessDeniedException();
+        }
 
         if (isDirectoryExists(request.name(), parent)) {
             throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
@@ -150,6 +150,13 @@ public class DirectoryService {
     public boolean isDirectoryExists(String name, Directory parent) {
         Directory existingDirectory = directoryRepository.findByNameAndParent(name, parent).orElse(null);
         return existingDirectory != null;
+    }
+
+    private boolean hasPermission(User user, Directory directory, Permission permission) {
+        if (user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
+            return true;
+        }
+        return false;
     }
 
 

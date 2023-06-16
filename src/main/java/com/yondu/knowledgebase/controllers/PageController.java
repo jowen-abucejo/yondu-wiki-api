@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.controllers;
 
+import com.yondu.knowledgebase.entities.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,8 +32,9 @@ public class PageController {
     }
 
     @GetMapping(path = "pages/{id}")
-    public PageDTO getPage(@PathVariable Long id) {
-        return pageService.findById(id);
+    public ApiResponse<PageDTO> getPage(@PathVariable Long id) {
+        var page = pageService.findById(id);
+        return new ApiResponse<PageDTO>("success", page, "Page retrieved");
     }
 
     @GetMapping(path = "pages/search")
