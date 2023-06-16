@@ -98,7 +98,7 @@ public Save deleteSaved(Long id) {
 
     Object entity = getEntity(save.getEntityType(),save.getEntityId(), Object.class);
     String savedEntity = getEntityTypeAndAuthor(entity);
-    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),"has removed the saved "+savedEntity+ " in the collection.");
+    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),"removed a saved "+savedEntity+ " in his/her collection.");
 
     saveRepository.delete(save);
     return null;
@@ -148,7 +148,7 @@ public Save deleteSaved(Long id) {
         } else if (entity instanceof Comment comment) {
             return "comment from " + comment.getUser().getFirstName()+" "+comment.getUser().getLastName();
         } else if (entity instanceof com.yondu.knowledgebase.entities.Page page) {
-            return "page from " + page.getAuthor().getFirstName()+" "+page.getAuthor().getLastName();
+            return "page created by " + page.getAuthor().getFirstName()+" "+page.getAuthor().getLastName();
         } else {
             throw new RequestValidationException("Invalid Entity Type");
         }

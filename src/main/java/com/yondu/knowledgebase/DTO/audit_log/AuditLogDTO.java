@@ -12,4 +12,8 @@ public class AuditLogDTO {
                                Long entityId,
                                String action,
                                String timestamp){}
+
+    public record GetRequest(String email) {}
 }
+
+

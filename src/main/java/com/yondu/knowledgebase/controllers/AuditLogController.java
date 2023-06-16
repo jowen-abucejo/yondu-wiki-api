@@ -6,6 +6,7 @@ import com.yondu.knowledgebase.services.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -21,9 +22,9 @@ public class AuditLogController {
     }
 
 
-    @GetMapping ("/my-activities")
-    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser() {
-        List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser();
+    @GetMapping ("/get-activity")
+    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser(@RequestBody AuditLogDTO.GetRequest request) {
+        List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(request.email());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(auditLogs, "User activity retrieved successfully"));
     }
 }
