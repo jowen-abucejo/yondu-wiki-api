@@ -65,7 +65,7 @@ public class NotificationServiceImpl implements NotificationService {
         User user = userRepository.findById(notification.userId()).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",notification.userId())));
         User fromUser = userRepository.findById(notification.fromUserId()).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",notification.userId())));
 
-        Notification newNotification = NotificationDTOMapper.mapBaseToEntity(notification);
+        Notification newNotification = NotificationDTOMapper.mapBaseToEntity(notification, user, fromUser);
         newNotification.setTimestamp(LocalDateTime.now());
         newNotification.setRead(false);
         Notification createdNotification = null;
@@ -85,7 +85,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
         try {
-            webSocketHandler.sendMessageToClient(notificationBase.userId(), notificationBase);
+            webSocketHandler.sendMessageToClient(notificationBase.user().id(), notificationBase);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
