@@ -21,6 +21,8 @@ public class Post {
     @JoinColumn(name = "author", referencedColumnName = "id", updatable = false, nullable = false)
     private User author;
 
+    private String title;
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -59,9 +61,10 @@ public class Post {
     public Post() {
     }
 
-    public Post(Long id, User author, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions) {
+    public Post(Long id, User author, String title, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions) {
         this.id = id;
         this.author = author;
+        this.title = title;
         this.content = content;
         this.dateCreated = dateCreated;
         this.dateModified = dateModified;
@@ -161,11 +164,20 @@ public class Post {
         this.postMentions = postMentions;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     @Override
     public String toString() {
         return "Post{" +
                 "id=" + id +
                 ", author=" + author +
+                ", title='" + title + '\'' +
                 ", content='" + content + '\'' +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +

@@ -19,6 +19,7 @@ public class PostDTO {
     private Long id;
     private UserDTO.BaseResponse author;
     private String content;
+    private String title;
     private LocalDateTime dateCreated;
     private LocalDateTime dateModified;
     private Boolean active = true;
@@ -33,6 +34,7 @@ public class PostDTO {
     public PostDTO(Post post) {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToBaseResponse(post.getAuthor());
+        this.title = post.getTitle();
         this.content = post.getContent();
         this.dateCreated = post.getDateCreated();
         this.dateModified = post.getDateModified();
@@ -50,9 +52,7 @@ public class PostDTO {
                 })
                 .collect(Collectors.toSet());
         this.postMentions = post.getPostMentions().stream()
-                .map(mentions -> {
-                    return UserDTOMapper.mapToGeneralResponse(mentions);
-                })
+                .map(UserDTOMapper::mapToGeneralResponse)
                 .collect(Collectors.toSet());
     }
 
@@ -63,6 +63,13 @@ public class PostDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public UserDTO.BaseResponse getAuthor() {
@@ -151,6 +158,7 @@ public class PostDTO {
                 "id=" + id +
                 ", author=" + author +
                 ", content='" + content + '\'' +
+                ", title='" + title + '\'' +
                 ", dateCreated=" + dateCreated +
                 ", dateModified=" + dateModified +
                 ", active=" + active +

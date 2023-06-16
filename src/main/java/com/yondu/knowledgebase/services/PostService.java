@@ -70,7 +70,7 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
-        Post post = new Post(postDTO.getId(), user, postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
+        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
         postRepository.save(post);
 
         //Notify mentioned Users in a POST
@@ -94,6 +94,7 @@ public class PostService {
             return tagRepository.findById(tag.getId()).get();
         }).collect(Collectors.toSet());
 
+        post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setCategories(categories);
         post.setTags(tags);

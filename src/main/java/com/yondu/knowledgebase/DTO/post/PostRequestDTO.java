@@ -19,6 +19,7 @@ public class PostRequestDTO {
 
     private Long id;
     private UserDTO.BaseResponse author;
+    private String title;
     private String content;
     private LocalDateTime dateCreated;
     private LocalDateTime dateModified;
@@ -37,6 +38,14 @@ public class PostRequestDTO {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     public UserDTO.BaseResponse getAuthor() {
