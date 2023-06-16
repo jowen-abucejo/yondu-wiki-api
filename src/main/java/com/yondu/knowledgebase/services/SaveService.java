@@ -35,40 +35,23 @@ public class SaveService {
     private final CommentRepository commentRepository;
     @Autowired
     private final PageRepository pageRepository;
+    @Autowired
+    private final AuditLogService auditLogService;
 
-    public SaveService(SaveRepository saveRepository, PostRepository postRepository, CommentRepository commentRepository, PageRepository pageRepository) {
+    public SaveService(SaveRepository saveRepository, PostRepository postRepository, CommentRepository commentRepository, PageRepository pageRepository, AuditLogService auditLogService) {
         this.saveRepository = saveRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.pageRepository = pageRepository;
+        this.auditLogService = auditLogService;
     }
 
 public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    if (user == null) {
-        throw new ResourceNotFoundException("User not found, login first before saving");
-    }
-
-  // validation
-    switch (saves.entityType()) {
-        case "POST":
-          postRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", saves.entityId())));
-            break;
-        case "COMMENT":
-          commentRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", saves.entityId())));
-            break;
-        case "PAGE":
-            pageRepository.findById(saves.entityId()).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", saves.entityId())));
-            break;
-        default:
-            throw new RequestValidationException("Invalid Entity Type");
-    }
-
-    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
-        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
-    }
-
+//    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
+//        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
+//    }
     Save save = new Save();
     save.setDateCreated(LocalDateTime.now());
     save.setAuthor(user);
@@ -77,25 +60,16 @@ public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
 
     saveRepository.save(save);
 
+    // implement audit log for user's activities
+    Object entity = getEntity(saves.entityType(),saves.entityId(), Object.class);
+    String savedEntity = getEntityTypeAndAuthor(entity);
+    auditLogService.createAuditLog(user, save.getEntityType(), save.getEntityId(),"saved a "+savedEntity);
+
     return SaveDTOMapper.mapToBaseResponse(save);
 }
 
     public boolean hasEntitySaved(String entityType, Long entityId, User user) {
-        // Validate the entity type and find the entity
-        switch (entityType) {
-            case "POST":
-                postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
-                break;
-            case "COMMENT":
-                commentRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
-                break;
-            case "PAGE":
-                pageRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
-                break;
-            default:
-                throw new RequestValidationException("Invalid Entity Type");
-        }
-
+        validateEntityExistence(entityType,entityId);
         // Check if the entity is already saved
         return isEntitySaved(entityType, entityId, user);
     }
@@ -121,11 +95,62 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
 public Save deleteSaved(Long id) {
 
         Save save = saveRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Save "+ id +" not found."));
+
+    Object entity = getEntity(save.getEntityType(),save.getEntityId(), Object.class);
+    String savedEntity = getEntityTypeAndAuthor(entity);
+    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),"has removed the saved "+savedEntity+ " in the collection.");
+
     saveRepository.delete(save);
     return null;
 }
+
+
     public boolean isEntitySaved(String entityType, Long entityId, User user) {
         Optional<Save> savedEntity = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user));
         return savedEntity.isPresent();
+    }
+
+    public void validateEntityExistence(String entityType, Long entityId) {
+        switch (entityType) {
+            case "POST":
+                postRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+                break;
+            case "COMMENT":
+                commentRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
+                break;
+            case "PAGE":
+                pageRepository.findById(entityId)
+                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+                break;
+            default:
+                throw new RequestValidationException("Invalid Entity Type");
+        }
+    }
+
+    public <T> T getEntity(String entityType, Long entityId, Class<T> entityClass) {
+        switch (entityType) {
+            case "POST":
+                return (T) postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+            case "COMMENT":
+                return (T) commentRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
+            case "PAGE":
+                return (T) pageRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+            default:
+                throw new RequestValidationException("Invalid Entity Type");
+        }
+    }
+
+    private String getEntityTypeAndAuthor(Object entity) {
+        if (entity instanceof Post post) {
+            return "post from " + post.getAuthor().getFirstName()+" "+post.getAuthor().getLastName();
+        } else if (entity instanceof Comment comment) {
+            return "comment from " + comment.getUser().getFirstName()+" "+comment.getUser().getLastName();
+        } else if (entity instanceof com.yondu.knowledgebase.entities.Page page) {
+            return "page from " + page.getAuthor().getFirstName()+" "+page.getAuthor().getLastName();
+        } else {
+            throw new RequestValidationException("Invalid Entity Type");
+        }
     }
 }

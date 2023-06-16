@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 
 @Entity(name = "user_page_access")
 public class UserPageAccess{
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -16,7 +15,6 @@ public class UserPageAccess{
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
     @ManyToOne
     @JoinColumn(name = "page_id")
     private Page page;

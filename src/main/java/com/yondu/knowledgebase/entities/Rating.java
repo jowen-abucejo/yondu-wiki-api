@@ -1,13 +1,6 @@
 package com.yondu.knowledgebase.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 
 @Entity
@@ -23,15 +16,14 @@ public class Rating {
 	
 	@Column(nullable = false)
 	private Long entity_id;
-	
+
+
 	@Pattern(regexp="^(Page|Comment|Post)$",message="This field can only accept 'Page', 'Comment' and 'Post'")
 	@Column(nullable = false)
 	private String entity_type;
-	
 	@Pattern(regexp="^(UP|DOWN)$", message="This field can only accept 'UP' or 'DOWN'")
 	@Column(nullable = false)
 	private String rating;
-	
 	@Column(name = "is_active")
     private Boolean active = true;
 	

@@ -5,16 +5,12 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.enums.ContentType;
-import com.yondu.knowledgebase.enums.NotificationType;
+import com.yondu.knowledgebase.enums.*;
 import com.yondu.knowledgebase.enums.Permission;
-import com.yondu.knowledgebase.enums.ReviewStatus;
-import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
-import jakarta.xml.bind.ValidationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,15 +32,18 @@ public class ReviewService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final UserPermissionValidatorService userPermissionValidatorService;
+    private final AuditLogService auditLogService;
+
 
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, NotificationService notificationService, UserRepository userRepository, UserPermissionValidatorService userPermissionValidatorService) {
+    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, NotificationService notificationService, UserRepository userRepository, UserPermissionValidatorService userPermissionValidatorService, AuditLogService auditLogService) {
         this.reviewRepository = reviewRepository;
         this.pageVersionRepository = pageVersionRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.userPermissionValidatorService = userPermissionValidatorService;
+        this.auditLogService = auditLogService;
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviews( int page, int size){
@@ -101,7 +100,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
 
         boolean pageOwner = currentUser.getId().equals(pageVersion.getPage().getAuthor().getId());
-
+        System.out.println(pageOwner);
         long pId = pageVersion.getPage().getId();
 
         String requiredPermission = Permission.CREATE_CONTENT.getCode();
@@ -135,6 +134,8 @@ public class ReviewService {
                         NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pageVersion.getPage().getId()));
             }
 
+            auditLogService.createAuditLog(currentUser, EntityType.PAGE.getCode(),pId,"submitted a page titled "+pageVersion.getTitle()+" for review.");
+
             return ReviewDTOMapper.mapToBaseResponse(review);
         } else {
             throw new RequestValidationException("Content already submitted, submit the latest version instead.");
@@ -142,13 +143,6 @@ public class ReviewService {
 
 
     }
-
-    private boolean pagePermissionGranted(Long pageId, String permission) {
-        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return userPermissionValidatorService.userHasPagePermission(currentUser.getId(), pageId,
-                permission);
-    }
-
     public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
 
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -175,6 +169,16 @@ public class ReviewService {
         notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                 String.format("Your content has been disapproved by %s due to ", currentUser.getEmail())+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pageId));
     }
+
+    // Implement audit log
+    auditLogService.createAuditLog(currentUser,EntityType.PAGE.getCode(), pageId,"reviewed a content");
+
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
+    }
+
+    private boolean pagePermissionGranted(Long pageId, String permission) {
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userPermissionValidatorService.userHasPagePermission(currentUser.getId(), pageId,
+                permission);
     }
 }
