@@ -1,5 +1,10 @@
 package com.yondu.knowledgebase.Utils;
 
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
@@ -35,5 +40,20 @@ public class Util {
                 calendar.get(Calendar.MINUTE),
                 calendar.get(Calendar.SECOND)
         );
+    }
+
+    public static String extractFileName(String url) {
+        try{
+            URL imgUrl = new URL(url);
+            String path = imgUrl.getPath();
+            String[] pathSegments = path.split("/");
+            String filename = pathSegments[pathSegments.length - 1];
+
+            return filename;
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 }

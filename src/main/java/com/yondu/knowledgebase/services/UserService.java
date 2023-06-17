@@ -186,17 +186,15 @@ public class UserService implements UserDetailsService {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));
     }
 
-    public User changeProfilePhoto(MultipartFile file) {
+    public User changeProfilePhoto(UserDTO.ChangePhotoRequest path) {
         log.info("UserService.changeProfilePhoto()");
-        log.info("file : " + file);
+        log.info("path : " + path);
 
         User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // Upload photo to S3, retrieves path.
-        user.setProfilePhoto("");
+        user.setProfilePhoto(path.path());
 
-        userRepository.save(user);
-        return user;
+        return userRepository.save(user);
     }
 
     public User updatePassword(UserDTO.ChangePassRequest request) {
