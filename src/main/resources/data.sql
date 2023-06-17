@@ -2,7 +2,7 @@
 INSERT IGNORE INTO USERS(id, email, password, username, first_name, last_name, status, created_at) VALUES(1, 'admin@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'ADM', 'Administrator', '', 'ACT', CURRENT_DATE);
 
 -- INITIALIZE ROOT DIRECTORY
-INSERT IGNORE INTO DIRECTORY(id, name, description, date_created, date_modified, created_by_id) VALUES(1, 'YONDU Wiki', 'root directory', CURRENT_DATE, CURRENT_DATE, 1);
+INSERT IGNORE INTO DIRECTORY(id, name, description, date_created, date_modified, created_by_id) VALUES(1, 'YONDU Wiki', 'root', CURRENT_DATE, CURRENT_DATE, 1);
 
 -- INITIALIZE ROLE
 INSERT IGNORE INTO ROLE(id, role_name) VALUES(1, 'Administrator'), (2, 'Moderator'), (3, 'Content Creator'), (4, 'User');

@@ -98,10 +98,13 @@ public class DirectoryService {
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
         Directory parent = directory.getParent();
 
-//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-//            throw new AccessDeniedException();
-//        }
+        if (parent == null) {
+            throw new AccessDeniedException();
+        }
 
+        if (!hasPermission(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
 
         if (isDirectoryExists(request.name(), parent)) {
             throw new DuplicateResourceException(String.format("Directory name '%s' already exists", request.name()));
