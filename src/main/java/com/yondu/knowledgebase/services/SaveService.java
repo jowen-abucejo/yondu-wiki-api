@@ -49,9 +49,9 @@ public class SaveService {
 public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-//    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
-//        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
-//    }
+    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
+        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
+    }
     Save save = new Save();
     save.setDateCreated(LocalDateTime.now());
     save.setAuthor(user);

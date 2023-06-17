@@ -23,12 +23,11 @@ public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
-    public AuditLogService(AuditLogRepository auditLogRepository, UserRepository userRepository, RoleRepository roleRepository) {
+    public AuditLogService(AuditLogRepository auditLogRepository, UserRepository userRepository) {
         this.auditLogRepository = auditLogRepository;
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+
     }
 
     public void createAuditLog(User user, String entityType, Long entityId, String action) {
@@ -42,7 +41,7 @@ public class AuditLogService {
     }
 
     public List<AuditLogDTO.BaseResponse> getAuditLogsByUser(String email) {
-
+        // Check if logged-in user is admin
         if (!userIsAdmin()) {
             throw new AccessDeniedException();
         }
@@ -56,6 +55,19 @@ public class AuditLogService {
         }
         return auditLogResponse;
 
+    }
+    public List<AuditLogDTO.BaseResponse> getAuditLogByEntity(String entityType, Long entityId) {
+      // Check if logged-in user is admin
+        if (!userIsAdmin()) {
+            throw new AccessDeniedException();
+        }
+        List<AuditLog> auditLogs = auditLogRepository.findByEntityTypeAndEntityIdOrderByTimestampDesc(entityType,entityId);
+        List<AuditLogDTO.BaseResponse> auditLogResponse = new ArrayList<>();
+        for (AuditLog auditLog : auditLogs) {
+            AuditLogDTO.BaseResponse baseResponse = AuditLogDTOMapper.mapToBaseResponse(auditLog);
+            auditLogResponse.add(baseResponse);
+        }
+        return auditLogResponse;
     }
     public boolean userIsAdmin() {
         User authenticatedUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

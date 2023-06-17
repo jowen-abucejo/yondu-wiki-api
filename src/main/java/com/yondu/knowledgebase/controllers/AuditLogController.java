@@ -5,10 +5,8 @@ import com.yondu.knowledgebase.DTO.audit_log.AuditLogDTO;
 import com.yondu.knowledgebase.services.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -26,5 +24,11 @@ public class AuditLogController {
     public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser(@RequestBody AuditLogDTO.GetRequest request) {
         List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(request.email());
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(auditLogs, "User activity retrieved successfully"));
+    }
+
+    @GetMapping ("/{entityType}/{entityId}")
+    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser(@PathVariable("entityType") String entityType, @PathVariable("entityId") Long entityId) {
+        List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogByEntity(entityType,entityId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(auditLogs, "Content activity retrieved successfully"));
     }
 }
