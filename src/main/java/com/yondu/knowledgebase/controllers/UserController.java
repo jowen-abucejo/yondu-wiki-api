@@ -129,14 +129,14 @@ public class UserController {
      *   Wait for S3 Bucket, Secret, and Region
      */
     @PostMapping("/update/photo")
-    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> changeProfilePhoto(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<ApiResponse<UserDTO.GeneralResponse>> changeProfilePhoto(@RequestBody UserDTO.ChangePhotoRequest path) {
         log.info("UserController.changeProfilePhoto()");
-        log.info("file : " + file);
+        log.info("path : " + path);
 
-        User userWithPhotoPath = userService.changeProfilePhoto(file);
-        UserDTO.GeneralResponse response = UserDTOMapper.mapToGeneralResponse(userWithPhotoPath);
+        User user = userService.changeProfilePhoto(path);
+        UserDTO.GeneralResponse userResponse = UserDTOMapper.mapToGeneralResponse(user);
 
-        return ResponseEntity.ok(ApiResponse.success(response, file.getOriginalFilename()));
+        return ResponseEntity.ok(ApiResponse.success(userResponse, "Successfully changed your photo."));
     }
 
     @PostMapping("/update/password")
@@ -160,5 +160,18 @@ public class UserController {
         ApiResponse response = ApiResponse.success(userDTO, "success");
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/update/profile")
+    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> updateProfile(@RequestBody UserDTO.WithRolesRequest user) {
+        log.info("UserController.updateProfile()");
+        log.info("user : " + user);
+
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        User updatedUser = userService.updateUser(currentUser.getId(), user);
+        UserDTO.WithRolesResponse updatedUserDTO = UserDTOMapper.mapToWithRolesResponse(updatedUser);
+
+        return ResponseEntity.ok(ApiResponse.success(updatedUserDTO, "Successfully updated your profile."));
     }
 }

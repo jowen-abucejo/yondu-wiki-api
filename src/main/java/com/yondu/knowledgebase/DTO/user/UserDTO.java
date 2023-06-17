@@ -21,4 +21,6 @@ public class UserDTO {
 
     public record ChangePassRequest(@JsonProperty("old_password") String oldPassword, @JsonProperty("new_password") String newPassword) {}
 
+    public record ChangePhotoRequest(String path) {}
+
 }
