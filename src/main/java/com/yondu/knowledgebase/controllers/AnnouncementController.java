@@ -1,7 +1,5 @@
 package com.yondu.knowledgebase.controllers;
 
-import com.yondu.knowledgebase.enums.PageType;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -16,30 +14,31 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.services.PageService;
 
 import jakarta.validation.Valid;
 
 @RestController
-public class PageController {
+public class AnnouncementController {
 
     private final PageService pageService;
-    private final PageType pageType = PageType.WIKI;
+    private final PageType pageType = PageType.ANNOUNCEMENT;
 
     /**
      * @param pageService
      */
-    public PageController(PageService pageService) {
+    public AnnouncementController(PageService pageService) {
         this.pageService = pageService;
     }
 
-    @GetMapping(path = "pages/{id}")
+    @GetMapping(path = "announcements/{id}")
     public ApiResponse<PageDTO> getPage(@PathVariable Long id) {
         var page = pageService.findById(pageType, id);
-        return new ApiResponse<PageDTO>("success", page, "Wiki retrieved");
+        return new ApiResponse<PageDTO>("success", page, "Announcement retrieved");
     }
 
-    @GetMapping(path = "pages/search")
+    @GetMapping(path = "announcements/search")
     public PaginatedResponse<PageDTO> searchPages(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
@@ -56,7 +55,7 @@ public class PageController {
                 pageNumber, pageSize, sortBy);
     }
 
-    @GetMapping(path = "pages")
+    @GetMapping(path = "announcements")
     public PaginatedResponse<PageDTO> getAllPagesWithVersions(
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
@@ -68,57 +67,56 @@ public class PageController {
                 pageNumber, pageSize, sortBy);
     }
 
-    @GetMapping(path = "pages/{id}/versions")
+    @GetMapping(path = "announcements/{id}/versions")
     public ApiResponse<PageDTO> getPageWithVersions(@PathVariable(name = "id") Long pageId) {
         var page = pageService.findByIdWithVersions(pageType, pageId);
-        return new ApiResponse<PageDTO>("success", page, "Wiki retrieved");
+        return new ApiResponse<PageDTO>("success", page, "Announcement retrieved");
     }
 
-    @PostMapping(path = "directories/{id}/pages")
+    @PostMapping(path = "directories/{id}/announcements")
     public ApiResponse<PageDTO> saveNewPage(@PathVariable(name = "id") Long directoryId,
             @RequestBody @Valid PageVersionDTO pageVersionDTO) {
         var page = pageService.createNewPage(pageType, directoryId, pageVersionDTO);
-        return new ApiResponse<PageDTO>("success", page, "New wiki created");
+        return new ApiResponse<PageDTO>("success", page, "New announcement created");
     }
 
-    @PutMapping(path = "pages/{pageId}/versions/{versionId}")
+    @PutMapping(path = "announcements/{pageId}/versions/{versionId}")
     public ApiResponse<PageDTO> updatePageVersion(@PathVariable Long pageId, @PathVariable Long versionId,
             @RequestBody @Valid PageVersionDTO pageVersionDTO) {
         var page = pageService.updatePageDraft(pageType, pageId, versionId, pageVersionDTO);
-        return new ApiResponse<PageDTO>("success", page, "Wiki version updated");
+        return new ApiResponse<PageDTO>("success", page, "Announcement version updated");
     }
 
-    @DeleteMapping(path = "pages/{pageId}/delete")
+    @DeleteMapping(path = "announcements/{pageId}/delete")
     public ApiResponse<PageDTO> deletePage(@PathVariable Long pageId) {
         var page = pageService.deletePage(pageType, pageId);
-        return new ApiResponse<PageDTO>("success", page, "Wiki Deleted");
+        return new ApiResponse<PageDTO>("success", page, "Announcement deleted");
     }
 
-    @PatchMapping(path = "pages/{pageId}/archive")
+    @PatchMapping(path = "announcements/{pageId}/archive")
     public ApiResponse<PageDTO> archivePage(@PathVariable Long pageId) {
         var page = pageService.updateActiveStatus(pageType, pageId, false);
-        return new ApiResponse<PageDTO>("success", page, "Wiki set as archive");
+        return new ApiResponse<PageDTO>("success", page, "Announcement set as archive");
 
     }
 
-    @PatchMapping(path = "pages/{pageId}/unarchive")
+    @PatchMapping(path = "announcements/{pageId}/unarchive")
     public ApiResponse<PageDTO> unArchivePage(@PathVariable Long pageId) {
         var page = pageService.updateActiveStatus(pageType, pageId, true);
-        return new ApiResponse<PageDTO>("success", page, "Wiki set as not archive");
+        return new ApiResponse<PageDTO>("success", page, "Announcement set as not archive");
 
     }
 
-    @PatchMapping(path = "pages/{pageId}/settings/comments-off")
+    @PatchMapping(path = "announcements/{pageId}/settings/comments-off")
     public ApiResponse<PageDTO> turnOffCommenting(@PathVariable Long pageId) {
         var page = pageService.updateCommenting(pageType, pageId, false);
-        return new ApiResponse<PageDTO>("success", page, "Wiki commenting off");
+        return new ApiResponse<PageDTO>("success", page, "Announcement commenting off");
 
     }
 
-    @PatchMapping(path = "pages/{pageId}/settings/comments-on")
+    @PatchMapping(path = "announcements/{pageId}/settings/comments-on")
     public ApiResponse<PageDTO> turnOnCommenting(@PathVariable Long pageId) {
         var page = pageService.updateCommenting(pageType, pageId, true);
-        return new ApiResponse<PageDTO>("success", page, "Wiki commenting on");
+        return new ApiResponse<PageDTO>("success", page, "Announcement commenting on");
     }
-
 }

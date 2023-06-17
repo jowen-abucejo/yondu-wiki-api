@@ -21,7 +21,9 @@ public class AttachmentServiceImpl implements AttachmentService {
 
     @Override
     public String uploadImage(MultipartFile file) {
-        String fileName = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
+        String originalFileName = file.getOriginalFilename();
+        String fileName = UUID.randomUUID().toString() + "."
+                + originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
         String uploadPath = "./uploads/"; // Update with your desired upload path
 
         // Check if the upload directory exists, create it if necessary

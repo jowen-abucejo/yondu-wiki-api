@@ -24,7 +24,7 @@ public class Tag {
     @ManyToMany(mappedBy = "tags")
     private Set<Post> posts = new HashSet<>();
 
-    public Tag(){
+    public Tag() {
 
     }
 
@@ -36,16 +36,18 @@ public class Tag {
         this.posts = posts;
     }
 
-    public Long getId(){
+    public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
@@ -58,7 +60,7 @@ public class Tag {
         this.deleted = deleted;
     }
 
-    public List<Page> getPages(){
+    public List<Page> getPages() {
         return pages;
     }
 
@@ -83,5 +85,15 @@ public class Tag {
                 ", pages=" + pages +
                 ", posts=" + posts +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return (o instanceof Tag) && ((Tag) o).getName().equals(this.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 }

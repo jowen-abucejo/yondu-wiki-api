@@ -20,10 +20,18 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             Long id, boolean isDeleted, String status);
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
+    public Optional<PageVersion> findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
+            Long id, String pageType, boolean isDeleted, String status);
+
+    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
     public Optional<PageVersion> findByPageIdAndId(Long pageId, Long id);
 
+    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
+    public Optional<PageVersion> findByPageIdAndPageTypeAndId(Long pageId, String pageType, Long id);
+
     @EntityGraph(attributePaths = { "page" })
-    public Optional<PageVersion> findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(Long id, boolean isDeleted);
+    public Optional<PageVersion> findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(
+            Long id, String pageType, boolean isDeleted);
 
     @Query(nativeQuery = true, value = """
             SELECT
@@ -110,7 +118,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     LEFT JOIN
                 users a ON p.author = a.id
             WHERE
-                p.is_deleted = 0
+                p.page_type = :pageType
+                AND p.is_deleted = 0
                     AND (EXISTS( SELECT
                         1
                     FROM
@@ -176,7 +185,20 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 LEFT JOIN permission p10 ON gpa10.permission_id = p.id
                                 WHERE
                                     p10.name = 'READ_CONTENT' AND u10.id = 1
-                                        AND gpa10.page_id = p.id) pTable02))))
+                                        AND gpa10.page_id = p.id) pTable02)
+                            OR EXISTS( SELECT
+                                1
+                            FROM
+                                (SELECT
+                                    p10.id
+                                FROM
+                                    users u10
+                                LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id
+                                LEFT JOIN permission p10 ON dua10.permission_id = p10.id
+                                WHERE
+                                    p10.name = 'READ_CONTENT'
+                                        AND u10.id = 1
+                                        AND dua10.directory_id = p.directory_id) pTable03))))
                     ELSE ((v.page_id , v.id) IN (SELECT
                             pv.page_id, pv.id
                         FROM
@@ -200,7 +222,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id
                             LEFT JOIN permission p10 ON rp10.permission_id = p10.id
                             WHERE
-                                p10.name = 'READ_CONTENT'
+                                (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                     AND u10.id = 1) pTable05)
                         AND (p.author = :userId
                         OR EXISTS( SELECT
@@ -213,7 +235,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id
                             LEFT JOIN permission p10 ON upa10.permission_id = p10.id
                             WHERE
-                                p10.name = 'READ_CONTENT'
+                                (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                     AND u10.id = 1
                                     AND upa10.page_id = p.id) pTable00)
                         OR EXISTS( SELECT
@@ -225,22 +247,22 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 users u10
                             LEFT JOIN group_users gu10 ON u10.id = gu10.user_id
                             LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id
-                            LEFT JOIN permission p10 ON gpa10.permission_id = p.id
+                            LEFT JOIN permission p10 ON gpa10.permission_id = p10.id
                             WHERE
-                                p10.name = 'READ_CONTENT'
+                                (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                     AND u10.id = 1
                                     AND gpa10.page_id = p.id) pTable02)
                         OR EXISTS( SELECT
                             1
                         FROM
                             (SELECT
-                                p.id
+                                p10.id
                             FROM
                                 users u10
                             LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id
-                            LEFT JOIN permission p ON dua10.permission_id = p.id
+                            LEFT JOIN permission p10 ON dua10.permission_id = p10.id
                             WHERE
-                                p.name = 'READ_CONTENT'
+                                (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                     AND u10.id = 1
                                     AND dua10.directory_id = p.directory_id) pTable03))))
                 END))
@@ -286,6 +308,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 END
                 """)
     Optional<Page<Map<String, Object>>> findByFullTextSearch(
+            @Param("pageType") String pageType,
             @Param("searchKey") String searchKey,
             @Param("isExactMatch") Boolean isExactMatch,
             @Param("isArchived") Boolean isArchived,
