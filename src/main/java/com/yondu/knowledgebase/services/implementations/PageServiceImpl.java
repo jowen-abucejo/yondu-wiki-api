@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.AuditorAware;
@@ -25,7 +23,6 @@ import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.Tag;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
@@ -46,8 +43,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     private final PageVersionRepository pageVersionRepository;
     private final PageRightsService pageRightsService;
     private final AuditorAware<User> auditorAware;
-    private final TagRepository tagRepository;
-    private final CategoryRepository categoryRepository;
 
     /**
      * @param pageRepository
@@ -58,27 +53,11 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             UserPermissionValidatorService userPermissionValidatorService,
             PageRightsService pageRightsService,
             AuditorAware<User> auditorAware, TagRepository tagRepository, CategoryRepository categoryRepository) {
-        super(userPermissionValidatorService, auditorAware);
+        super(userPermissionValidatorService, auditorAware, categoryRepository, tagRepository);
         this.pageRepository = pageRepository;
         this.pageVersionRepository = pageVersionRepository;
         this.pageRightsService = pageRightsService;
         this.auditorAware = auditorAware;
-        this.tagRepository = tagRepository;
-        this.categoryRepository = categoryRepository;
-    }
-
-    private Set<Tag> getTagsFromArray(String[] tags) {
-        var attachedTags = tagRepository.findByNameIn(Arrays.asList(tags));
-
-        for (String tag : tags) {
-            var newTag = new Tag();
-            newTag.setName(tag);
-
-            if (!attachedTags.contains(newTag)) {
-                attachedTags.add(newTag);
-            }
-        }
-        return attachedTags;
     }
 
     @Override
@@ -108,11 +87,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         var newPage = new Page();
         var newDirectory = new Directory();
 
-        newPageVersion.setTitle(pageDTO.getTitle());
-        String pageContent = pageDTO.getContent();
-        if (Objects.nonNull(pageContent) && !pageContent.isBlank())
-            newPageVersion.setContent(pageContent.replaceAll("<[^>]+>", ""));
-        newPageVersion.setOriginalContent(pageContent);
+        setTitleAndContents(pageDTO, newPageVersion);
         newPageVersion.setPage(newPage);
 
         newDirectory.setId(directoryId);
@@ -122,29 +97,14 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         newPage.setType(pageType.getCode());
         newPage.setLockEnd(LocalDateTime.now().plusHours(1));
 
-        var categories = pageDTO.getCategories();
-        if (categories != null && categories.length > 0) {
-            var attachedCategories = categoryRepository.findByNameIn(Arrays.asList(categories));
-            newPage.getCategories().addAll(attachedCategories);
-
-            categories = attachedCategories.stream().map(c -> c.getName()).toArray(String[]::new);
-        } else {
-            categories = new String[] {};
-        }
-
-        var tags = pageDTO.getTags();
-        if (tags != null && tags.length > 0) {
-            var attachedTags = getTagsFromArray(tags);
-            newPage.setTags(attachedTags);
-        } else {
-            tags = new String[] {};
-        }
+        var categories = setCategories(pageDTO.getCategories(), newPage);
+        var tags = setTags(pageDTO.getTags(), newPage);
 
         newPage = pageRepository.save(newPage);
 
         pageRightsService.createPageRights(newPage);
 
-        return pageDTODefault(newPageVersion).categories(categories).tags(tags).build();
+        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L }).categories(categories).tags(tags).build();
 
     }
 
@@ -156,25 +116,28 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(pageDraft.getPage().getDirectory().getId(), requiredPermission)) {
-            pageDraft.setTitle(pageDTO.getTitle());
-            String pageContent = pageDTO.getContent();
-            if (Objects.nonNull(pageContent) && !pageContent.isBlank())
-                pageDraft.setContent(pageContent.replaceAll("<[^>]+>", ""));
-            pageDraft.setOriginalContent(pageDTO.getContent());
-
             // lock the page
-            lockPage(pageDraft.getPage());
+            checkLock(pageDraft.getPage(), true);
+
+            setTitleAndContents(pageDTO, pageDraft);
+
+            var categories = setCategories(pageDTO.getCategories(), pageDraft.getPage());
+            var tags = setTags(pageDTO.getTags(), pageDraft.getPage());
 
             var reviewsCount = getReviewsCountByStatus(pageDraft);
             var pageVersionIsApproved = reviewsCount[0] > 0;
+            var pageVersionIsDisapproved = reviewsCount[1] > 0;
 
-            // save new page version if the version provided is already approved
-            if (pageVersionIsApproved)
-                pageDraft.setId(null);
+            // save new page version if the version provided is already approved/disapproved
+            if (pageVersionIsApproved || pageVersionIsDisapproved) {
+                var newVersion = copyApprovedPageVersion(pageDraft);
+                pageDraft = newVersion;
+                reviewsCount = new Long[] { 0L, 0L };
+            }
 
             pageDraft = pageVersionRepository.save(pageDraft);
 
-            return pageDTODefault(pageDraft, reviewsCount).build();
+            return pageDTODefault(pageDraft, reviewsCount).categories(categories).tags(tags).build();
 
         }
 
@@ -191,6 +154,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         String requiredPermission = Permission.DELETE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            // check if page is locked
+            checkLock(page, false);
+
             page.setDeleted(true);
             pageVersion.setPage(pageRepository.save(page));
 
@@ -210,6 +177,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            checkLock(page, false);
+
             page.setActive(isActive);
             pageVersion.setPage(pageRepository.save(page));
 
@@ -228,6 +198,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            checkLock(page, false);
+
             page.setAllowComment(allowCommenting);
             pageVersion.setPage(pageRepository.save(page));
 

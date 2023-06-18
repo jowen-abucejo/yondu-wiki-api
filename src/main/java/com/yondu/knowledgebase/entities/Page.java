@@ -62,7 +62,7 @@ public class Page {
 
     @CreatedBy
     @ManyToOne
-    @JoinColumn(name = "locked_by", referencedColumnName = "id")
+    @JoinColumn(name = "locked_by", referencedColumnName = "id", nullable = false)
     private User lockedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)

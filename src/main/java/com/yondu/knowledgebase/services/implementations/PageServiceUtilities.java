@@ -3,8 +3,12 @@ package com.yondu.knowledgebase.services.implementations;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,26 +25,35 @@ import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
 import com.yondu.knowledgebase.entities.Review;
+import com.yondu.knowledgebase.entities.Tag;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.ReviewStatus;
+import com.yondu.knowledgebase.repositories.CategoryRepository;
+import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.services.UserPermissionValidatorService;
 
 class PageServiceUtilities {
     private final UserPermissionValidatorService userPermissionValidatorService;
     private final AuditorAware<User> auditorAware;
+    private final CategoryRepository categoryRepository;
+    private final TagRepository tagRepository;
 
     /**
      * @param userPermissionValidatorService
      * @param auditorAware
+     * @param categoryRepository
+     * @param tagRepository
      */
     public PageServiceUtilities(UserPermissionValidatorService userPermissionValidatorService,
-            AuditorAware<User> auditorAware) {
+            AuditorAware<User> auditorAware, CategoryRepository categoryRepository, TagRepository tagRepository) {
         this.userPermissionValidatorService = userPermissionValidatorService;
         this.auditorAware = auditorAware;
+        this.categoryRepository = categoryRepository;
+        this.tagRepository = tagRepository;
     }
 
-    private PageVersionDTOBuilder pageVersionBase(PageVersion version, Long[] reviewsCount) {
+    private PageVersionDTOBuilder pageVersionDTOBase(PageVersion version, Long[] reviewsCount) {
         return PageVersionDTO.builder()
                 .id(version.getId())
                 .title(version.getTitle())
@@ -69,7 +82,7 @@ class PageServiceUtilities {
     }
 
     protected PageDTOBuilder pageDTODefault(PageVersion version, Long[] reviewsCount) {
-        return pageDTOBase(version).body(pageVersionBase(version, reviewsCount).build());
+        return pageDTOBase(version).body(pageVersionDTOBase(version, reviewsCount).build());
     }
 
     protected PageDTOBuilder pageWithVersionsDTODefault(Page page) {
@@ -89,7 +102,7 @@ class PageServiceUtilities {
 
     protected PageVersionDTOBuilder pageVersionDTODefault(PageVersion version) {
         var reviewsCount = getReviewsCountByStatus(version);
-        return pageVersionBase(version, reviewsCount);
+        return pageVersionDTOBase(version, reviewsCount);
     }
 
     protected PageDTO convertMapToPageDTO(Map<String, Object> pageVersion) {
@@ -145,10 +158,24 @@ class PageServiceUtilities {
     }
 
     protected LocalDateTime parseAndFormat(Object date) {
-        return date != null && !date.toString().isEmpty()
-                ? LocalDateTime.parse(date.toString(),
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"))
-                : null;
+        String formatPattern1 = "yyyy-MM-dd HH:mm:ss.S";
+        String formatPattern2 = "yyyy-MM-dd HH:mm:ss.SSSSSS";
+        if (date == null || date.toString().isEmpty())
+            return null;
+        String dateTimeString = date.toString();
+        try {
+            return LocalDateTime.parse(dateTimeString,
+                    DateTimeFormatter.ofPattern(formatPattern1));
+
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDateTime.parse(dateTimeString,
+                        DateTimeFormatter.ofPattern(formatPattern2));
+
+            } catch (DateTimeParseException er) {
+                return null;
+            }
+        }
     }
 
     protected String[] getAsArray(Object concatenatedElements) {
@@ -157,7 +184,7 @@ class PageServiceUtilities {
         return new String[] {};
     }
 
-    protected void lockPage(Page page) {
+    protected void checkLock(Page page, Boolean lockAfterCheck) {
         var currentTime = LocalDateTime.now();
         var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -168,6 +195,12 @@ class PageServiceUtilities {
         if (!isSameUser && !isPageUnlocked)
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Document is currently locked");
 
+        if (lockAfterCheck)
+            lockPage(page, currentTime, currentUser, isSameUser, isPageUnlocked);
+    }
+
+    private void lockPage(Page page, LocalDateTime currentTime, User currentUser, boolean isSameUser,
+            boolean isPageUnlocked) {
         if (!isSameUser)
             page.setLockedBy(currentUser);
 
@@ -217,6 +250,59 @@ class PageServiceUtilities {
         return String.format("%s with an id of %d and version id of %d not found!",
                 StringUtils.capitalize(type.getCode().toLowerCase()),
                 id, versionId);
+    }
+
+    private Set<Tag> getTagsFromArray(String[] tags) {
+        var attachedTags = tagRepository.findByNameIn(Arrays.asList(tags));
+
+        for (String tag : tags) {
+            var newTag = new Tag();
+            newTag.setName(tag);
+
+            if (!attachedTags.contains(newTag)) {
+                attachedTags.add(newTag);
+            }
+        }
+        return attachedTags;
+    }
+
+    protected String[] setTags(String[] tags, Page newPage) {
+        if (tags != null && tags.length > 0) {
+            var attachedTags = getTagsFromArray(tags);
+            newPage.setTags(attachedTags);
+        } else {
+            tags = new String[] {};
+        }
+        return tags;
+    }
+
+    protected String[] setCategories(String[] categories, Page newPage) {
+        if (categories != null && categories.length > 0) {
+            var attachedCategories = categoryRepository.findByNameIn(Arrays.asList(categories));
+            newPage.setCategories(attachedCategories);
+
+            categories = attachedCategories.stream().map(c -> c.getName()).toArray(String[]::new);
+        } else {
+            categories = new String[] {};
+        }
+        return categories;
+    }
+
+    protected PageVersion copyApprovedPageVersion(PageVersion pageDraft) {
+        var newVersion = new PageVersion();
+        newVersion.setPage(pageDraft.getPage());
+        newVersion.setTitle(pageDraft.getTitle());
+        newVersion.setContent(pageDraft.getContent());
+        newVersion.setOriginalContent(pageDraft.getOriginalContent());
+        return newVersion;
+    }
+
+    protected void setTitleAndContents(PageVersionDTO pageDTO, PageVersion pageDraft) {
+        pageDraft.setTitle(pageDTO.getTitle());
+        String pageContent = pageDTO.getContent();
+        if (Objects.nonNull(pageContent) && !pageContent.isBlank())
+            pageDraft.setContent(pageContent.replaceAll("<[^>]+>", ""));
+        pageDraft.setOriginalContent(pageDTO.getContent());
     }
 
 }
