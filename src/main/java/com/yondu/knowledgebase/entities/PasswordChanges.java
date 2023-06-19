@@ -13,6 +13,7 @@ public class PasswordChanges {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name= "user_id", referencedColumnName = "id")
     private User user;
+
     private String password;
     private LocalDateTime dateUpdated;
 

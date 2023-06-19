@@ -31,6 +31,7 @@ public class PageVersion {
     @Column(nullable = false)
     private String title;
 
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
