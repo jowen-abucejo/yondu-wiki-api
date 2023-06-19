@@ -162,17 +162,6 @@ public class CommentServiceImpl implements CommentService {
         return getAllReplies(comment);
     }
 
-    private Set<User> getMentionedUsers(Long[] userIds) {
-        Set<User> mentionedUsers = new HashSet<>();
-        for (Long userId : userIds) {
-            User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format("User ID not found: %d", userId)));
-            if (user != null) {
-                mentionedUsers.add(user);
-            }
-        }
-        return mentionedUsers;
-    }
-
     private List<CommentDTO.ShortResponse> getAllReplies(Comment comment) {
         List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
         if (comments != null)
