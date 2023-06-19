@@ -9,6 +9,6 @@ import java.util.stream.Collectors;
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class MissingFieldException extends RuntimeException{
     public MissingFieldException(String... fields) {
-        super("Required fields are not filled yet. [" + Arrays.stream(fields).collect(Collectors.joining(",")));
+        super("Required fields are not filled yet. " + Arrays.stream(fields).collect(Collectors.joining(",")));
     }
 }

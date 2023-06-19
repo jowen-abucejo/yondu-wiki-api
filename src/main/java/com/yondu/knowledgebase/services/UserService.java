@@ -56,6 +56,8 @@ public class UserService implements UserDetailsService {
             throw new MissingFieldException("last name");
         else if (!Util.isEmailValid(user.email()))
             throw new InvalidEmailException();
+        else if(user.roles().isEmpty())
+            throw new MissingFieldException("role");
 
         User checkUser = userRepository.findByEmail(user.email()).orElse(null);
         if(checkUser != null){
