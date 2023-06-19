@@ -33,4 +33,6 @@ public interface PageService {
 
         public Page getPage(Long pageId);
 
+        // TODO to be refactored
+        PageDTO findByIdUnchecked(Long id);
 }

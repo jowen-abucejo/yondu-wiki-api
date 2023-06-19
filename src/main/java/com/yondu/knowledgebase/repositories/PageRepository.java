@@ -3,6 +3,9 @@ package com.yondu.knowledgebase.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import com.yondu.knowledgebase.entities.Directory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,4 +40,6 @@ public interface PageRepository extends JpaRepository<Page, Long> {
         @EntityGraph(attributePaths = { "directory" })
         public Optional<Page> findByIdAndType(Long id, String pageType);
 
+        @Query("SELECT p FROM Page p WHERE p.directory = ?1 AND type = ?2 ORDER BY p.dateCreated DESC")
+        public org.springframework.data.domain.Page<Page> getPagesFromDirectory(Directory directoryId, String type, Pageable pageable);
 }
