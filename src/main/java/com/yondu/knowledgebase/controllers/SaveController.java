@@ -12,7 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("save")
+@RequestMapping("saves")
 public class SaveController {
 
     private final SaveService saveService;
