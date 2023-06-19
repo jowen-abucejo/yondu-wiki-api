@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("audit-log")
+@RequestMapping("audit-logs")
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
@@ -27,7 +27,7 @@ public class AuditLogController {
     }
 
     @GetMapping ("/{entityType}/{entityId}")
-    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser(@PathVariable("entityType") String entityType, @PathVariable("entityId") Long entityId) {
+    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByContent(@PathVariable("entityType") String entityType, @PathVariable("entityId") Long entityId) {
         List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogByEntity(entityType,entityId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(auditLogs, "Content activity retrieved successfully"));
     }
