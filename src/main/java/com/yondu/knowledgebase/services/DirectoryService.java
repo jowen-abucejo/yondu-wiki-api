@@ -1,15 +1,19 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.directory.*;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
-import com.yondu.knowledgebase.repositories.DirectoryRepository;
-import com.yondu.knowledgebase.repositories.DirectoryRightsRepository;
-import com.yondu.knowledgebase.repositories.PermissionRepository;
-import com.yondu.knowledgebase.repositories.UserRepository;
+import com.yondu.knowledgebase.repositories.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +28,11 @@ public class DirectoryService {
     private final DirectoryRepository directoryRepository;
     private final UserRepository userRepository;
     private final PermissionRepository permissionRepository;
+
+    private Logger log = LoggerFactory.getLogger(DirectoryService.class);
+
+    @Autowired
+    private PageRepository pageRepository;
 
     public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository) {
         this.directoryRepository = directoryRepository;
@@ -163,4 +172,45 @@ public class DirectoryService {
     }
 
 
+    public PaginatedResponse<PageDTO> getPages(Long directoryId, int pageNumber, int size, String type) {
+        log.info("DirectoryService.getPages()");
+        log.info("directoryId : " + directoryId);
+        log.info("pageNumber : " + pageNumber);
+        log.info("size : " + size);
+        log.info("type : " + type);
+
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, size);
+
+        Directory tempDir = new Directory();
+        tempDir.setId(directoryId);
+
+        org.springframework.data.domain.Page<Page> pages = pageRepository.getPagesFromDirectory(tempDir, type, pageRequest);
+        if(pages.hasContent()){
+            List<PageDTO> pageDTOs = pages
+                    .stream()
+                    .map(page -> {
+                        PageDTO pageDTO = new PageDTO.PageDTOBuilder()
+                                .id(page.getId())
+                                .dateCreated(page.getDateCreated())
+                                .author(new UserDTO.UserDTOBuilder()
+                                        .id(page.getAuthor().getId())
+                                        .email(page.getAuthor().getEmail())
+                                        .firstName(page.getAuthor().getFirstName())
+                                        .lastName(page.getAuthor().getLastName())
+                                        .position(page.getAuthor().getPosition())
+                                        .build()
+                                )
+                                .active(page.getActive())
+                                .pageType(page.getType())
+                                .build();
+
+                        return pageDTO;
+                    })
+                    .collect(Collectors.toList());
+
+            return new PaginatedResponse<PageDTO>(pageDTOs, 1, pageDTOs.size(), (long)pageDTOs.size());
+        }
+
+        return null;
+    }
 }

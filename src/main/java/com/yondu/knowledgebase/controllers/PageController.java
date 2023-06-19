@@ -121,4 +121,11 @@ public class PageController {
         return new ApiResponse<PageDTO>("success", page, "Wiki commenting on");
     }
 
+    // TODO to be refactored:
+    @GetMapping("pages/{id}/unchecked")
+    public ApiResponse<PageDTO> getUnapprovedPage(@PathVariable Long id) {
+        var page = pageService.findByIdUnchecked(id);
+        return new ApiResponse<PageDTO>("success", page, "Page retrieved");
+    }
+
 }

@@ -327,4 +327,21 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
     }
 
+    // TODO to be refactored
+    @Override
+    public PageDTO findByIdUnchecked(Long id) {
+        var pageVersion = pageVersionRepository
+                .findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(id, false)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Unable to find document"));
+
+//        String requiredPermission = Permission.READ_CONTENT.getCode();
+//        if (pagePermissionGranted(id, requiredPermission)
+//                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(), requiredPermission)) {
+//        }
+        return pageDTODefault(pageVersion).build();
+
+//        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+    }
+
 }

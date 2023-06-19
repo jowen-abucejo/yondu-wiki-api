@@ -2,7 +2,13 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.DirectoryService;
+import com.yondu.knowledgebase.services.PageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +18,8 @@ import java.util.List;
 @RequestMapping("/directories")
 public class DirectoryController {
     private final DirectoryService directoryService;
+
+    private Logger log = LoggerFactory.getLogger(DirectoryController.class);
 
     public DirectoryController(DirectoryService directoryService) {
         this.directoryService = directoryService;
@@ -47,5 +55,21 @@ public class DirectoryController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
     }
 
+    @GetMapping("/{id}/pages")
+    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> getPages(@PathVariable("id") Long directoryId,
+                                                                            @RequestParam(defaultValue = "1") int page,
+                                                                            @RequestParam(defaultValue = "5") int size,
+                                                                            @RequestParam(defaultValue = "WIKI") String type) {
+        log.info("DirectoryController.getPages()");
+        log.info("directoryId : " + directoryId);
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("type : " + type);
 
+        PaginatedResponse<PageDTO> pages = directoryService.getPages(directoryId, page, size, type);
+        if(pages == null) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(ApiResponse.success(pages, "success"));
+    }
 }

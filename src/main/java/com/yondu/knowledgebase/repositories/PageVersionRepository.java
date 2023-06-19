@@ -361,4 +361,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("userId") Long userId,
             Pageable pageable);
 
+    // TODO to be refactored
+    @EntityGraph(attributePaths = { "page" })
+    public Optional<PageVersion> findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(Long id, boolean isDeleted);
+
 }
