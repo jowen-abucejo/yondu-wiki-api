@@ -20,12 +20,12 @@ public class PermissionController {
     public PermissionController(PermissionService permissionService) {
         this.permissionService = permissionService;
     }
-    @GetMapping("/permission")
+    @GetMapping("/permissions")
     public ResponseEntity<ApiResponse<List<PermissionDTO.BaseResponse>>> getAllPermission(){
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permissionService.getAllPermission(), "Success retrieving list of permissions"));
     }
 
-    @GetMapping("/permission/{id}")
+    @GetMapping("/permissions/{id}")
     public ResponseEntity<ApiResponse<PermissionDTO.BaseResponse>> getPermissionById(@PathVariable Long id){
         PermissionDTO.BaseResponse permission = permissionService.getPermission(id);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(permission, "Permission with id: " + id + " found"));
