@@ -18,4 +18,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findAllByPageVersionTitle(String title, Pageable pageable);
 
     Page<Review> findAll (Pageable pageable);
+
+    Review getByPageVersionIdAndPageVersionPageId(Long pageVersionId, Long pageId);
 }
