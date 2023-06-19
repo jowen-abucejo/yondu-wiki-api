@@ -100,10 +100,14 @@ public class RoleService {
         Optional<Role> optionalRole = roleRepository.findById(id);
         Role role = optionalRole.orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
-        boolean roleExists = roleRepository.existsByRoleName(roleDTO.getRoleName());
+        Role roleExists = roleRepository.findByRoleName(roleDTO.getRoleName());
 
-        if (roleExists) {
-            throw new RequestValidationException("Role already exists");
+        if (!roleExists.getId().equals(role.getId())) {
+            throw new RequestValidationException("Role name already exists");
+        }
+
+        if (roleDTO.getRoleName().isEmpty()){
+            throw new RequestValidationException("Role name is required!");
         }
 
         if(roleDTO.getPermission().isEmpty()){
