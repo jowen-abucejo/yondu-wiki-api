@@ -14,22 +14,9 @@ public class AuditLogDTOMapper {
                 auditLog.getEntityType(),
                 auditLog.getEntityId(),
                 auditLog.getAction(),
-                convertTimestampToRelative(auditLog.getTimestamp()));
+                auditLog.getTimestamp());
 
     }
 
-    public static String convertTimestampToRelative(LocalDateTime timestamp) {
-        LocalDateTime now = LocalDateTime.now();
-        Duration duration = Duration.between(timestamp, now);
 
-        if (duration.toDays() > 0) {
-            return duration.toDays() + " days ago";
-        } else if (duration.toHours() > 0) {
-            return duration.toHours() + " hours ago";
-        } else if (duration.toMinutes() > 0) {
-            return duration.toMinutes() + " minutes ago";
-        } else {
-            return "just now";
-        }
-    }
 }
