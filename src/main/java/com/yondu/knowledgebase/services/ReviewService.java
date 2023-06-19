@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.*;
 import com.yondu.knowledgebase.enums.Permission;
+import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
@@ -114,12 +115,12 @@ public class ReviewService {
                 throw new RequestValidationException("You are not permitted to submit this page.");
             }
         }
-        if (pageVersion.getReviews().isEmpty()) {
+        if (!reviewIsPending(pageVersion)) {
             Review review = new Review();
             review.setPageVersion(pageVersion);
             review.setUser(null);
             review.setComment("");
-            review.setReviewDate(null);
+            review.setReviewDate(LocalDate.now());
             review.setStatus(ReviewStatus.PENDING.getCode());
 
             reviewRepository.save(review);
@@ -138,7 +139,7 @@ public class ReviewService {
 
             return ReviewDTOMapper.mapToBaseResponse(review);
         } else {
-            throw new RequestValidationException("Content already submitted, submit the latest version instead.");
+            throw new RequestValidationException("Content already submitted as pending, wait for your content to be reviewed.");
         }
 
 
@@ -146,6 +147,8 @@ public class ReviewService {
     public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
 
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if(!hasContentApprovalPermission(currentUser)) throw new AccessDeniedException();
+
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
 
         long pageAuthorId = review.getPageVersion().getPage().getAuthor().getId();
@@ -155,12 +158,13 @@ public class ReviewService {
 
             throw new RequestValidationException("Content is already reviewed. Submit your latest version instead");
         }
-
-            review.setUser(currentUser);
-            review.setComment(request.comment());
-            review.setReviewDate(LocalDate.now());
-            review.setStatus(request.status());
-            Review updatedReview = reviewRepository.save(review);
+            Review newReview = new Review();
+            newReview.setPageVersion(review.getPageVersion());
+            newReview.setUser(currentUser);
+            newReview.setComment(request.comment());
+            newReview.setReviewDate(LocalDate.now());
+            newReview.setStatus(request.status());
+            Review updatedReview = reviewRepository.save(newReview);
 
     if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
         notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
@@ -180,5 +184,22 @@ public class ReviewService {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userPermissionValidatorService.userHasPagePermission(currentUser.getId(), pageId,
                 permission);
+    }
+
+    public boolean reviewIsPending(PageVersion pageVersion) {
+        for (Review pageRev : pageVersion.getReviews()) {
+            if (pageRev.getStatus().equals(ReviewStatus.PENDING.getCode())) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean hasContentApprovalPermission(User user) {
+        Set<Role> roles = user.getRole();
+
+        // Check if any role has the "CONTENT_APPROVAL" permission
+        return roles.stream()
+                .flatMap(role -> role.getUserPermissions().stream())
+                .anyMatch(permission -> permission.getName().equals("CONTENT_APPROVAL"));
     }
 }
