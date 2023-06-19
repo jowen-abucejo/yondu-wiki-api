@@ -37,6 +37,8 @@ public class DefaultExceptionHandler {
             httpStatus = HttpStatus.NOT_FOUND;
         } else if(e instanceof NoContentException) {
             httpStatus = HttpStatus.NO_CONTENT;
+        } else if(e instanceof ResourceDeletionException) {
+            httpStatus = HttpStatus.FORBIDDEN;
         } else {
             httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
         }

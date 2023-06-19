@@ -5,10 +5,7 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.exceptions.AccessDeniedException;
-import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
-import com.yondu.knowledgebase.exceptions.RequestValidationException;
-import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
+import com.yondu.knowledgebase.exceptions.*;
 import com.yondu.knowledgebase.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,21 +137,22 @@ public class DirectoryService {
 
         if (isNotEmptyDirectory(directory)) {
             // throw bawal i delete
+            throw new ResourceDeletionException("Directory is not empty");
         }
 
         directoryRepository.delete(directory);
     }
 
     public boolean isNotEmptyDirectory(Directory directory) {
-        if (!directory.getPages().isEmpty()) {
+        if (!directory.getPages().isEmpty() || !directory.getSubDirectories().isEmpty()) {
             return true;
         }
 
-        for (Directory subdirectory : directory.getSubDirectories()) {
-            if (isNotEmptyDirectory(subdirectory)) {
-                return true;
-            }
-        }
+//        for (Directory subdirectory : directory.getSubDirectories()) {
+//            if (isNotEmptyDirectory(subdirectory)) {
+//                return true;
+//            }
+//        }
 
         return false;
     }
