@@ -142,7 +142,13 @@ public class UserService implements UserDetailsService {
             fetchedUser.setPosition(user.position());
         }
 
-        if(user.roles() != null) {
+        if (!Util.isEmailValid(user.email()))
+            throw new InvalidEmailException();
+
+        if(user.roles().isEmpty()) {
+            throw new MissingFieldException("role");
+        }
+        else{
             Set<Role> roles = user.roles()
                     .stream()
                     .map(r -> new Role(r.getId()))
@@ -150,6 +156,7 @@ public class UserService implements UserDetailsService {
 
             fetchedUser.setRole(roles);
         }
+
 
         User updatedUser = userRepository.save(fetchedUser);
         return updatedUser;
