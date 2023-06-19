@@ -4,29 +4,33 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.enums.PageType;
 
 public interface PageService {
 
         public PageDTO findById(Long id);
 
-        public PageDTO createNewPage(Long directoryId, PageVersionDTO page);
+        public PageDTO findById(PageType pageType, Long id);
 
-        public PageDTO createNewAnnouncement(Long directoryId, PageVersionDTO page);
+        public PageDTO createNewPage(PageType pageType, Long directoryId, PageVersionDTO page);
 
-        public PageDTO updatePageDraft(Long pageId, Long versionId, PageVersionDTO page);
+        public PageDTO updatePageDraft(PageType pageType, Long pageId, Long versionId, PageVersionDTO page);
 
-        public PageDTO deletePage(Long pageId);
+        public PageDTO deletePage(PageType pageType, Long pageId);
 
-        public PageDTO updateActiveStatus(Long pageId, Boolean isActive);
+        public PageDTO updateActiveStatus(PageType pageType, Long pageId, Boolean isActive);
 
-        public PageDTO updateCommenting(Long pageId, Boolean allowCommenting);
+        public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting);
 
-        public Page getPage(Long pageId);
+        public Page getPage(PageType pageType, Long pageId);
 
-        public PageDTO findByIdWithVersions(Long pageId);
+        public PageDTO findByIdWithVersions(PageType pageType, Long pageId);
 
-        public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,
+        public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
+                        String[] categories, String[] tags,
                         Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
                         Integer pageSize, String[] sortBy);
+
+        public Page getPage(Long pageId);
 
 }

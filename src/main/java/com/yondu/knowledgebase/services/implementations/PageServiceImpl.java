@@ -1,14 +1,11 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.AuditorAware;
@@ -16,40 +13,35 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.page.PageDTO.PageDTOBuilder;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
-import com.yondu.knowledgebase.DTO.page.PageVersionDTO.PageVersionDTOBuilder;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.page.UserDTO;
 import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.Review;
-import com.yondu.knowledgebase.entities.Role;
-import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
+import com.yondu.knowledgebase.enums.ReviewStatus;
+import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
+import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
+import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.services.PageRightsService;
 import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.UserPermissionValidatorService;
 
 @Service
-public class PageServiceImpl implements PageService {
+public class PageServiceImpl extends PageServiceUtilities implements PageService {
 
     private final PageRepository pageRepository;
     private final PageVersionRepository pageVersionRepository;
     private final PageRightsService pageRightsService;
-    private final UserPermissionValidatorService userPermissionValidatorService;
     private final AuditorAware<User> auditorAware;
 
     /**
@@ -60,189 +52,12 @@ public class PageServiceImpl implements PageService {
     public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository,
             UserPermissionValidatorService userPermissionValidatorService,
             PageRightsService pageRightsService,
-            AuditorAware<User> auditorAware) {
+            AuditorAware<User> auditorAware, TagRepository tagRepository, CategoryRepository categoryRepository) {
+        super(userPermissionValidatorService, auditorAware, categoryRepository, tagRepository);
         this.pageRepository = pageRepository;
         this.pageVersionRepository = pageVersionRepository;
         this.pageRightsService = pageRightsService;
-        this.userPermissionValidatorService = userPermissionValidatorService;
         this.auditorAware = auditorAware;
-    }
-
-    private PageDTOBuilder pageDTODefault(PageVersion version) {
-        return PageDTO.builder()
-                .id(version.getPage().getId())
-                .dateCreated(version.getPage().getDateCreated())
-                .author(convertToUserDTO(version.getPage().getAuthor()))
-                .active(version.getPage().getActive())
-                .allowComment(version.getPage().getAllowComment())
-                .lockStart(version.getPage().getLockStart())
-                .lockEnd(version.getPage().getLockEnd())
-                .pageType(version.getPage().getType())
-                .body(pageVersionDTODefault(version).build());
-    }
-
-    private PageDTOBuilder pageWithVersionsDTODefault(Page page) {
-        return PageDTO.builder()
-                .id(page.getId())
-                .versions(page.getPageVersions().stream().map(version -> {
-                    return pageVersionDTODefault(version).build();
-                }).collect(Collectors.toList()))
-                .dateCreated(page.getDateCreated())
-                .author(convertToUserDTO(page.getAuthor()))
-                .active(page.getActive())
-                .allowComment(page.getAllowComment())
-                .lockStart(page.getLockStart())
-                .lockEnd(page.getLockEnd())
-                .pageType(page.getType());
-    }
-
-    private PageVersionDTOBuilder pageVersionDTODefault(PageVersion version) {
-        var reviewsCount = getReviewsCountByStatus(version);
-        return PageVersionDTO.builder()
-                .id(version.getId())
-                .title(version.getTitle())
-                .content(version.getOriginalContent())
-                .dateModified(version.getDateModified())
-                .totalApprovedReviews(reviewsCount[0])
-                .totalDisapprovedReviews(reviewsCount[1])
-                .modifiedBy(convertToUserDTO(version.getModifiedBy()));
-    }
-
-    private PageDTO convertMapToPageDTO(Map<String, Object> pageVersion) {
-        var dateCreated = pageVersion.getOrDefault("dateCreated", "");
-        var dateModified = pageVersion.getOrDefault("dateModified", "");
-        var lockStart = pageVersion.getOrDefault("lockStart", "");
-        var lockEnd = pageVersion.getOrDefault("lockEnd", "");
-        return PageDTO.builder()
-                .id((Long) pageVersion.getOrDefault("pageId", 0L))
-                .dateCreated(parseAndFormat(dateCreated))
-                .totalComments((Long) pageVersion.getOrDefault("totalComments", 0L))
-                .totalRatings((Long) pageVersion.getOrDefault("totalRatings", 0L))
-                .relevance(BigDecimal.valueOf((Double) pageVersion.getOrDefault("relevance", 0.0)))
-                .active((Boolean) pageVersion.get("isActive"))
-                .allowComment((Boolean) pageVersion.get("allowComment"))
-                .lockStart(parseAndFormat(lockStart))
-                .lockEnd(parseAndFormat(lockEnd))
-                .author(UserDTO.builder()
-                        .email((String) pageVersion.getOrDefault("authorEmail", ""))
-                        .firstName((String) pageVersion.getOrDefault("authorFirstName", ""))
-                        .lastName((String) pageVersion.getOrDefault("authorLastName", ""))
-                        .profilePhoto((String) pageVersion.getOrDefault("authorProfilePhoto", ""))
-                        .position((String) pageVersion.getOrDefault("authorPosition", ""))
-                        .build())
-                .body(PageVersionDTO.builder()
-                        .id((Long) pageVersion.getOrDefault("versionId", 0L))
-                        .content((String) pageVersion.getOrDefault("versionContent", ""))
-                        .title((String) pageVersion.getOrDefault("versionTitle", ""))
-                        .dateModified(parseAndFormat(dateModified))
-                        .totalApprovedReviews((Long) pageVersion.getOrDefault("totalApprovedReviews", 0L))
-                        .totalDisapprovedReviews((Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L))
-                        .modifiedBy(UserDTO.builder()
-                                .email((String) pageVersion.getOrDefault("modifiedByEmail", ""))
-                                .firstName((String) pageVersion.getOrDefault("modifiedByFirstName", ""))
-                                .lastName((String) pageVersion.getOrDefault("modifiedByLastName", ""))
-                                .profilePhoto((String) pageVersion.getOrDefault("modifiedByProfilePhoto", ""))
-                                .position((String) pageVersion.getOrDefault("modifiedByPosition", ""))
-                                .build())
-                        .build())
-                .categories(getAsArray(pageVersion.getOrDefault("pageCategories", null)))
-                .tags(getAsArray(pageVersion.getOrDefault("pageTags", null)))
-                .pageType((String) pageVersion.getOrDefault("pageType", "wiki"))
-                .build();
-
-    }
-
-    private UserDTO convertToUserDTO(User user) {
-        return user != null ? UserDTO.builder()
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
-                .email(user.getEmail())
-                .build() : null;
-    }
-
-    private LocalDateTime parseAndFormat(Object date) {
-        return date != null && !date.toString().isEmpty()
-                ? LocalDateTime.parse(date.toString(),
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.S"))
-                : null;
-    }
-
-    private String[] getAsArray(Object concatenatedElements) {
-        if (concatenatedElements != null)
-            return concatenatedElements.toString().split("\\|");
-        return new String[] {};
-    }
-
-    private void lockPage(Page page) {
-        var currentTime = LocalDateTime.now();
-        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        boolean isSameUser = page.getLockedBy().getId().equals(currentUser.getId());
-        boolean isPageUnlocked = currentTime.isAfter(page.getLockEnd());
-
-        // checked if page can be edit by current user
-        if (!isSameUser && !isPageUnlocked)
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Document is currently locked");
-
-        if (!isSameUser)
-            page.setLockedBy(currentUser);
-
-        if (isPageUnlocked)
-            page.setLockStart(currentTime);
-
-        page.setLockEnd(currentTime.plusHours(1));
-    }
-
-    private boolean pagePermissionGranted(Long pageId, String permission) {
-        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
-        return userPermissionValidatorService.currentUserIsSuperAdmin()
-                || userPermissionValidatorService.userHasPagePermission(userId, pageId,
-                        permission);
-    }
-
-    private boolean directoryPermissionGranted(Long directoryId, String permission) {
-        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
-        return userPermissionValidatorService.currentUserIsSuperAdmin()
-                || userPermissionValidatorService.userHasDirectoryPermission(userId, directoryId,
-                        permission);
-    }
-
-    private Long[] getReviewsCountByStatus(PageVersion pageVersion) {
-        Long totalApproved = 0L;
-        Long totalDisapproved = 0L;
-
-        for (Review review : pageVersion.getReviews()) {
-            if (review.getStatus().equals(ReviewStatus.APPROVED.getCode())) {
-                totalApproved += 1;
-            } else if (review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
-                totalDisapproved += 1;
-            }
-        }
-
-        return new Long[] { totalApproved, totalDisapproved };
-    }
-
-    private PageVersion saveNewPageWithType(Long directoryId, PageVersionDTO pageDTO, PageType pageType) {
-        var newPageVersion = new PageVersion();
-        var newPage = new Page();
-        var newDirectory = new Directory();
-
-        newPageVersion.setTitle(pageDTO.getTitle());
-        newPageVersion.setContent(pageDTO.getContent().replaceAll("<[^>]+>", ""));
-        newPageVersion.setOriginalContent(pageDTO.getContent());
-        newPageVersion.setPage(newPage);
-
-        newDirectory.setId(directoryId);
-
-        newPage.setDirectory(newDirectory);
-        newPage.getPageVersions().add(newPageVersion);
-        newPage.setType(pageType.getCode());
-        newPage.setLockEnd(LocalDateTime.now().plusHours(1));
-
-        newPage = pageRepository.save(newPage);
-
-        pageRightsService.createPageRights(newPage);
-        return newPageVersion;
     }
 
     @Override
@@ -263,40 +78,66 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO createNewPage(Long directoryId, PageVersionDTO pageDTO) {
+    public PageDTO createNewPage(PageType pageType, Long directoryId, PageVersionDTO pageDTO) {
         if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        var newPageVersion = saveNewPageWithType(directoryId, pageDTO, PageType.WIKI);
+        var newPageVersion = new PageVersion();
+        var newPage = new Page();
+        var newDirectory = new Directory();
 
-        return pageDTODefault(newPageVersion).build();
+        setTitleAndContents(pageDTO, newPageVersion);
+        newPageVersion.setPage(newPage);
+
+        newDirectory.setId(directoryId);
+
+        newPage.setDirectory(newDirectory);
+        newPage.getPageVersions().add(newPageVersion);
+        newPage.setType(pageType.getCode());
+        newPage.setLockEnd(LocalDateTime.now().plusHours(1));
+
+        var categories = setCategories(pageDTO.getCategories(), newPage);
+        var tags = setTags(pageDTO.getTags(), newPage);
+
+        newPage = pageRepository.save(newPage);
+
+        pageRightsService.createPageRights(newPage);
+
+        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L }).categories(categories).tags(tags).build();
 
     }
 
     @Override
-    public PageDTO updatePageDraft(Long pageId, Long versionId, PageVersionDTO pageDTO) {
-        var pageDraft = pageVersionRepository.findByPageIdAndId(pageId, versionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Unable to find document"));
+    public PageDTO updatePageDraft(PageType pageType, Long pageId, Long versionId, PageVersionDTO pageDTO) {
+        var pageDraft = pageVersionRepository.findByPageIdAndPageTypeAndId(pageId, pageType.getCode(), versionId)
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, versionId, pageType)));
 
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(pageDraft.getPage().getDirectory().getId(), requiredPermission)) {
-            pageDraft.setTitle(pageDTO.getTitle());
-            pageDraft.setContent(pageDTO.getContent().replaceAll("<[^>]+>", ""));
-            pageDraft.setOriginalContent(pageDTO.getContent());
-
             // lock the page
-            lockPage(pageDraft.getPage());
+            checkLock(pageDraft.getPage(), true);
+
+            setTitleAndContents(pageDTO, pageDraft);
+
+            var categories = setCategories(pageDTO.getCategories(), pageDraft.getPage());
+            var tags = setTags(pageDTO.getTags(), pageDraft.getPage());
 
             var reviewsCount = getReviewsCountByStatus(pageDraft);
             var pageVersionIsApproved = reviewsCount[0] > 0;
-            if (pageVersionIsApproved)
-                pageDraft.setId(null);
+            var pageVersionIsDisapproved = reviewsCount[1] > 0;
+
+            // save new page version if the version provided is already approved/disapproved
+            if (pageVersionIsApproved || pageVersionIsDisapproved) {
+                var newVersion = copyApprovedPageVersion(pageDraft);
+                pageDraft = newVersion;
+                reviewsCount = new Long[] { 0L, 0L };
+            }
+
             pageDraft = pageVersionRepository.save(pageDraft);
 
-            return pageDTODefault(pageDraft).build();
+            return pageDTODefault(pageDraft, reviewsCount).categories(categories).tags(tags).build();
 
         }
 
@@ -304,16 +145,19 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO deletePage(Long pageId) {
+    public PageDTO deletePage(PageType pageType, Long pageId) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(pageId, false)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Unable to find document"));
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
         String requiredPermission = Permission.DELETE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            // check if page is locked
+            checkLock(page, false);
+
             page.setDeleted(true);
             pageVersion.setPage(pageRepository.save(page));
 
@@ -324,16 +168,18 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO updateActiveStatus(Long pageId, Boolean isActive) {
+    public PageDTO updateActiveStatus(PageType pageType, Long pageId, Boolean isActive) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(pageId, false)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Unable to find document"));
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            checkLock(page, false);
+
             page.setActive(isActive);
             pageVersion.setPage(pageRepository.save(page));
 
@@ -344,15 +190,17 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO updateCommenting(Long pageId, Boolean allowCommenting) {
+    public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(pageId, false)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Unable to find document"));
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+
+            checkLock(page, false);
+
             page.setAllowComment(allowCommenting);
             pageVersion.setPage(pageRepository.save(page));
 
@@ -378,8 +226,8 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO findByIdWithVersions(Long id) {
-        var page = getPage(id);
+    public PageDTO findByIdWithVersions(PageType pageType, Long id) {
+        var page = getPage(pageType, id);
 
         Long directoryId = page.getDirectory().getId();
         List<String> reviewsStatus = new ArrayList<>();
@@ -395,17 +243,22 @@ public class PageServiceImpl implements PageService {
         requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(id, requiredPermission)
                 || directoryPermissionGranted(directoryId, requiredPermission)) {
-            page = pageRepository.findTopByIdAndDeletedAndPageVersionsReviewsStatusInOrPageVersionsReviewsIsEmpty(id,
-                    false, reviewsStatus).orElseThrow();
+            page = pageRepository
+                    .findTopByIdAndTypeAndDeletedAndPageVersionsReviewsStatusInOrPageVersionsReviewsIsEmpty(id,
+                            pageType.getCode(), false, reviewsStatus)
+                    .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
         } else {
-            page = pageRepository.findTopByIdAndDeletedAndPageVersionsReviewsStatusIn(id, false, reviewsStatus)
-                    .orElseThrow();
+            page = pageRepository
+                    .findTopByIdAndTypeAndDeletedAndPageVersionsReviewsStatusIn(id, pageType.getCode(), false,
+                            reviewsStatus)
+                    .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
         }
 
         return pageWithVersionsDTODefault(page).build();
     }
 
-    public PaginatedResponse<PageDTO> findAllByFullTextSearch(String searchKey, String[] categories, String[] tags,
+    public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey, String[] categories,
+            String[] tags,
             Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber, Integer pageSize,
             String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
@@ -424,7 +277,8 @@ public class PageServiceImpl implements PageService {
         searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
         var optionalPageVersions = pageVersionRepository
-                .findByFullTextSearch(searchKey, exactSearch, isArchive, isPublished, Arrays.asList(categories),
+                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive, isPublished,
+                        Arrays.asList(categories),
                         Arrays.asList(tags), userId, paging)
                 .orElse(null);
 
@@ -442,13 +296,35 @@ public class PageServiceImpl implements PageService {
     }
 
     @Override
-    public PageDTO createNewAnnouncement(Long directoryId, PageVersionDTO pageDTO) {
-        if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+    public PageDTO findById(PageType pageType, Long id) {
+        var pageVersion = pageVersionRepository
+                .findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id, pageType.getCode(),
+                        false,
+                        ReviewStatus.APPROVED.getCode())
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
+
+        String requiredPermission = Permission.READ_CONTENT.getCode();
+        if (pagePermissionGranted(id, requiredPermission)
+                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(), requiredPermission)) {
+            return pageDTODefault(pageVersion).build();
         }
 
-        var newPageVersion = saveNewPageWithType(directoryId, pageDTO, PageType.ANNOUNCEMENT);
-
-        return pageDTODefault(newPageVersion).build();
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
     }
+
+    @Override
+    public Page getPage(PageType pageType, Long pageId) {
+        var page = pageRepository.findByIdAndType(pageId, pageType.getCode())
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
+        Long directoryId = page.getDirectory().getId();
+
+        String requiredPermission = Permission.READ_CONTENT.getCode();
+        if (pagePermissionGranted(pageId, requiredPermission)
+                || directoryPermissionGranted(directoryId, requiredPermission)) {
+            return page;
+        }
+
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+    }
+
 }

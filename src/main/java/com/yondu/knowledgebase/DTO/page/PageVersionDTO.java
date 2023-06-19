@@ -2,12 +2,10 @@ package com.yondu.knowledgebase.DTO.page;
 
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -41,15 +39,25 @@ public class PageVersionDTO {
     @JsonInclude(Include.NON_NULL)
     private PageDTO page = null;
 
+    @JsonInclude(Include.NON_EMPTY)
+    private String[] tags;
+
+    @JsonInclude(Include.NON_EMPTY)
+    private String[] categories;
+
     /**
      * @param title
      * @param content
+     * @param tags
+     * @param categories
      */
-    @JsonCreator(mode = Mode.PROPERTIES)
     public PageVersionDTO(@JsonProperty(value = "title") String title,
-            @JsonProperty(value = "content") String content) {
+            @JsonProperty(value = "content") String content, @JsonProperty(value = "tags") String[] tags,
+            @JsonProperty(value = "categories") String[] categories) {
         this.title = title;
         this.content = content;
+        this.tags = tags;
+        this.categories = categories;
     }
 
     private PageVersionDTO(PageVersionDTOBuilder builder) {
@@ -121,6 +129,20 @@ public class PageVersionDTO {
      */
     public PageDTO getPage() {
         return page;
+    }
+
+    /**
+     * @return the tags
+     */
+    public String[] getTags() {
+        return tags;
+    }
+
+    /**
+     * @return the categories
+     */
+    public String[] getCategories() {
+        return categories;
     }
 
     public static class PageVersionDTOBuilder {
