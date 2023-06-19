@@ -114,6 +114,9 @@ public class UserService implements UserDetailsService {
         User fetchedUser = userRepository.findById(id).orElseThrow(() -> new UserException("User not found."));
 
         if(!Util.isNullOrWhiteSpace(user.email())) {
+            if (!Util.isEmailValid(user.email()))
+                throw new InvalidEmailException();
+
             fetchedUser.setEmail(user.email());
         }
 
@@ -142,19 +145,18 @@ public class UserService implements UserDetailsService {
             fetchedUser.setPosition(user.position());
         }
 
-        if (!Util.isEmailValid(user.email()))
-            throw new InvalidEmailException();
+        if(user.roles() != null){
+            if(user.roles().isEmpty()) {
+                throw new MissingFieldException("role");
+            }
+            else{
+                Set<Role> roles = user.roles()
+                        .stream()
+                        .map(r -> new Role(r.getId()))
+                        .collect(Collectors.toSet());
 
-        if(user.roles().isEmpty()) {
-            throw new MissingFieldException("role");
-        }
-        else{
-            Set<Role> roles = user.roles()
-                    .stream()
-                    .map(r -> new Role(r.getId()))
-                    .collect(Collectors.toSet());
-
-            fetchedUser.setRole(roles);
+                fetchedUser.setRole(roles);
+            }
         }
 
 
