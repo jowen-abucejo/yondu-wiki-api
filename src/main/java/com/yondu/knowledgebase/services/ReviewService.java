@@ -144,15 +144,19 @@ public class ReviewService {
 
 
     }
-    public ReviewDTO.UpdatedResponse updateReview(Long id, ReviewDTO.UpdateRequest request) {
+    public ReviewDTO.UpdatedResponse updateReview(Long pageId, Long versionId, ReviewDTO.UpdateRequest request) {
 
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if(!hasContentApprovalPermission(currentUser)) throw new AccessDeniedException();
+        if(!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
 
-        Review review = reviewRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Review id not found: %s", id)));
+        Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
+
+        if(request.status().equals(ReviewStatus.PENDING.getCode())) {
+            throw new RequestValidationException("Content is already submitted as pending.");
+        }
 
         long pageAuthorId = review.getPageVersion().getPage().getAuthor().getId();
-        long pageId = review.getPageVersion().getPage().getId();
+        long pId = review.getPageVersion().getPage().getId();
 
         if (review.getStatus().equals(ReviewStatus.APPROVED.getCode()) || review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
 
@@ -168,14 +172,14 @@ public class ReviewService {
 
     if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
         notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                String.format("Your Content has been Approved by %s!", currentUser.getEmail()), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pageId));
+                String.format("Your Content has been Approved by %s!", currentUser.getEmail()), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pId));
     } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())){
         notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                String.format("Your content has been disapproved by %s due to ", currentUser.getEmail())+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pageId));
+                String.format("Your content has been disapproved by %s due to ", currentUser.getEmail())+review.getComment(), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pId));
     }
 
     // Implement audit log
-    auditLogService.createAuditLog(currentUser,EntityType.PAGE.getCode(), pageId,"reviewed a content");
+    auditLogService.createAuditLog(currentUser,EntityType.PAGE.getCode(), pId,"reviewed a content");
 
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
     }

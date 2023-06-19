@@ -41,9 +41,9 @@ public class ReviewController {
 
 
 }
-    @PostMapping("/reviews/update/{id}")
-    public ResponseEntity<ApiResponse<?>> updateReview(@PathVariable("id") Long id, @RequestBody ReviewDTO.UpdateRequest request) {
-            Object data = reviewService.updateReview(id, request);
+    @PutMapping("/pages/{pageId}/versions/{versionId}/reviews")
+    public ResponseEntity<ApiResponse<?>> updateReview(@PathVariable("pageId") Long pageId, @PathVariable("versionId") Long versionId, @RequestBody ReviewDTO.UpdateRequest request) {
+            Object data = reviewService.updateReview(pageId,versionId, request);
             return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Review updated successfully"));
     }
 
