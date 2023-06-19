@@ -100,6 +100,16 @@ public class RoleService {
         Optional<Role> optionalRole = roleRepository.findById(id);
         Role role = optionalRole.orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
+        boolean roleExists = roleRepository.existsByRoleName(roleDTO.getRoleName());
+
+        if (roleExists) {
+            throw new RequestValidationException("Role already exists");
+        }
+
+        if(roleDTO.getPermission().isEmpty()){
+            throw new RequestValidationException("Role need at least 1 or more permission");
+        }
+
         role.setRoleName(roleDTO.getRoleName());
 
         Set<Permission> permissions = roleDTO.getPermission().stream()
