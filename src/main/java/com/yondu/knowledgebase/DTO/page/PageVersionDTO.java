@@ -45,6 +45,8 @@ public class PageVersionDTO {
     @JsonInclude(Include.NON_EMPTY)
     private String[] categories;
 
+    private Boolean isDraft;
+
     /**
      * @param title
      * @param content
@@ -68,7 +70,8 @@ public class PageVersionDTO {
         this.modifiedBy = builder.modifiedBy;
         this.page = builder.page;
         this.totalApprovedReviews = builder.totalApprovedReviews;
-        totalDisapprovedReviews = builder.totalDisapprovedReviews;
+        this.totalDisapprovedReviews = builder.totalDisapprovedReviews;
+        this.isDraft = builder.isDraft;
     }
 
     public static PageVersionDTOBuilder builder() {
@@ -125,6 +128,13 @@ public class PageVersionDTO {
     }
 
     /**
+     * @return the isDraft
+     */
+    public Boolean getIsDraft() {
+        return isDraft;
+    }
+
+    /**
      * @return the page
      */
     public PageDTO getPage() {
@@ -146,6 +156,7 @@ public class PageVersionDTO {
     }
 
     public static class PageVersionDTOBuilder {
+        public Boolean isDraft;
         private Long id;
         private String title;
         private String content;
@@ -198,10 +209,14 @@ public class PageVersionDTO {
             return this;
         }
 
+        public PageVersionDTOBuilder isDraft(Boolean isDraft) {
+            this.isDraft = isDraft;
+            return this;
+        }
+
         public PageVersionDTO build() {
             return new PageVersionDTO(this);
         }
 
     }
-
 }

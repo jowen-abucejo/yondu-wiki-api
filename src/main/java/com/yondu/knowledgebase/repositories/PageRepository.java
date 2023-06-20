@@ -41,5 +41,8 @@ public interface PageRepository extends JpaRepository<Page, Long> {
         public Optional<Page> findByIdAndType(Long id, String pageType);
 
         @Query("SELECT p FROM Page p WHERE p.directory = ?1 AND type = ?2 ORDER BY p.dateCreated DESC")
-        public org.springframework.data.domain.Page<Page> getPagesFromDirectory(Directory directoryId, String type, Pageable pageable);
+        public org.springframework.data.domain.Page<Page> getPagesFromDirectory(Directory directoryId, String type,
+                        Pageable pageable);
+
+        public boolean existsByIdAndTypeAndDeleted(Long id, String code, Boolean deleted);
 }
