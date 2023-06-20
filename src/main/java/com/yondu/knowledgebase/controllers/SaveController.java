@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveStatusDTO;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.repositories.SaveRepository;
 import com.yondu.knowledgebase.services.SaveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ public class SaveController {
     @Autowired
     public SaveController (SaveService saveService) {
         this.saveService = saveService;
+
     }
 
     @PostMapping("/create")
@@ -41,8 +43,11 @@ public class SaveController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> removeSave(@PathVariable Long id) {
+        boolean removed = saveService.deleteSaved(id);
+        SaveStatusDTO saveStatusDTO = new SaveStatusDTO(!removed, id);
 
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(saveService.deleteSaved(id),"Save with id: " + id + "successfully deleted!"));
+        ApiResponse<Object> apiResponse = ApiResponse.success(saveStatusDTO, "Removed your saved item with id "+id+" successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/{entityType}/{entityId}")

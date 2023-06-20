@@ -89,7 +89,7 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
     return new PaginatedResponse<>(save,page,size, (long)save.size());
 }
 
-public Save deleteSaved(Long id) {
+public boolean deleteSaved(Long id) {
 
     Save save = saveRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Save " + id + " not found."));
@@ -101,7 +101,7 @@ public Save deleteSaved(Long id) {
 
     saveRepository.delete(save);
 
-    return save;
+    return true;
 }
 
     public SaveDTO.BaseResponse getSave(String entityType, Long entityId) {
