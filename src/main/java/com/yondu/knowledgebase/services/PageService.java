@@ -33,6 +33,9 @@ public interface PageService {
 
         public Page getPage(Long pageId);
 
-        // TODO to be refactored
-        PageDTO findByIdUnchecked(Long id);
+        public PaginatedResponse<PageDTO> findAllByDirectoryIdAndFullTextSearch(PageType pageType, Long directoryId,
+                        String searchKey,
+                        String[] categories, String[] tags,
+                        Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+                        Integer pageSize, String[] sortBy);
 }

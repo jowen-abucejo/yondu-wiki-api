@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,6 +62,7 @@ class PageServiceUtilities {
                 .dateModified(version.getDateModified())
                 .totalApprovedReviews(reviewsCount[0])
                 .totalDisapprovedReviews(reviewsCount[1])
+                .isDraft(reviewsCount[2] == 0)
                 .modifiedBy(convertToUserDTO(version.getModifiedBy()));
     }
 
@@ -106,8 +108,18 @@ class PageServiceUtilities {
     }
 
     protected PageDTO convertMapToPageDTO(Map<String, Object> pageVersion) {
+        return mapToPageDTOBase(pageVersion).build();
+    }
+
+    protected PageDTO convertMapToPageDTO(Map<String, Object> page, List<Map<String, Object>> pageVersions) {
+        var accessibleVersions = pageVersions.stream().map(version -> {
+            return convertMapToPageVersionDTO(version);
+        }).collect(Collectors.toList());
+        return mapToPageDTOBase(page).versions(accessibleVersions).build();
+    }
+
+    private PageDTOBuilder mapToPageDTOBase(Map<String, Object> pageVersion) {
         var dateCreated = pageVersion.getOrDefault("dateCreated", "");
-        var dateModified = pageVersion.getOrDefault("dateModified", "");
         var lockStart = pageVersion.getOrDefault("lockStart", "");
         var lockEnd = pageVersion.getOrDefault("lockEnd", "");
         return PageDTO.builder()
@@ -127,26 +139,30 @@ class PageServiceUtilities {
                         .profilePhoto((String) pageVersion.getOrDefault("authorProfilePhoto", ""))
                         .position((String) pageVersion.getOrDefault("authorPosition", ""))
                         .build())
-                .body(PageVersionDTO.builder()
-                        .id((Long) pageVersion.getOrDefault("versionId", 0L))
-                        .content((String) pageVersion.getOrDefault("versionContent", ""))
-                        .title((String) pageVersion.getOrDefault("versionTitle", ""))
-                        .dateModified(parseAndFormat(dateModified))
-                        .totalApprovedReviews((Long) pageVersion.getOrDefault("totalApprovedReviews", 0L))
-                        .totalDisapprovedReviews((Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L))
-                        .modifiedBy(UserDTO.builder()
-                                .email((String) pageVersion.getOrDefault("modifiedByEmail", ""))
-                                .firstName((String) pageVersion.getOrDefault("modifiedByFirstName", ""))
-                                .lastName((String) pageVersion.getOrDefault("modifiedByLastName", ""))
-                                .profilePhoto((String) pageVersion.getOrDefault("modifiedByProfilePhoto", ""))
-                                .position((String) pageVersion.getOrDefault("modifiedByPosition", ""))
-                                .build())
-                        .build())
+                .body(convertMapToPageVersionDTO(pageVersion))
                 .categories(getAsArray(pageVersion.getOrDefault("pageCategories", null)))
                 .tags(getAsArray(pageVersion.getOrDefault("pageTags", null)))
-                .pageType((String) pageVersion.getOrDefault("pageType", "wiki"))
-                .build();
+                .pageType((String) pageVersion.getOrDefault("pageType", "wiki"));
+    }
 
+    protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {
+        var dateModified = pageVersion.getOrDefault("dateModified", "");
+        return PageVersionDTO.builder()
+                .id((Long) pageVersion.getOrDefault("versionId", 0L))
+                .content((String) pageVersion.getOrDefault("versionContent", ""))
+                .title((String) pageVersion.getOrDefault("versionTitle", ""))
+                .dateModified(parseAndFormat(dateModified))
+                .totalApprovedReviews((Long) pageVersion.getOrDefault("totalApprovedReviews", 0L))
+                .totalDisapprovedReviews((Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L))
+                .isDraft(((Long) pageVersion.getOrDefault("totalPendingReviews", 0L)) == 0L)
+                .modifiedBy(UserDTO.builder()
+                        .email((String) pageVersion.getOrDefault("modifiedByEmail", ""))
+                        .firstName((String) pageVersion.getOrDefault("modifiedByFirstName", ""))
+                        .lastName((String) pageVersion.getOrDefault("modifiedByLastName", ""))
+                        .profilePhoto((String) pageVersion.getOrDefault("modifiedByProfilePhoto", ""))
+                        .position((String) pageVersion.getOrDefault("modifiedByPosition", ""))
+                        .build())
+                .build();
     }
 
     protected UserDTO convertToUserDTO(User user) {
@@ -227,6 +243,7 @@ class PageServiceUtilities {
     protected Long[] getReviewsCountByStatus(PageVersion pageVersion) {
         Long totalApproved = 0L;
         Long totalDisapproved = 0L;
+        Long totalPending = 0L;
 
         var reviews = new HashSet<>(pageVersion.getReviews());
         for (Review review : reviews) {
@@ -234,10 +251,12 @@ class PageServiceUtilities {
                 totalApproved += 1;
             } else if (review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
                 totalDisapproved += 1;
+            } else if (review.getStatus().equals(ReviewStatus.PENDING.getCode())) {
+                totalPending += 1;
             }
         }
 
-        return new Long[] { totalApproved, totalDisapproved };
+        return new Long[] { totalApproved, totalDisapproved, totalPending };
     }
 
     protected String pageNotFoundPhrase(Long id, PageType type) {

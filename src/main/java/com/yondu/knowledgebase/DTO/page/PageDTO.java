@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -312,7 +314,7 @@ public class PageDTO {
         }
 
         public PageDTOBuilder pageType(String pageType) {
-            this.pageType = pageType;
+            this.pageType = StringUtils.capitalize(pageType.toLowerCase());
             return this;
         }
 

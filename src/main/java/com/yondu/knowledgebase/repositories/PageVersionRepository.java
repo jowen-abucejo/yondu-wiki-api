@@ -50,6 +50,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 COALESCE(r.totalRatings, 0) AS totalRatings,
                 COALESCE(rv.totalApprovedReviews, 0) AS totalApprovedReviews,
                 COALESCE(rv2.totalDisapprovedReviews, 0) AS totalDisapprovedReviews,
+                COALESCE(rv3.totalPendingReviews, 0) AS totalPendingReviews,
                 v.id AS versionId,
                 v.title AS versionTitle,
                 v.original_content AS versionContent,
@@ -79,17 +80,37 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalApprovedReviews FROM review WHERE status = 'APPROVED' GROUP BY page_version_id ) rv ON rv.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id
+                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id LEFT JOIN
+                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id
             WHERE
                 p.page_type = :pageTypeFilter
+                AND CASE
+                    WHEN :parentDirectory IS NOT NULL
+                    THEN
+                        p.directory_id = :parentDirectory
+                    ELSE TRUE
+                    END
+                AND CASE
+                    WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
+                    THEN
+                        v.page_id IN (:pagePrimaryKeys)
+                    ELSE TRUE
+                    END
                 AND p.is_deleted = 0
                 AND (
-                        CASE WHEN :isPublished
+                        CASE WHEN :isPublished OR :allVersions
                             THEN (
-                                (v.page_id , v.id) IN
+                                (
+                                    (:allVersions AND (v.page_id , v.id) IN
+                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
+                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        GROUP BY pv.page_id)
+                                        )
+                                    OR (v.page_id , v.id) IN
                                     (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
                                         (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
                                     GROUP BY pv.page_id)
+                                    )
                                 AND (
                                     EXISTS
                                         (SELECT 1 FROM
@@ -128,7 +149,11 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         )
                                     )
                                 )
-                            ELSE (
+                            ELSE TRUE
+                            END
+                        AND
+                        CASE WHEN NOT :isPublished OR :allVersions
+                            THEN (
                                 (v.page_id , v.id) IN
                                     (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
                                         (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
@@ -158,25 +183,26 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                             AND u10.id = :userId AND upa10.page_id = p.id)
                                         pTable00)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId AND gpa10.page_id = p.id)
-                                        pTable02)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10
-                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        pTable03)
+                                        OR EXISTS(SELECT 1 FROM
+                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                                permission p10 ON gpa10.permission_id = p10.id
+                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                                AND u10.id = :userId AND gpa10.page_id = p.id)
+                                            pTable02)
+                                        OR EXISTS(SELECT 1 FROM
+                                            (SELECT p10.id FROM users u10
+                                                LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                                permission p10 ON dua10.permission_id = p10.id
+                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                                AND u10.id = :userId AND dua10.directory_id = p.directory_id)
+                                            pTable03)
+                                        )
                                     )
                                 )
-                            )
-                        END
+                            ELSE TRUE
+                            END
                     )
                 AND p.is_active <> :isArchived
                 AND CASE
@@ -219,17 +245,37 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalApprovedReviews FROM review WHERE status = 'APPROVED' GROUP BY page_version_id ) rv ON rv.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id
+                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id LEFT JOIN
+                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id
             WHERE
                 p.page_type = :pageTypeFilter
+                AND CASE
+                    WHEN :parentDirectory IS NOT NULL
+                    THEN
+                        p.directory_id = :parentDirectory
+                    ELSE TRUE
+                    END
+                AND CASE
+                    WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
+                    THEN
+                        v.page_id IN (:pagePrimaryKeys)
+                    ELSE TRUE
+                    END
                 AND p.is_deleted = 0
                 AND (
-                        CASE WHEN :isPublished
+                        CASE WHEN :isPublished OR :allVersions
                             THEN (
-                                (v.page_id , v.id) IN
-                                    (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
-                                    GROUP BY pv.page_id)
+                                (
+                                    (:allVersions AND (v.page_id , v.id) IN
+                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
+                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        GROUP BY pv.page_id)
+                                        )
+                                    OR (v.page_id , v.id) IN
+                                        (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
+                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        GROUP BY pv.page_id)
+                                    )
                                 AND (
                                     EXISTS
                                         (SELECT 1 FROM
@@ -268,7 +314,11 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         )
                                     )
                                 )
-                            ELSE (
+                            ELSE TRUE
+                            END
+                        AND
+                        CASE WHEN (NOT :isPublished) OR :allVersions
+                            THEN (
                                 (v.page_id , v.id) IN
                                     (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
                                         (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
@@ -298,25 +348,26 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                             AND u10.id = :userId AND upa10.page_id = p.id)
                                         pTable00)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId AND gpa10.page_id = p.id)
-                                        pTable02)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10
-                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        pTable03)
+                                        OR EXISTS(SELECT 1 FROM
+                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                                permission p10 ON gpa10.permission_id = p10.id
+                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                                AND u10.id = :userId AND gpa10.page_id = p.id)
+                                            pTable02)
+                                        OR EXISTS(SELECT 1 FROM
+                                            (SELECT p10.id FROM users u10
+                                                LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                                permission p10 ON dua10.permission_id = p10.id
+                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                                AND u10.id = :userId AND dua10.directory_id = p.directory_id)
+                                            pTable03)
+                                        )
                                     )
                                 )
-                            )
-                        END
+                            ELSE TRUE
+                            END
                     )
                 AND p.is_active <> :isArchived
                 AND CASE
@@ -356,9 +407,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("isExactMatch") Boolean isExactMatch,
             @Param("isArchived") Boolean isArchived,
             @Param("isPublished") Boolean isPublished,
+            @Param("allVersions") Boolean allVersions,
             @Param("categories") List<String> categories,
             @Param("tags") List<String> tags,
             @Param("userId") Long userId,
+            @Param("pagePrimaryKeys") List<Long> pageIds,
+            @Param("parentDirectory") Long directoryId,
             Pageable pageable);
 
     // TODO to be refactored

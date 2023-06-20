@@ -52,12 +52,11 @@ public class PageController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
         return pageService.findAllByFullTextSearch(pageType, searchKey, categories, tags, archived, published,
-                exactSearch,
-                pageNumber, pageSize, sortBy);
+                exactSearch, pageNumber, pageSize, sortBy);
     }
 
     @GetMapping(path = "pages")
-    public PaginatedResponse<PageDTO> getAllPagesWithVersions(
+    public PaginatedResponse<PageDTO> getAllApprovedPages(
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
@@ -121,11 +120,21 @@ public class PageController {
         return new ApiResponse<PageDTO>("success", page, "Wiki commenting on");
     }
 
-    // TODO to be refactored:
-    @GetMapping("pages/{id}/unchecked")
-    public ApiResponse<PageDTO> getUnapprovedPage(@PathVariable Long id) {
-        var page = pageService.findByIdUnchecked(id);
-        return new ApiResponse<PageDTO>("success", page, "Page retrieved");
+    @GetMapping(path = "directories/{id}/pages/search")
+    public PaginatedResponse<PageDTO> searchPagesInDirectory(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "", name = "categories") String[] categories,
+            @RequestParam(defaultValue = "", name = "tags") String[] tags,
+            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "published") Boolean published,
+            @RequestParam(defaultValue = "0", name = "exactSearch") Boolean exactSearch,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "20", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+
+        return pageService.findAllByDirectoryIdAndFullTextSearch(pageType, id, searchKey, categories, tags, archived,
+                published, exactSearch, pageNumber, pageSize, sortBy);
     }
 
 }

@@ -127,9 +127,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             var reviewsCount = getReviewsCountByStatus(pageDraft);
             var pageVersionIsApproved = reviewsCount[0] > 0;
             var pageVersionIsDisapproved = reviewsCount[1] > 0;
+            var pageVersionIsPendingApproval = reviewsCount[2] > 0;
 
-            // save new page version if the version provided is already approved/disapproved
-            if (pageVersionIsApproved || pageVersionIsDisapproved) {
+            // save new page version if the version provided is already submitted
+            if (pageVersionIsApproved || pageVersionIsDisapproved || pageVersionIsPendingApproval) {
                 var newVersion = copyApprovedPageVersion(pageDraft);
                 pageDraft = newVersion;
                 reviewsCount = new Long[] { 0L, 0L };
@@ -278,8 +279,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive, isPublished,
-                        Arrays.asList(categories),
-                        Arrays.asList(tags), userId, paging)
+                        false, Arrays.asList(categories),
+                        Arrays.asList(tags), userId, Arrays.asList(), null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -298,14 +299,17 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     @Override
     public PageDTO findById(PageType pageType, Long id) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id, pageType.getCode(),
+                .findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id,
+                        pageType.getCode(),
                         false,
                         ReviewStatus.APPROVED.getCode())
-                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
+                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id,
+                        pageType)));
 
         String requiredPermission = Permission.READ_CONTENT.getCode();
         if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(), requiredPermission)) {
+                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(),
+                        requiredPermission)) {
             return pageDTODefault(pageVersion).build();
         }
 
@@ -327,21 +331,42 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
     }
 
-    // TODO to be refactored
     @Override
-    public PageDTO findByIdUnchecked(Long id) {
-        var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(id, false)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Unable to find document"));
+    public PaginatedResponse<PageDTO> findAllByDirectoryIdAndFullTextSearch(PageType pageType, Long directoryId,
+            String searchKey, String[] categories, String[] tags, Boolean isArchive, Boolean isPublished,
+            Boolean exactSearch, Integer pageNumber, Integer pageSize, String[] sortBy) {
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+        int retrievedPage = Math.max(1, pageNumber);
+        retrievedPage = Math.min(100, retrievedPage);
 
-//        String requiredPermission = Permission.READ_CONTENT.getCode();
-//        if (pagePermissionGranted(id, requiredPermission)
-//                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(), requiredPermission)) {
-//        }
-        return pageDTODefault(pageVersion).build();
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(retrievedPage - 1, pageSize, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
 
-//        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+        // format search key words
+        searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive, isPublished,
+                        true, Arrays.asList(categories),
+                        Arrays.asList(tags), userId, Arrays.asList(), directoryId, paging)
+                .orElse(null);
+
+        var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
+            return convertMapToPageDTO(pageVersion);
+        }).collect(Collectors.toList());
+
+        var otherConfiguration = new HashMap<String, Object>();
+        otherConfiguration.put("available_sorting", validSortAliases);
+        otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection())).toList());
+        return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
+                optionalPageVersions.getTotalElements(), otherConfiguration);
+
     }
 
 }
