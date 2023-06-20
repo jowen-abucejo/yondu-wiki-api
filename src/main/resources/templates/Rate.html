@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Knowledge Base Notification</title>
+</head>
+<body>
+<h1>Your <span th:text="${contentType}"></span> has a new rating by <a th:href="${userProfileLink}" th:text="${fromUser}"></a></h1>
+<h3>Click the link below for more details:</h3>
+<a th:href="${contentLink}" th:text="${contentLink}"></a>
+<p>
+    Thank you for using our application. We hope that the notification we sent was helpful to you. If you have any further inquiries or need assistance, please feel free to reach out to us at <a href="mailto:knowledgebase0630@gmail.com">knowledgebase0630@gmail.com</a>.
+</p>
+
+<p>
+    Best regards,<br>
+    The Yondu Knowledge Base Team
+</p>
+</body>
+</html>
