@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class PostDTO {
 
     private Long id;
-    private UserDTO.BaseResponse author;
+    private UserDTO.GeneralResponse author;
     private String content;
     private String title;
     private LocalDateTime dateCreated;
@@ -33,7 +33,7 @@ public class PostDTO {
 
     public PostDTO(Post post) {
         this.id = post.getId();
-        this.author = UserDTOMapper.mapToBaseResponse(post.getAuthor());
+        this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
         this.content = post.getContent();
         this.dateCreated = post.getDateCreated();
@@ -72,11 +72,11 @@ public class PostDTO {
         this.title = title;
     }
 
-    public UserDTO.BaseResponse getAuthor() {
+    public UserDTO.GeneralResponse getAuthor() {
         return author;
     }
 
-    public void setAuthor(UserDTO.BaseResponse author) {
+    public void setAuthor(UserDTO.GeneralResponse author) {
         this.author = author;
     }
 
