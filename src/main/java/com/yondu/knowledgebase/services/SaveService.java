@@ -1,8 +1,6 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.review.ReviewDTO;
-import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTOMapper;
 import com.yondu.knowledgebase.entities.*;
