@@ -170,17 +170,30 @@ public class UserService implements UserDetailsService {
                 String.format("Active user with email of %s not found", email)));
     }
 
-    public PaginatedResponse<UserDTO.WithRolesResponse> getAllUser(String searchKey, int page, int size) {
+    public PaginatedResponse<UserDTO.WithRolesResponse> getAllUser(String searchKey, String statusFilter, String roleFilter, int page, int size) {
         log.info("UserService.getAllUser()");
-        log.info("searchKey : " + searchKey);
-        log.info("page : " + page);
-        log.info("size : " + size);
+        log.info("searchKey: " + searchKey);
+        log.info("statusFilter: " + statusFilter);
+        log.info("roleFilter: " + roleFilter);
+        log.info("page: " + page);
+        log.info("size: " + size);
 
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<User> userPages = userRepository.findAll(searchKey, pageRequest);
+        Page<User> userPages;
+
+        if (!statusFilter.isEmpty() && !roleFilter.isEmpty()) {
+            userPages = userRepository.findAllByFullNameAndStatusAndRole(searchKey, statusFilter, roleFilter, pageRequest);
+        } else if (!statusFilter.isEmpty()) {
+            userPages = userRepository.findAllByFullNameAndStatus(searchKey, statusFilter, pageRequest);
+        } else if (!roleFilter.isEmpty()) {
+            userPages = userRepository.findAllByFullNameAndRole(searchKey, roleFilter, pageRequest);
+        } else {
+            userPages = userRepository.findAllByFullName(searchKey, pageRequest);
+        }
+
         List<User> users = userPages.getContent();
 
-        if(users.isEmpty()){
+        if (users.isEmpty()) {
             throw new NoContentException("No content found");
         }
 
@@ -188,10 +201,11 @@ public class UserService implements UserDetailsService {
                 .map(user -> UserDTOMapper.mapToWithRolesResponse(user))
                 .collect(Collectors.toList());
 
-        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<UserDTO.WithRolesResponse>(userDTOs, page, size, (long) userPages.getTotalPages());
+        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<>(userDTOs, page, size, (long) userPages.getTotalPages());
 
         return paginatedResponse;
     }
+
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User Not Found"));

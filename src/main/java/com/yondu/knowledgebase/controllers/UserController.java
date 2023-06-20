@@ -40,20 +40,30 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping("")
-    public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> getAllUser(@RequestParam(defaultValue = "") String searchKey, @RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "30") int size){
+    public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> getAllUser(
+            @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "") String statusFilter,
+            @RequestParam(defaultValue = "") String roleFilter,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int size
+    ) {
         log.info("UserController.getAllUser()");
-        log.info("searchKey : " + searchKey);
-        log.info("page : " + page);
-        log.info("size : " + size);
+        log.info("searchKey: " + searchKey);
+        log.info("statusFilter: " + statusFilter);
+        log.info("roleFilter: " + roleFilter);
+        log.info("page: " + page);
+        log.info("size: " + size);
 
-        ResponseEntity response = null;
+        ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> response;
 
         searchKey = "%" + searchKey + "%";
 
-        PaginatedResponse<UserDTO.WithRolesResponse> fetchedUsers = userService.getAllUser(searchKey, page, size);
+        PaginatedResponse<UserDTO.WithRolesResponse> fetchedUsers = userService.getAllUser(searchKey, statusFilter, roleFilter, page, size);
 
-        ApiResponse apiResponse = ApiResponse.success(fetchedUsers, "success");
-        return ResponseEntity.ok(apiResponse);
+        ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>> apiResponse = ApiResponse.success(fetchedUsers, "success");
+        response = ResponseEntity.ok(apiResponse);
+
+        return response;
     }
 
     @GetMapping("/{id}")

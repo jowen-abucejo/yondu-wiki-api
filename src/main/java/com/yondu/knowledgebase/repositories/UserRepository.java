@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -110,4 +111,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                 AND dua.directory_id = :directoryId) AS userPermission2)) AS isGranted
                                                 """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2 AND r.roleName = ?3")
+    Page<User> findAllByFullNameAndStatusAndRole(String fullName, String statusFilter, String roleFilter, Pageable pageable);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2")
+    Page<User> findAllByFullNameAndStatus(String fullName, String statusFilter, Pageable pageable);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND r.roleName = ?2")
+    Page<User> findAllByFullNameAndRole(String fullName, String roleFilter, Pageable pageable);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1%")
+    Page<User> findAllByFullName(String fullName, Pageable pageable);
+
 }
