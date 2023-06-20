@@ -8,6 +8,7 @@ import java.util.Set;
 import jakarta.persistence.*;
 
 @Entity
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name"})})
 public class Tag {
 
     @Id
@@ -19,17 +20,19 @@ public class Tag {
     @Column(name = "is_deleted")
     private Boolean deleted = false;
 
-    @ManyToMany(mappedBy = "tags")
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "page_tag", joinColumns = @JoinColumn(name = "tag_id"), inverseJoinColumns =@JoinColumn (name = "page_id"))
     private List<Page> pages = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "tags")
-    private Set<Post> posts = new HashSet<>();
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "post_tag", joinColumns = @JoinColumn(name = "tag_id"), inverseJoinColumns =@JoinColumn (name = "post_id"))
+    private List<Post> posts = new ArrayList<>();
 
     public Tag() {
 
     }
 
-    public Tag(Long id, String name, Boolean deleted, List<Page> pages, Set<Post> posts) {
+    public Tag(Long id, String name, Boolean deleted, List<Page> pages, List<Post> posts) {
         this.id = id;
         this.name = name;
         this.deleted = deleted;
@@ -69,11 +72,11 @@ public class Tag {
         this.pages = pages;
     }
 
-    public Set<Post> getPosts() {
+    public List<Post> getPosts() {
         return posts;
     }
 
-    public void setPosts(Set<Post> posts) {
+    public void setPosts(List<Post> posts) {
         this.posts = posts;
     }
 

@@ -1,7 +1,5 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.tag.TagDTO;
-import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Tag;
 import com.yondu.knowledgebase.repositories.TagRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +39,24 @@ public class TagService {
         tag.setDeleted(true);
         tagRepository.save(tag);
         return tag;
+    }
+
+    public boolean isTagNameTaken(String tagName) {
+        return tagRepository.existsByName(tagName);
+    }
+
+    public Tag getTagByName(String name){
+        return tagRepository.findByName(name).orElseThrow();
+    }
+
+    public Tag addPageTag(Tag tag){
+        Tag updatedTag = tagRepository.save(tag);
+        return updatedTag;
+    }
+
+    public Tag updatePageTag(Tag tag){
+        Tag updatedTag = tagRepository.save(tag);
+        return updatedTag;
     }
 
 }
