@@ -1,7 +1,8 @@
 package com.yondu.knowledgebase.DTO.tag;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yondu.knowledgebase.DTO.page_rights.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.post.PostDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,9 @@ public class TagDTO {
 
     @JsonInclude
     private List<PageDTO> pages = new ArrayList<>();
+
+    @JsonInclude
+    private List<PostDTO> posts = new ArrayList<>();
 
     private Boolean deleted = false;
 
@@ -54,5 +58,13 @@ public class TagDTO {
         return pages;
     }
 
-
+    public void setPages(List<PageDTO> pages) {
+        this.pages = pages;
+    }
+    public List<PostDTO> getPosts() {
+        return posts;
+    }
+    public void setPosts(List<PostDTO> posts) {
+        this.posts = posts;
+    }
 }
