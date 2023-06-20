@@ -104,7 +104,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         pageRightsService.createPageRights(newPage);
 
-        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L }).categories(categories).tags(tags).build();
+        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L, 0L }).categories(categories).tags(tags).build();
 
     }
 
