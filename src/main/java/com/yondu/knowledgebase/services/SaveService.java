@@ -116,6 +116,10 @@ public Save deleteSaved(Long id) {
         Optional<Save> savedEntity = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user));
         return savedEntity.isPresent();
     }
+    public Long getSaveId(String entityType, Long entityId, User user) {
+        Save savedEntity = saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user);
+        return savedEntity != null ? savedEntity.getId() : null;
+    }
 
     public void validateEntityExistence(String entityType, Long entityId) {
         switch (entityType) {

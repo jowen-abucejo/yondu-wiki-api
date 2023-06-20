@@ -12,4 +12,5 @@ public class SaveDTO {
     public record BaseRequest(String entityType, Long entityId) {}
 
     public record BaseResponse(long id, UserDTO.BaseResponse author, LocalDateTime dateCreated , String entityType, Long entityId) {}
+
 }

@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
+import com.yondu.knowledgebase.DTO.save.SaveStatusDTO;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.services.SaveService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +46,15 @@ public class SaveController {
     }
 
     @GetMapping("/{entityType}/{entityId}")
-    public ResponseEntity<Boolean> isEntitySaved(@PathVariable String entityType, @PathVariable Long entityId,
+    public ResponseEntity<ApiResponse<?>> isEntitySaved(@PathVariable String entityType, @PathVariable Long entityId,
             Authentication authentication
     ) {
         User user = (User) authentication.getPrincipal();
         boolean isSaved = saveService.hasEntitySaved(entityType, entityId, user);
+        Long saveId = saveService.getSaveId(entityType, entityId, user);
 
-        return ResponseEntity.ok(isSaved);
+        SaveStatusDTO saveStatusDTO = new SaveStatusDTO(isSaved, saveId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(saveStatusDTO,"Entity Retrieved"));
     }
 
     @GetMapping("/get/{entityType}/{entityId}")
