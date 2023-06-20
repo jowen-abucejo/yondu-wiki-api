@@ -23,8 +23,14 @@ public class RoleController {
     }
 
     @GetMapping("/roles/paginated")
-    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRolesPaginated(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(roleService.getAllRolesPaginated(page, size), "Success retrieving list of roles"));
+    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRolesPaginated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String searchKey
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.success(roleService.getAllRolesPaginated(page, size, searchKey), "Success retrieving list of roles")
+        );
     }
 
     @GetMapping("/roles")

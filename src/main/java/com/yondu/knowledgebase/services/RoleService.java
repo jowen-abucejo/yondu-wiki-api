@@ -10,6 +10,8 @@ import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -30,27 +32,35 @@ public class RoleService {
 
     private final UserRepository userRepository;
 
+    private final Logger log = LoggerFactory.getLogger(UserService.class);
+
+
     public RoleService(RoleRepository roleRepository, PermissionRepository permissionRepository, UserRepository userRepository) {
         this.roleRepository = roleRepository;
         this.permissionRepository = permissionRepository;
         this.userRepository = userRepository;
     }
 
-    public PaginatedResponse<RoleDTO> getAllRolesPaginated(int page, int size) {
-        // Adjust the page number
+    public PaginatedResponse<RoleDTO> getAllRolesPaginated(int page, int size, String searchKey) {
         int adjustedPage = page - 1;
         int offset = adjustedPage * size + 1;
 
         Pageable pageable = PageRequest.of(adjustedPage, size);
-        Page<Role> roles = roleRepository.findAll(pageable);
+        Page<Role> roles;
+        log.info(searchKey + "QWEQWE" + searchKey.isBlank() + "ASDASD" + searchKey.isEmpty());
+        if (!searchKey.isBlank()) {
+            roles = roleRepository.findByRoleNameStartingWithIgnoreCase(searchKey, pageable);
+        } else {
+            roles = roleRepository.findAll(pageable);
+        }
 
         List<RoleDTO> roleDTOs = roles.getContent().stream()
                 .map(RoleDTO::new)
                 .collect(Collectors.toList());
-        PaginatedResponse<RoleDTO> paginatedResponse = new PaginatedResponse<RoleDTO>(roleDTOs, offset, size, (long) roles.getTotalPages());
+
+        PaginatedResponse<RoleDTO> paginatedResponse = new PaginatedResponse<>(roleDTOs, offset, size, (long) roles.getTotalPages());
         return paginatedResponse;
     }
-
 
     public List<RoleDTO> getAllRoles() {
         List<Role> roles = roleRepository.findAll();
