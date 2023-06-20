@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.services.SaveService;
@@ -52,5 +53,13 @@ public class SaveController {
         boolean isSaved = saveService.hasEntitySaved(entityType, entityId, user);
 
         return ResponseEntity.ok(isSaved);
+    }
+
+    @GetMapping("/get/{entityType}/{entityId}")
+    public ResponseEntity<?> getSavesByEntityTypeId(@PathVariable String entityType, @PathVariable Long entityId) {
+        SaveDTO.BaseResponse saves = saveService.getSave(entityType,entityId);
+
+        ApiResponse apiResponse = ApiResponse.success(saves, "Retrieved your saved items successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 }

@@ -1,12 +1,11 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.review.ReviewDTO;
+import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTOMapper;
-import com.yondu.knowledgebase.entities.Comment;
-import com.yondu.knowledgebase.entities.Post;
-import com.yondu.knowledgebase.entities.Save;
-import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
@@ -94,15 +93,25 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
 
 public Save deleteSaved(Long id) {
 
-        Save save = saveRepository.findById(id).orElseThrow(() ->new ResourceNotFoundException("Save "+ id +" not found."));
+    Save save = saveRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Save " + id + " not found."));
 
-    Object entity = getEntity(save.getEntityType(),save.getEntityId(), Object.class);
+    Object entity = getEntity(save.getEntityType(), save.getEntityId(), Object.class);
     String savedEntity = getEntityTypeAndAuthor(entity);
-    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),"removed a saved "+savedEntity+ " in his/her collection.");
+    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),
+            "removed a saved " + savedEntity + " in his/her collection.");
 
     saveRepository.delete(save);
-    return null;
+
+    return save;
 }
+
+    public SaveDTO.BaseResponse getSave(String entityType, Long entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Save save = saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user);
+
+        return SaveDTOMapper.mapToBaseResponse(save);
+    }
 
 
     public boolean isEntitySaved(String entityType, Long entityId, User user) {
