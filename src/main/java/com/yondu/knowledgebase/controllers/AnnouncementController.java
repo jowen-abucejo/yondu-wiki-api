@@ -56,7 +56,7 @@ public class AnnouncementController {
     }
 
     @GetMapping(path = "announcements")
-    public PaginatedResponse<PageDTO> getAllPagesWithVersions(
+    public PaginatedResponse<PageDTO> getAllApprovedPages(
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
@@ -118,5 +118,22 @@ public class AnnouncementController {
     public ApiResponse<PageDTO> turnOnCommenting(@PathVariable Long pageId) {
         var page = pageService.updateCommenting(pageType, pageId, true);
         return new ApiResponse<PageDTO>("success", page, "Announcement commenting on");
+    }
+
+    @GetMapping(path = "directories/{id}/announcements/search")
+    public PaginatedResponse<PageDTO> searchPagesInDirectory(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "", name = "categories") String[] categories,
+            @RequestParam(defaultValue = "", name = "tags") String[] tags,
+            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "published") Boolean published,
+            @RequestParam(defaultValue = "0", name = "exactSearch") Boolean exactSearch,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "20", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+
+        return pageService.findAllByDirectoryIdAndFullTextSearch(pageType, id, searchKey, categories, tags, archived,
+                published, exactSearch, pageNumber, pageSize, sortBy);
     }
 }
