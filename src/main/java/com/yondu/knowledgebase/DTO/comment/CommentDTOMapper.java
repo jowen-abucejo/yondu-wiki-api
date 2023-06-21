@@ -24,7 +24,7 @@ public class CommentDTOMapper {
         );
     }
 
-    public static CommentDTO.ShortResponse mapToBaseComment(Comment comment) {
+    public static CommentDTO.ShortResponse mapToShortResponse(Comment comment) {
         Set<User> users = comment.getCommentMentions();
         Set<UserDTO.GeneralResponse> commentMentions = new HashSet<>();
         for (User user : users){
@@ -45,11 +45,11 @@ public class CommentDTOMapper {
     }
 
     public static CommentDTO.BaseResponse mapToBaseResponse(Comment comment) {
-        CommentDTO.ShortResponse shortResponse = mapToBaseComment(comment);
+        CommentDTO.ShortResponse shortResponse = mapToShortResponse(comment);
         Set<Comment> replies = comment.getCommentReplies();
         List<CommentDTO.ShortResponse> commentReplies = new ArrayList<>();
         for (Comment reply: replies){
-            commentReplies.add(CommentDTOMapper.mapToBaseComment(reply));
+            commentReplies.add(CommentDTOMapper.mapToShortResponse(reply));
         }
         return new CommentDTO.BaseResponse(
                 shortResponse,
