@@ -66,7 +66,14 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<Tag> tags= postDTO.getTags().stream().map(tag -> {
-            return tagRepository.findById(tag.getId()).get();
+            if(tagRepository.existsByName(tag.getName())){
+                return tagRepository.findByName(tag.getName()).get();
+            }
+            else{
+                Tag newTag = new Tag();
+                newTag.setName(tag.getName());
+                return newTag;
+            }
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
