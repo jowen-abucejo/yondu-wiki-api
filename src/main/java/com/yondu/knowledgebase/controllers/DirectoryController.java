@@ -5,14 +5,11 @@ import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.DirectoryService;
-import com.yondu.knowledgebase.services.PageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 
 @RestController
 @RequestMapping("/directories")
@@ -41,6 +38,12 @@ public class DirectoryController {
     public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
         DirectoryDTO.BaseResponse data = directoryService.createDirectory(parentId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
+    }
+
+    @PutMapping("/{id}/move")
+    public ResponseEntity<ApiResponse<?>> moveDirectory(@PathVariable("id") Long id, @RequestParam Long parentId, @RequestParam Long newParentId) {
+        DirectoryDTO.Response data = directoryService.moveDirectory(id, parentId, newParentId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory moved successfully"));
     }
 
     @PutMapping("/{id}/rename")
