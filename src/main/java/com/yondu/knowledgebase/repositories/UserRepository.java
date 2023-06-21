@@ -43,10 +43,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(nativeQuery = true, value = """
             SELECT
-                (EXISTS( SELECT
-                        1
-                    FROM
-                        (SELECT
+                (EXISTS(SELECT
                             p.id
                         FROM
                             users u
@@ -54,11 +51,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN role_permission rp ON rp.role_id = ur.role_id
                         LEFT JOIN permission p ON rp.permission_id = p.id
                         WHERE
-                            p.name = :permission AND u.id = :userId) AS userPermission3)
+                            p.name = :permission AND u.id = :userId)
                     AND (EXISTS( SELECT
-                        1
-                    FROM
-                        (SELECT
                             p.id
                         FROM
                             users u
@@ -66,11 +60,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN permission p ON upa.permission_id = p.id
                         WHERE
                             p.name = :permission AND u.id = :userId
-                                AND upa.page_id = :pageId) AS userPermission)
-                    OR EXISTS( SELECT
-                        1
-                    FROM
-                        (SELECT
+                                AND upa.page_id = :pageId)
+                    OR EXISTS(SELECT
                             p.id
                         FROM
                             users u
@@ -79,16 +70,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN permission p ON gpa.permission_id = p.id
                         WHERE
                             p.name = :permission AND u.id = :userId
-                                AND gpa.page_id = :pageId) AS userPermission2))) as isGranted
-                                            """)
+                                AND gpa.page_id = :pageId))) AS isGranted
+                                                        """)
     public Long userHasPagePermission(Long userId, Long pageId, String permission);
 
     @Query(nativeQuery = true, value = """
             SELECT
-                (EXISTS( SELECT
-                        1
-                    FROM
-                        (SELECT
+                (EXISTS(SELECT
                             p.id
                         FROM
                             users u
@@ -96,11 +84,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN role_permission rp ON rp.role_id = ur.role_id
                         LEFT JOIN permission p ON rp.permission_id = p.id
                         WHERE
-                            p.name = :permission AND u.id = :userId) AS userPermission1)
+                            p.name = :permission AND u.id = :userId)
                     AND EXISTS(SELECT
-                        1
-                    FROM
-                        (SELECT
                             p.id
                         FROM
                             users u
@@ -108,12 +93,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN permission p ON dua.permission_id = p.id
                         WHERE
                             p.name = :permission AND u.id = :userId
-                                AND dua.directory_id = :directoryId) AS userPermission2)) AS isGranted
+                                AND dua.directory_id = :directoryId)) AS isGranted
                                                 """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
 
     @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2 AND r.roleName = ?3")
-    Page<User> findAllByFullNameAndStatusAndRole(String fullName, String statusFilter, String roleFilter, Pageable pageable);
+    Page<User> findAllByFullNameAndStatusAndRole(String fullName, String statusFilter, String roleFilter,
+            Pageable pageable);
 
     @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2")
     Page<User> findAllByFullNameAndStatus(String fullName, String statusFilter, Pageable pageable);

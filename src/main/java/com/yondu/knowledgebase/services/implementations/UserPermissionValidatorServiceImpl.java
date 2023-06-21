@@ -36,7 +36,7 @@ public class UserPermissionValidatorServiceImpl implements UserPermissionValidat
     public Boolean currentUserIsSuperAdmin() {
         User user = (User) this.auditorAware.getCurrentAuditor().orElse(new User());
         for (Role userRole : user.getRole()) {
-            if (userRole.getRoleName().equals("Super Admin")) {
+            if (userRole.getRoleName().equals("Administrator")) {
                 return true;
             }
         }
