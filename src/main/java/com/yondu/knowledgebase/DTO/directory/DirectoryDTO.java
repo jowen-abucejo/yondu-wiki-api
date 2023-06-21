@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.DTO.directory;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 public class DirectoryDTO {
@@ -22,7 +23,15 @@ public class DirectoryDTO {
                               LocalDate dateModified,
                               String fullPath,
                               Set<BaseResponse> subdirectories){}
-
+    public record Response(Long id,
+                           String name,
+                           String description,
+                           UserDTO.GeneralResponse createdBy,
+                           LocalDate dateCreated,
+                           LocalDate dateModified,
+                           List<List<String>> parentDirectories,
+                           Set<BaseResponse> subdirectories
+                           ){}
     public record ShortResponse(Long id,
                                String name,
                                String description){}

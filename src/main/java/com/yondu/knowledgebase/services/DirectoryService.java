@@ -90,6 +90,37 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
     }
 
+    public DirectoryDTO.Response moveDirectory(Long id, Long parentId, Long newParentId) {
+
+        if (parentId == null || newParentId == null) {
+             throw new RequestValidationException("Invalid request parameters");
+        }
+
+        Long permissionId = 17L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(()->new ResourceNotFoundException(String.format("Directory permission id '%d' not found", permissionId)));
+
+//        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
+        Directory newParentDirectory = directoryRepository.findById(newParentId).orElseThrow(()-> new ResourceNotFoundException(String.format("New parent directory id '%d' not found", parentId)));
+
+        if (!directory.getParent().getId().equals(parentId)) {
+            throw new ResourceNotFoundException(String.format("Directory '%s' with parent id '%d' does not exists", directory.getName(), parentId));
+        }
+
+//        if (!hasPermission(currentUser, directory, permission)) {
+//            throw new AccessDeniedException();
+//        }
+
+        if (isDirectoryNameDuplicate(directory.getName(), newParentDirectory.getSubDirectories())){
+            throw new DuplicateResourceException(String.format("Directory with same name '%s' already exists in new parent's subdirectories", directory.getName()));
+        }
+
+        directory.setParent(newParentDirectory);
+        Directory savedDirectory = directoryRepository.save(directory);
+        return DirectoryDTOMapper.mapToResponse(savedDirectory);
+    }
+
     public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
 
         if (request.name() == null ||request.name().isEmpty()) {
@@ -165,6 +196,15 @@ public class DirectoryService {
     private boolean hasPermission(User user, Directory directory, Permission permission) {
         if (user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
             return true;
+        }
+        return false;
+    }
+
+    private boolean isDirectoryNameDuplicate(String directoryName, Set<Directory> subdirectories) {
+        for (Directory subdirectory : subdirectories) {
+            if (subdirectory.getName().equals(directoryName)) {
+                return true;
+            }
         }
         return false;
     }
