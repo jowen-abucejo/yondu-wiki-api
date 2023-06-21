@@ -133,10 +133,10 @@ public class PostService {
 
     }
 
-    public PostDTO allowComment(Long id) {
+    public PostDTO allowComment(Long id, boolean allowComment) {
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
-        post.setAllowComment(!post.getAllowComment());
+        post.setAllowComment(allowComment);
 
         postRepository.save(post);
 
