@@ -112,40 +112,29 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                     GROUP BY pv.page_id)
                                     )
                                 AND (
-                                    EXISTS
-                                        (SELECT 1 FROM
-                                            (SELECT r10.id FROM users u10
-                                                LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                                LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                                WHERE r10.role_name = 'Super Admin' AND u10.id = :userId)
-                                        AS pTableX)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10 LEFT JOIN
-                                            user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                            role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                            permission p10 ON rp10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                        pTable05)
+                                    EXISTS(SELECT r10.id FROM users u10
+                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
+                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
+                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
+                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
+                                        permission p10 ON rp10.permission_id = p10.id
+                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
                                     AND (
-                                        EXISTS(SELECT 1 FROM
-                                            (SELECT upa10.page_id FROM users u10 LEFT JOIN
+                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                                 user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                                 permission p10 ON upa10.permission_id = p10.id
                                                 WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                            pTable00)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                                permission p10 ON gpa10.permission_id = p.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id)
-                                            pTable02)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT p10.id FROM users u10 LEFT JOIN
-                                                directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                                permission p10 ON dua10.permission_id = p10.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                            pTable03)
+                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                            permission p10 ON gpa10.permission_id = p.id
+                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id)
+                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                            directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                            permission p10 ON dua10.permission_id = p10.id
+                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
                                         )
                                     )
                                 )
@@ -159,45 +148,34 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
                                     GROUP BY pv.page_id)
                                 AND (
-                                    EXISTS
-                                        (SELECT 1 FROM
-                                            (SELECT r10.id FROM users u10
-                                                LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                                LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                                WHERE r10.role_name = 'Super Admin' AND u10.id = :userId)
-                                        AS pTableX)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10 LEFT JOIN
-                                            user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                            role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                            permission p10 ON rp10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId)
-                                        pTable05)
+                                    EXISTS(SELECT r10.id FROM users u10
+                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
+                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
+                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
+                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
+                                        permission p10 ON rp10.permission_id = p10.id
+                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                        AND u10.id = :userId)
                                     AND (
                                         p.author = :userId
-                                        OR EXISTS(SELECT  1 FROM
-                                            (SELECT upa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                             user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                             permission p10 ON upa10.permission_id = p10.id
                                             WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                             AND u10.id = :userId AND upa10.page_id = p.id)
-                                        pTable00)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                                permission p10 ON gpa10.permission_id = p10.id
-                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                                AND u10.id = :userId AND gpa10.page_id = p.id)
-                                            pTable02)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT p10.id FROM users u10
-                                                LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                                permission p10 ON dua10.permission_id = p10.id
-                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                                AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                            pTable03)
+                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                            permission p10 ON gpa10.permission_id = p10.id
+                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                            AND u10.id = :userId AND gpa10.page_id = p.id)
+                                        OR EXISTS(SELECT p10.id FROM users u10
+                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                            permission p10 ON dua10.permission_id = p10.id
+                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
                                         )
                                     )
                                 )
@@ -247,7 +225,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (SELECT page_version_id, COUNT(*) AS totalApprovedReviews FROM review WHERE status = 'APPROVED' GROUP BY page_version_id ) rv ON rv.page_version_id = v.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id
-            WHERE
+                       WHERE
                 p.page_type = :pageTypeFilter
                 AND CASE
                     WHEN :parentDirectory IS NOT NULL
@@ -272,97 +250,75 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         GROUP BY pv.page_id)
                                         )
                                     OR (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
-                                        GROUP BY pv.page_id)
+                                    (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
+                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                    GROUP BY pv.page_id)
                                     )
                                 AND (
-                                    EXISTS
-                                        (SELECT 1 FROM
-                                            (SELECT r10.id FROM users u10
-                                                LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                                LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                                WHERE r10.role_name = 'Super Admin' AND u10.id = :userId)
-                                        AS pTableX)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10 LEFT JOIN
-                                            user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                            role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                            permission p10 ON rp10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                        pTable05)
+                                    EXISTS(SELECT r10.id FROM users u10
+                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
+                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
+                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
+                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
+                                        permission p10 ON rp10.permission_id = p10.id
+                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
                                     AND (
-                                        EXISTS(SELECT 1 FROM
-                                            (SELECT upa10.page_id FROM users u10 LEFT JOIN
+                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                                 user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                                 permission p10 ON upa10.permission_id = p10.id
                                                 WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                            pTable00)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                                permission p10 ON gpa10.permission_id = p.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id)
-                                            pTable02)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT p10.id FROM users u10 LEFT JOIN
-                                                directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                                permission p10 ON dua10.permission_id = p10.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                            pTable03)
+                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                            permission p10 ON gpa10.permission_id = p.id
+                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id)
+                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                            directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                            permission p10 ON dua10.permission_id = p10.id
+                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
                                         )
                                     )
                                 )
                             ELSE TRUE
                             END
                         AND
-                        CASE WHEN (NOT :isPublished) OR :allVersions
+                        CASE WHEN NOT :isPublished OR :allVersions
                             THEN (
                                 (v.page_id , v.id) IN
                                     (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
                                         (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
                                     GROUP BY pv.page_id)
                                 AND (
-                                    EXISTS
-                                        (SELECT 1 FROM
-                                            (SELECT r10.id FROM users u10
-                                                LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                                LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                                WHERE r10.role_name = 'Super Admin' AND u10.id = :userId)
-                                        AS pTableX)
-                                    OR EXISTS(SELECT 1 FROM
-                                        (SELECT p10.id FROM users u10 LEFT JOIN
-                                            user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                            role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                            permission p10 ON rp10.permission_id = p10.id
-                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                            AND u10.id = :userId)
-                                        pTable05)
+                                    EXISTS(SELECT r10.id FROM users u10
+                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
+                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
+                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
+                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
+                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
+                                        permission p10 ON rp10.permission_id = p10.id
+                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                        AND u10.id = :userId)
                                     AND (
                                         p.author = :userId
-                                        OR EXISTS(SELECT  1 FROM
-                                            (SELECT upa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                             user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                             permission p10 ON upa10.permission_id = p10.id
                                             WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                             AND u10.id = :userId AND upa10.page_id = p.id)
-                                        pTable00)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                                group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                                group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                                permission p10 ON gpa10.permission_id = p10.id
-                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                                AND u10.id = :userId AND gpa10.page_id = p.id)
-                                            pTable02)
-                                        OR EXISTS(SELECT 1 FROM
-                                            (SELECT p10.id FROM users u10
-                                                LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                                permission p10 ON dua10.permission_id = p10.id
-                                                WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                                AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                            pTable03)
+                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
+                                            permission p10 ON gpa10.permission_id = p10.id
+                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                            AND u10.id = :userId AND gpa10.page_id = p.id)
+                                        OR EXISTS(SELECT p10.id FROM users u10
+                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
+                                            permission p10 ON dua10.permission_id = p10.id
+                                            WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
+                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
                                         )
                                     )
                                 )
@@ -414,9 +370,5 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("pagePrimaryKeys") List<Long> pageIds,
             @Param("parentDirectory") Long directoryId,
             Pageable pageable);
-
-    // TODO to be refactored
-    @EntityGraph(attributePaths = { "page" })
-    public Optional<PageVersion> findTopByPageIdAndPageDeletedOrderByDateModifiedDesc(Long id, boolean isDeleted);
 
 }
