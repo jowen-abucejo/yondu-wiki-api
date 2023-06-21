@@ -50,8 +50,13 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.setActive(id), "success"));
     }
 
-    @PostMapping("/posts/{id}/allow-comment")
+    @PatchMapping("/posts/{id}/allow-comment/true")
     public ResponseEntity<ApiResponse<PostDTO>> allowComment(@PathVariable Long id){
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.allowComment(id), "success"));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.allowComment(id, true), "Comments are turned on in this post"));
+    }
+
+    @PatchMapping("/posts/{id}/allow-comment/false")
+    public ResponseEntity<ApiResponse<PostDTO>> disallowComment(@PathVariable Long id){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.allowComment(id, false), "Comments are turned off in this post"));
     }
 }

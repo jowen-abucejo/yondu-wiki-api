@@ -66,7 +66,14 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<Tag> tags= postDTO.getTags().stream().map(tag -> {
-            return tagRepository.findById(tag.getId()).get();
+            if(tagRepository.existsByName(tag.getName())){
+                return tagRepository.findByName(tag.getName()).get();
+            }
+            else{
+                Tag newTag = new Tag();
+                newTag.setName(tag.getName());
+                return newTag;
+            }
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
@@ -126,10 +133,10 @@ public class PostService {
 
     }
 
-    public PostDTO allowComment(Long id) {
+    public PostDTO allowComment(Long id, boolean allowComment) {
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
-        post.setAllowComment(!post.getAllowComment());
+        post.setAllowComment(allowComment);
 
         postRepository.save(post);
 
