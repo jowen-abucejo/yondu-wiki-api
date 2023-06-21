@@ -12,9 +12,9 @@ public interface CommentService {
     public List<CommentDTO.ShortResponse> getAllParentComments(String entity, Long id);
     CommentDTO.CountResponse getTotalComments(String entity, Long id);
     CommentDTO.BaseResponse getComment (Long id);
-    CommentDTO.ShortResponse allowReply (Long id);
+    CommentDTO.ShortResponse allowReply (Long id, boolean allowReply);
 
-    CommentDTO.ShortResponse deleteComment(Long id);
+    CommentDTO.ShortResponse deleteComment(Long id, boolean delete);
 
     List <CommentDTO.ShortResponse> getReplies(Long commentId);
 }

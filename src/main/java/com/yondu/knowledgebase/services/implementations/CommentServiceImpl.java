@@ -141,17 +141,17 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public CommentDTO.ShortResponse allowReply (Long id){
+    public CommentDTO.ShortResponse allowReply (Long id, boolean allowReply){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
-        comment.setAllowReply(!comment.isAllowReply());
+        comment.setAllowReply(allowReply);
         commentRepository.save(comment);
         return CommentDTOMapper.mapToBaseComment(comment);
     }
 
     @Override
-    public CommentDTO.ShortResponse deleteComment(Long id){
+    public CommentDTO.ShortResponse deleteComment(Long id, boolean delete){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
-        comment.setDeleted(!comment.isDeleted());
+        comment.setDeleted(delete);
         commentRepository.save(comment);
         return CommentDTOMapper.mapToBaseComment(comment);
     }
