@@ -122,7 +122,7 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.getAllParentComments(entity,id);
         List <CommentDTO.ShortResponse> commentResponseList = new ArrayList<>();
         for (Comment comment: comments){
-            CommentDTO.ShortResponse shortResponse = CommentDTOMapper.mapToBaseComment(comment);
+            CommentDTO.ShortResponse shortResponse = CommentDTOMapper.mapToShortResponse(comment);
             commentResponseList.add(shortResponse);
         }
         return commentResponseList;
@@ -145,7 +145,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
         comment.setAllowReply(allowReply);
         commentRepository.save(comment);
-        return CommentDTOMapper.mapToBaseComment(comment);
+        return CommentDTOMapper.mapToShortResponse(comment);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
         comment.setDeleted(delete);
         commentRepository.save(comment);
-        return CommentDTOMapper.mapToBaseComment(comment);
+        return CommentDTOMapper.mapToShortResponse(comment);
     }
 
     @Override
@@ -162,10 +162,16 @@ public class CommentServiceImpl implements CommentService {
         return getAllReplies(comment);
     }
 
+    @Override
+    public List <CommentDTO.ShortResponse> searchComments (String key){
+        List<Comment> comments = commentRepository.searchComments(key);
+        return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
+    }
+
     private List<CommentDTO.ShortResponse> getAllReplies(Comment comment) {
         List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
         if (comments != null)
-            return comments.stream().map(CommentDTOMapper::mapToBaseComment).collect(Collectors.toList());
+            return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
         return null;
     }
 }

@@ -19,4 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query (value = "SELECT COUNT (c) FROM Comment c WHERE c.entityType = :entity AND c.entityId = :id AND c.isDeleted = false")
     Long countByEntityTypeAndEntityId(String entity, Long id);
 
+    @Query (value = "SELECT c from Comment c WHERE c.comment LIKE %:key% AND c.isDeleted = false")
+    List<Comment> searchComments (String key);
 }

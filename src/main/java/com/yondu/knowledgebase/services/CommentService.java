@@ -17,4 +17,6 @@ public interface CommentService {
     CommentDTO.ShortResponse deleteComment(Long id, boolean delete);
 
     List <CommentDTO.ShortResponse> getReplies(Long commentId);
+
+    List <CommentDTO.ShortResponse>  searchComments (String key);
 }

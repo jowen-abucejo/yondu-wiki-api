@@ -89,31 +89,37 @@ public class CommentController {
     @PatchMapping("/comments/{commentId}/allow-reply/true")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> allowReply(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.allowReply(commentId, true);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Replies are turned on in this comment", commentId)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Replies are turned on in this comment with id %d", commentId)));
     }
 
     @PatchMapping("/comments/{commentId}/allow-reply/false")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> disallowReply(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.allowReply(commentId, false);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Replies are turned off in this comment", commentId)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Replies are turned off in this comment with id %d", commentId)));
     }
 
     @DeleteMapping("/comments/{commentId}/delete/true")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> deleteComment(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.deleteComment(commentId, true);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Comment is deleted", commentId)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Comment with id %d is deleted", commentId)));
     }
 
     @DeleteMapping("/comments/{commentId}/delete/false")
     public ResponseEntity<ApiResponse<CommentDTO.ShortResponse>> undeleteComment(@PathVariable Long commentId) {
         CommentDTO.ShortResponse response = commentService.deleteComment(commentId, false);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Comment is undeleted", commentId)));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("Comment with id %d is undeleted", commentId)));
     }
 
     @GetMapping("/comments/{commentId}/reply")
     public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getReplies(@PathVariable Long commentId) {
         List<CommentDTO.ShortResponse> response = commentService.getReplies(commentId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, String.format("All replies retrieved for comment with ID %d", commentId)));
+    }
+
+    @GetMapping("/comments/search")
+    public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> searchComments(@RequestParam String key) {
+        List<CommentDTO.ShortResponse> response = commentService.searchComments(key);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response, "Successfully searched comments"));
     }
 
 }
