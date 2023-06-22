@@ -36,19 +36,19 @@ public class DirectoryController {
 
     @PostMapping("/{parentId}")
     public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
-        DirectoryDTO.BaseResponse data = directoryService.createDirectory(parentId, request);
+        DirectoryDTO.GetResponse data = directoryService.createDirectory(parentId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
     }
 
     @PutMapping("/{id}/move")
     public ResponseEntity<ApiResponse<?>> moveDirectory(@PathVariable("id") Long id, @RequestParam Long parentId, @RequestParam Long newParentId) {
-        DirectoryDTO.Response data = directoryService.moveDirectory(id, parentId, newParentId);
+        DirectoryDTO.GetResponse data = directoryService.moveDirectory(id, parentId, newParentId);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory moved successfully"));
     }
 
     @PutMapping("/{id}/rename")
     public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryDTO.RenameRequest request) {
-        DirectoryDTO.BaseResponse data = directoryService.renameDirectory(id, request);
+        DirectoryDTO.GetResponse data = directoryService.renameDirectory(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory renamed successfully"));
     }
 
