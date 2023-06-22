@@ -15,7 +15,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,7 +62,7 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
 
-    public DirectoryDTO.BaseResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
+    public DirectoryDTO.GetResponse createDirectory(Long parentId, DirectoryDTO.CreateRequest request) {
 
         if (request.name() == null || request.description() == null ||
                 request.name().isEmpty() || request.description().isEmpty()) {
@@ -87,10 +86,10 @@ public class DirectoryService {
 
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser));
 
-        return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
+        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
-    public DirectoryDTO.Response moveDirectory(Long id, Long parentId, Long newParentId) {
+    public DirectoryDTO.GetResponse moveDirectory(Long id, Long parentId, Long newParentId) {
 
         if (parentId == null || newParentId == null) {
              throw new RequestValidationException("Invalid request parameters");
@@ -118,10 +117,10 @@ public class DirectoryService {
 
         directory.setParent(newParentDirectory);
         Directory savedDirectory = directoryRepository.save(directory);
-        return DirectoryDTOMapper.mapToResponse(savedDirectory);
+        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
-    public DirectoryDTO.BaseResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
+    public DirectoryDTO.GetResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
 
         if (request.name() == null ||request.name().isEmpty()) {
             throw new RequestValidationException("Invalid request body");
@@ -150,7 +149,7 @@ public class DirectoryService {
         directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
         Directory savedDirectory = directoryRepository.save(directory);
-        return DirectoryDTOMapper.mapToBaseResponse(savedDirectory);
+        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
     public void removeDirectory(Long id) {

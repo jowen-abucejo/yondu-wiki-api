@@ -21,18 +21,9 @@ public class DirectoryDTO {
                               UserDTO.GeneralResponse createdBy,
                               LocalDate dateCreated,
                               LocalDate dateModified,
-                              String fullPath,
+                              List<ShortResponse> fullPath,
                               Set<BaseResponse> subdirectories){}
-    public record Response(Long id,
-                           String name,
-                           String description,
-                           UserDTO.GeneralResponse createdBy,
-                           LocalDate dateCreated,
-                           LocalDate dateModified,
-                           List<List<String>> parentDirectories,
-                           Set<BaseResponse> subdirectories
-                           ){}
+
     public record ShortResponse(Long id,
-                               String name,
-                               String description){}
+                               String name){}
 }

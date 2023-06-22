@@ -1,10 +1,11 @@
 package com.yondu.knowledgebase.DTO.directory;
 
-import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Directory;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +29,7 @@ public class DirectoryDTOMapper {
                 UserDTOMapper.mapToGeneralResponse(directory.getCreatedBy()),
                 directory.getDateCreated(),
                 directory.getDateModified(),
-                traverse(directory),
+                getPathFromParentToChild(directory),
                 directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToBaseResponse).collect(Collectors.toSet())
         );
     }
@@ -36,40 +37,31 @@ public class DirectoryDTOMapper {
     public static DirectoryDTO.ShortResponse mapToShortResponse(Directory directory) {
         return new DirectoryDTO.ShortResponse(
                 directory.getId(),
-                directory.getName(),
-                directory.getDescription());
-    }
-
-    public static DirectoryDTO.Response mapToResponse(Directory directory) {
-        return new DirectoryDTO.Response(
-                directory.getId(),
-                directory.getName(),
-                directory.getDescription(),
-                UserDTOMapper.mapToGeneralResponse(directory.getCreatedBy()),
-                directory.getDateCreated(),
-                directory.getDateModified(),
-                getParentDirectories(directory),
-                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToBaseResponse).collect(Collectors.toSet())
+                directory.getName()
         );
     }
 
-    private static String traverse(Directory directory) {
-        if (directory.getParent() == null) return directory.getId() + "->" + directory.getName();
-        return traverse(directory.getParent()) + "/" + directory.getId() + "->" + directory.getName();
-    }
+//    private static String traverse(Directory directory) {
+//        if (directory.getParent() == null) return directory.getId() + "->" + directory.getName();
+//        return traverse(directory.getParent()) + "/" + directory.getId() + "->" + directory.getName();
+//    }
 
-    private static List<List<String>> getParentDirectories(Directory directory) {
-        List<List<String>> parentDirectories = new ArrayList<>();
-        Directory currentDirectory = directory.getParent();
+    private static List<DirectoryDTO.ShortResponse> getPathFromParentToChild(Directory directory) {
+        List<DirectoryDTO.ShortResponse> fullPath = new ArrayList<>();
+        Deque<Directory> stack = new ArrayDeque<>();
+        Directory currentDirectory = directory;
 
         while (currentDirectory != null) {
-            List<String> directoryInfo = new ArrayList<>();
-            directoryInfo.add("ID: " + currentDirectory.getId());
-            directoryInfo.add("Name: " + currentDirectory.getName());
-            parentDirectories.add(directoryInfo);
+            stack.push(currentDirectory);
             currentDirectory = currentDirectory.getParent();
         }
 
-        return parentDirectories;
+        while (!stack.isEmpty()) {
+            Directory dir = stack.pop();
+            DirectoryDTO.ShortResponse shortResponse = mapToShortResponse(dir);
+            fullPath.add(shortResponse);
+        }
+
+        return fullPath;
     }
 }
