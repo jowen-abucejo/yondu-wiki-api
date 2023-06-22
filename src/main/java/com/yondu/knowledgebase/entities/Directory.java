@@ -36,6 +36,9 @@ public class Directory {
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Page> pages;
 
+    @OneToOne
+    private Workflow workflow;
+
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
@@ -135,6 +138,14 @@ public class Directory {
         this.directoryUserAccesses = directoryUserAccesses;
     }
 
+    public Workflow getWorkflow() {
+        return workflow;
+    }
+
+    public void setWorkflow(Workflow workflow) {
+        this.workflow = workflow;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj) {
@@ -144,7 +155,6 @@ public class Directory {
             return false;
         }
         Directory other = (Directory) obj;
-        // Compare fields for equality
         return this.id.equals(other.id);
     }
 }
