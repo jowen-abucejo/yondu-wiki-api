@@ -47,6 +47,6 @@ public interface PageRepository extends JpaRepository<Page, Long> {
 
         public boolean existsByIdAndTypeAndDeleted(Long id, String code, Boolean deleted);
 
-        @Query("SELECT p FROM Page p WHERE p.author = ?1 AND type = ?2 ORDER BY p.dateCreated DESC")
+        @Query("SELECT p FROM Page p WHERE p.author = ?1 AND type = ?2 AND deleted = false ORDER BY p.dateCreated DESC")
         org.springframework.data.domain.Page<Page> findByAuthorOrderByDateCreatedDesc(User user, String type, PageRequest pageRequest);
 }
