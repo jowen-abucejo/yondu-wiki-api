@@ -1,0 +1,72 @@
+package com.yondu.knowledgebase.entities;
+
+import jakarta.persistence.*;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+public class WorkflowStep {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private int step;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Workflow workflow;
+
+    @OneToMany(mappedBy = "workflowStep", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<WorkflowStepApprover> stepApprovers = new HashSet<>();
+
+    public WorkflowStep() {}
+
+    public WorkflowStep(Workflow workflow, String name, int step) {
+        this.workflow = workflow;
+        this.name = name;
+        this.step = step;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getStep() {
+        return step;
+    }
+
+    public void setStep(int step) {
+        this.step = step;
+    }
+
+    public Workflow getWorkflow() {
+        return workflow;
+    }
+
+    public void setWorkflow(Workflow workflow) {
+        this.workflow = workflow;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        WorkflowStep other = (WorkflowStep) obj;
+        return this.id.equals(other.id);
+    }
+}
