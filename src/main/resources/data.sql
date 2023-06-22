@@ -130,6 +130,12 @@ INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(2, 2);
 -- INITIALIZE DIRECTORY RIGHTS FOR ROOT
 INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3), (4);
 INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25), (4, 1, 5);
+INSERT IGNORE INTO directory_user_access VALUES
+(1,1,5,1),
+(2,1,6,1),
+(3,1,7,1),
+(4,1,8,1),
+(5,1,9,1);
 
 -- INITIALIZE USER RIGHTS
 INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
@@ -285,6 +291,12 @@ VALUES
     ('New Year\'s Resolutions', 'She reflected on the past year and set meaningful resolutions for the upcoming year.', '<div>She reflected on the past year and set meaningful resolutions for the upcoming year.</div>', '2023-12-24 00:00:00', 1, 9);
 
 INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
+
+-- INITIALIZE CATEGORIES
+INSERT IGNORE INTO category(id, is_deleted, name) VALUES
+(1, 0, 'Technology'),
+(2, 0, 'Work Life Balance'),
+(3, 0, 'Career');
 
 -- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
 ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);

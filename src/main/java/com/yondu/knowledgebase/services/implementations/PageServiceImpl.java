@@ -8,6 +8,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.yondu.knowledgebase.DTO.page.UserDTO;
+import com.yondu.knowledgebase.exceptions.NoContentException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +47,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     private final PageVersionRepository pageVersionRepository;
     private final PageRightsService pageRightsService;
     private final AuditorAware<User> auditorAware;
+
+    private final Logger log = LoggerFactory.getLogger(PageServiceImpl.class);
 
     /**
      * @param pageRepository
@@ -367,6 +373,49 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
                 optionalPageVersions.getTotalElements(), otherConfiguration);
 
+    }
+
+    @Override
+    public PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type) {
+        log.info("PageServiceImpl.findPagesByUser()");
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("type : " + type);
+
+        User user = auditorAware.getCurrentAuditor().get();
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+
+        org.springframework.data.domain.Page<Page> fetchPages = pageRepository.findByAuthorOrderByDateCreatedDesc(user, type, pageRequest);
+
+        if(fetchPages.hasContent()){
+            List<PageDTO> listPages = fetchPages
+                    .getContent()
+                    .stream()
+                    .map(p -> {
+                        PageDTO dto = new PageDTO.PageDTOBuilder()
+                                .id(p.getId())
+                                .dateCreated(p.getDateCreated())
+                                .author(new UserDTO.UserDTOBuilder()
+                                        .id(p.getAuthor().getId())
+                                        .email(p.getAuthor().getEmail())
+                                        .firstName(p.getAuthor().getFirstName())
+                                        .lastName(p.getAuthor().getLastName())
+                                        .position(p.getAuthor().getPosition())
+                                        .build()
+                                )
+                                .active(p.getActive())
+                                .pageType(p.getType())
+                                .build();
+
+                        return dto;
+                    })
+                    .collect(Collectors.toList());
+
+            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size, (long)listPages.size());
+            return pages;
+        }else{
+            throw new NoContentException("No pages found");
+        }
     }
 
 }

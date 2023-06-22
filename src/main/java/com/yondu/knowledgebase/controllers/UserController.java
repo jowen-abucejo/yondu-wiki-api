@@ -1,16 +1,21 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
-import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
+import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.exceptions.InvalidEmailException;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +28,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("users")
@@ -38,6 +41,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private PageService pageService;
 
     @GetMapping("")
     public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> getAllUser(
@@ -183,5 +188,53 @@ public class UserController {
         UserDTO.WithRolesResponse updatedUserDTO = UserDTOMapper.mapToWithRolesResponse(updatedUser);
 
         return ResponseEntity.ok(ApiResponse.success(updatedUserDTO, "Successfully updated your profile."));
+    }
+
+    @GetMapping("/pages")
+    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> findPagesByUser(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "WIKI") String type) {
+        log.info("UserController.findPagesByUser()");
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("type : " + type);
+
+        PaginatedResponse<PageDTO> pages = pageService.findPagesByUser(page, size, type);
+
+        return ResponseEntity.ok(ApiResponse.success(pages, "Successfully retrieved pages."));
+    }
+
+    @GetMapping("/pages/{id}")
+    public ResponseEntity<ApiResponse<PageDTO>> findPage(@PathVariable Long id){
+        log.info("UserController.findPage()");
+        log.info("id : " + id);
+
+        Page p = pageService.getPage(PageType.WIKI, id);
+        PageVersion pv = p.getPageVersions()
+                .stream()
+                .sorted(Comparator.comparing(PageVersion::getDateModified))
+                .findFirst().get();
+        PageDTO pageDTO = new PageDTO.PageDTOBuilder()
+                .id(p.getId())
+                .dateCreated(p.getDateCreated())
+                .author(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
+                        .id(p.getAuthor().getId())
+                        .email(p.getAuthor().getEmail())
+                        .firstName(p.getAuthor().getFirstName())
+                        .lastName(p.getAuthor().getLastName())
+                        .position(p.getAuthor().getPosition())
+                        .build()
+                )
+                .active(p.getActive())
+                .pageType(p.getType())
+                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList()).toArray(new String[0]))
+                .categories(p.getCategories().stream().map(Category::getName).collect(Collectors.toList()).toArray(new String[0]))
+                .body(new PageVersionDTO.PageVersionDTOBuilder()
+                        .id(pv.getId())
+                        .content(pv.getOriginalContent())
+                        .title(pv.getTitle())
+                        .build()
+                )
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(pageDTO, "success"));
     }
 }
