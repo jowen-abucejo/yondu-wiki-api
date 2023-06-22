@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.yondu.knowledgebase.entities.Directory;
+import com.yondu.knowledgebase.entities.User;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -45,4 +46,7 @@ public interface PageRepository extends JpaRepository<Page, Long> {
                         Pageable pageable);
 
         public boolean existsByIdAndTypeAndDeleted(Long id, String code, Boolean deleted);
+
+        @Query("SELECT p FROM Page p WHERE p.author = ?1 AND type = ?2 ORDER BY p.dateCreated DESC")
+        org.springframework.data.domain.Page<Page> findByAuthorOrderByDateCreatedDesc(User user, String type, PageRequest pageRequest);
 }

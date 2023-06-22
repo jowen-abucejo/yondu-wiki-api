@@ -38,4 +38,6 @@ public interface PageService {
                         String[] categories, String[] tags,
                         Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
                         Integer pageSize, String[] sortBy);
+
+    PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type);
 }
