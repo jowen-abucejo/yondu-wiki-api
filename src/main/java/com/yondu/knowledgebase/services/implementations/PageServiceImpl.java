@@ -139,7 +139,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             if (pageVersionIsApproved || pageVersionIsDisapproved || pageVersionIsPendingApproval) {
                 var newVersion = copyApprovedPageVersion(pageDraft);
                 pageDraft = newVersion;
-                reviewsCount = new Long[] { 0L, 0L };
+                reviewsCount = new Long[] { 0L, 0L, 0L };
             }
 
             pageDraft = pageVersionRepository.save(pageDraft);
@@ -385,9 +385,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         User user = auditorAware.getCurrentAuditor().get();
         PageRequest pageRequest = PageRequest.of(page - 1, size);
 
-        org.springframework.data.domain.Page<Page> fetchPages = pageRepository.findByAuthorOrderByDateCreatedDesc(user, type, pageRequest);
+        org.springframework.data.domain.Page<Page> fetchPages = pageRepository.findByAuthorOrderByDateCreatedDesc(user,
+                type, pageRequest);
 
-        if(fetchPages.hasContent()){
+        if (fetchPages.hasContent()) {
             List<PageDTO> listPages = fetchPages
                     .getContent()
                     .stream()
@@ -401,8 +402,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                                         .firstName(p.getAuthor().getFirstName())
                                         .lastName(p.getAuthor().getLastName())
                                         .position(p.getAuthor().getPosition())
-                                        .build()
-                                )
+                                        .build())
                                 .active(p.getActive())
                                 .pageType(p.getType())
                                 .build();
@@ -411,9 +411,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                     })
                     .collect(Collectors.toList());
 
-            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size, (long)listPages.size());
+            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size, (long) listPages.size());
             return pages;
-        }else{
+        } else {
             throw new NoContentException("No pages found");
         }
     }
