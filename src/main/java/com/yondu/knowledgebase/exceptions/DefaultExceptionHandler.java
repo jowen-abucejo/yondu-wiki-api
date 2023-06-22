@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @ControllerAdvice
 public class DefaultExceptionHandler {
-    @ExceptionHandler({AccessDeniedException.class, DuplicateResourceException.class, RequestValidationException.class, ResourceNotFoundException.class, InvalidRatingException.class, InvalidCredentialsException.class, UserException.class, InvalidNotificationTypeException.class, CommentIsNotAllowed.class, PasswordRepeatException.class, InvalidEmailException.class, MissingFieldException.class})
+    @ExceptionHandler({AccessDeniedException.class,NoContentException.class, DuplicateResourceException.class, RequestValidationException.class, ResourceNotFoundException.class, InvalidRatingException.class, InvalidCredentialsException.class, UserException.class, InvalidNotificationTypeException.class, CommentIsNotAllowed.class, PasswordRepeatException.class, InvalidEmailException.class, MissingFieldException.class})
     public ResponseEntity<?> handleException(Exception e,
                                                     HttpServletRequest request) {
         HttpStatus httpStatus;
