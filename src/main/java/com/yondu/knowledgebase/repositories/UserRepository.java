@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.repositories;
 
+import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Rights;
 import com.yondu.knowledgebase.entities.User;
 
@@ -109,5 +110,16 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1%")
     Page<User> findAllByFullName(String fullName, Pageable pageable);
+
+    @Query("""
+           SELECT u FROM users u
+           JOIN u.role r
+           JOIN r.permissions p
+           WHERE (u.firstName LIKE ?1
+           OR u.lastName LIKE ?1
+           OR u.email LIKE ?1)
+           AND p.id = ?2
+           """)
+    Page<User> findAllByFullNameAndHasPermission(String searchKey, Long permissionId, Pageable pageable);
 
 }

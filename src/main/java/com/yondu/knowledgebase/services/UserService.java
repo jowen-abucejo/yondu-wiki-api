@@ -1,9 +1,11 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Status;
@@ -250,5 +252,24 @@ public class UserService implements UserDetailsService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    public PaginatedResponse<UserDTO.ShortResponse> getUsersByPermission(String searchKey, int page, int size, Long permissionId) {
+        log.info("UserService.getUsersByPermission()");
+        log.info("searchKey : " + searchKey);
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("permissionId : " + permissionId);
 
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+
+        Page<User> users = userRepository.findAllByFullNameAndHasPermission(searchKey, permissionId, pageRequest);
+        if(users.isEmpty()){
+            throw new NoContentException("No users found...");
+        }
+
+        List<UserDTO.ShortResponse> userDTOs = users
+                .get()
+                .map(user -> UserDTOMapper.mapToShortResponse(user))
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(userDTOs, page, size, users.getTotalElements());
+    }
 }

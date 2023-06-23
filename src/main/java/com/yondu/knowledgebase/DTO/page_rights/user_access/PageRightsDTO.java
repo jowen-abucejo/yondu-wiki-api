@@ -18,7 +18,7 @@ public class PageRightsDTO {
     // For Users
     public record AddUserRequest(String email){}
     public record GetUserPageRightResponse(UserDTO.ShortResponse user, Set<GetPageRightResponse> userPageRights){}
-    public record GetUserPageRightBaseResponse(UserDTO.ShortResponse user, GetPageRightResponse userPageRights){}
+    public record GetUserPageRightBaseResponse(UserDTO.GeneralResponse user, GetPageRightResponse userPageRights){}
 
 
     // For UserGroups
@@ -29,6 +29,6 @@ public class PageRightsDTO {
     // Get Users and UserGroups
     public record GetPageRightOfPageResponse(PageDTO.BaseResponse page, Set<PageRightsDTO.GetPageRightOfGroups> userGroups, Set<PageRightsDTO.GetPageRightOfUsers> users){}
     public record GetPageRightOfGroups(GroupDTO.ShortResponse group, Set<RightsPermissionResponse> userPageRights){}
-    public record GetPageRightOfUsers(UserDTO.ShortResponse user, Set<RightsPermissionResponse> userPageRights){}
+    public record GetPageRightOfUsers(UserDTO.GeneralResponse user, Set<RightsPermissionResponse> userPageRights){}
 
 }
