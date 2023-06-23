@@ -16,6 +16,9 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
 
     List<AuditLog> findByEntityTypeAndEntityIdOrderByTimestampDesc(String entityType, Long entityId);
 
-    @Query("SELECT a FROM AuditLog a WHERE (a.entityType LIKE %?1% OR a.action LIKE %?1%) AND a.user = ?2 ORDER BY a.timestamp DESC")
-    Page<AuditLog> findByEntityTypeOrActionAndUserOrderByTimestampDesc(String searchKey, User user, Pageable pageable);
+    @Query("SELECT a FROM AuditLog a WHERE " +
+            "(a.entityType LIKE %?1% OR a.action LIKE %?1% OR " +
+            "a.user.email LIKE %?1% OR a.user.firstName LIKE %?1% OR a.user.lastName LIKE %?1%) " +
+            "ORDER BY a.timestamp DESC")
+    Page<AuditLog> searchAuditLogs(String searchKey, Pageable pageable);
 }

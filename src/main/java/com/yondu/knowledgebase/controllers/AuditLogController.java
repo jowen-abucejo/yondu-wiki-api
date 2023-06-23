@@ -26,9 +26,8 @@ public class AuditLogController {
     public ResponseEntity<?> getAuditLogByUser(
             @RequestParam(defaultValue = "") String searchKey,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestBody AuditLogDTO.GetRequest request){
-        PaginatedResponse<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(searchKey, request.email(), page,size);
+            @RequestParam(defaultValue = "10") int size){
+        PaginatedResponse<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(searchKey,page,size);
 
         ApiResponse apiResponse = ApiResponse.success(auditLogs, "Retrieved audit logs per user successfully");
         return ResponseEntity.ok(apiResponse);

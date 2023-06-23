@@ -45,15 +45,14 @@ public class AuditLogService {
         auditLogRepository.save(activity);
     }
 
-    public PaginatedResponse<AuditLogDTO.BaseResponse> getAuditLogsByUser(String searchKey,String email, int page, int size) {
+    public PaginatedResponse<AuditLogDTO.BaseResponse> getAuditLogsByUser(String searchKey, int page, int size) {
         // Check if logged-in user is admin
-//        if (!userIsAdmin()) {
-//            throw new AccessDeniedException();
-//        }
+        if (!userIsAdmin()) {
+            throw new AccessDeniedException();
+        }
 
-        User currentUser = userRepository.getUserByEmail(email);
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<AuditLog> auditLogPages = auditLogRepository.findByEntityTypeOrActionAndUserOrderByTimestampDesc(searchKey,currentUser, pageRequest);
+        Page<AuditLog> auditLogPages = auditLogRepository.searchAuditLogs(searchKey, pageRequest);
         List<AuditLog> auditLogs = auditLogPages.getContent();
 
         List<AuditLogDTO.BaseResponse> auditLog = auditLogs.stream()
