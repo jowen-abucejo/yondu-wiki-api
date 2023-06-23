@@ -36,7 +36,7 @@ public class PageRightsController {
     /**
      * Remove User to Page Right
      * **/
-    @DeleteMapping("/{pageId}/rights/{rightsId}/remove-user")
+    @PostMapping("/{pageId}/rights/{rightsId}/remove-user")
     public ResponseEntity<ApiResponse<PageRightsDTO.GetUserPageRightBaseResponse>> removeUserToPageRights(@PathVariable Long pageId, @PathVariable Long rightsId,@RequestBody PageRightsDTO.AddUserRequest email ){
         PageRightsDTO.GetUserPageRightBaseResponse data = pageRightsService.removeUserToPageRights(pageId, rightsId, email);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "User has been modified to this Page successfully"));

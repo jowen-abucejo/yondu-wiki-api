@@ -4,6 +4,7 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
@@ -69,6 +70,25 @@ public class UserController {
         response = ResponseEntity.ok(apiResponse);
 
         return response;
+    }
+
+    @GetMapping("/search/permissions/{permissionId}")
+    public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.ShortResponse>>> getUsersByPermission(
+            @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @PathVariable Long permissionId
+    ){
+        log.info("getUsersByPermission()");
+        log.info("searchKey : " + searchKey);
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("permissionId : " + permissionId);
+
+        searchKey = "%" + searchKey + "%";
+
+        PaginatedResponse<UserDTO.ShortResponse> users = userService.getUsersByPermission(searchKey, page, size, permissionId);
+        return ResponseEntity.ok(ApiResponse.success(users, "success"));
     }
 
     @GetMapping("/{id}")
@@ -208,6 +228,9 @@ public class UserController {
         log.info("id : " + id);
 
         Page p = pageService.getPage(PageType.WIKI, id);
+
+        log.info("p.lockedBy : " + p.getLockedBy());
+
         PageVersion pv = p.getPageVersions()
                 .stream()
                 .sorted(Comparator.comparing(PageVersion::getDateModified))
@@ -215,6 +238,16 @@ public class UserController {
         PageDTO pageDTO = new PageDTO.PageDTOBuilder()
                 .id(p.getId())
                 .dateCreated(p.getDateCreated())
+                .lockedBy(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
+                        .id(p.getLockedBy().getId())
+                        .email(p.getLockedBy().getEmail())
+                        .firstName(p.getLockedBy().getFirstName())
+                        .lastName(p.getLockedBy().getLastName())
+                        .position(p.getLockedBy().getPosition())
+                        .build())
+                .lockStart(p.getLockStart())
+                .lockEnd(p.getLockEnd())
+                .allowComment(p.getAllowComment())
                 .author(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
                         .id(p.getAuthor().getId())
                         .email(p.getAuthor().getEmail())

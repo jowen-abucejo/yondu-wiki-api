@@ -31,7 +31,7 @@ public class PageRightsDTOMapper {
 
 
     public static PageRightsDTO.GetUserPageRightBaseResponse mapToUserRightBaseResponse(User user, PageRightsDTO.GetPageRightResponse userRights) {
-        return new PageRightsDTO.GetUserPageRightBaseResponse(UserDTOMapper.mapToShortResponse(user),
+        return new PageRightsDTO.GetUserPageRightBaseResponse(UserDTOMapper.mapToGeneralResponse(user),
                 userRights);
     }
 
@@ -53,7 +53,7 @@ public class PageRightsDTOMapper {
     }
 
     public static PageRightsDTO.GetPageRightOfUsers mapToPageRightOfUsers(User user, Set<PageRightsDTO.RightsPermissionResponse> userRights) {
-        return new PageRightsDTO.GetPageRightOfUsers(UserDTOMapper.mapToShortResponse(user),
+        return new PageRightsDTO.GetPageRightOfUsers(UserDTOMapper.mapToGeneralResponse(user),
                 userRights);
     }
 
