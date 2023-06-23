@@ -9,6 +9,7 @@ import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Tag;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.ContentType;
+import com.yondu.knowledgebase.enums.EntityType;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
@@ -35,13 +36,15 @@ public class PostService {
     private final TagRepository tagRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
 
-    public PostService(PostRepository postRepository, CategoryRepository categoryRepository, TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService) {
+    public PostService(PostRepository postRepository, CategoryRepository categoryRepository, TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService, AuditLogService auditLogService) {
         this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
+        this.auditLogService = auditLogService;
     }
 
     public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey){
@@ -85,6 +88,8 @@ public class PostService {
         Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
         postRepository.save(post);
 
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " created a post");
+
         //Notify mentioned Users in a POST
         for (User mentionedUser:mentions){
             //Notify all mentioned users in the created comment
@@ -96,6 +101,8 @@ public class PostService {
 
 
     public PostDTO editPost(PostDTO postDTO, Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         Set<Category> categories = postDTO.getCategories().stream().map(category -> {
@@ -114,25 +121,38 @@ public class PostService {
 
         postRepository.save(post);
 
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " edited a post");
+
+
         return new PostDTO(post);
     }
 
     public PostDTO deletePost(Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         post.setDeleted(true);
 
         postRepository.save(post);
 
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " deleted a post");
+
+
         return new PostDTO(post);
     }
 
     public PostDTO setActive(Long id) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         post.setActive(!post.getActive());
 
         postRepository.save(post);
+
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " archived a post");
+
 
         return new PostDTO(post);
 
