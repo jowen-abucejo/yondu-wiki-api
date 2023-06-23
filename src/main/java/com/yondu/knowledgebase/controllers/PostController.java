@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
 import com.yondu.knowledgebase.services.PostService;
@@ -21,7 +22,11 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<ApiResponse<List<PostDTO>>> getAllPost(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,@RequestParam(defaultValue = "") String searchKey ){
+    public ResponseEntity<ApiResponse<PaginatedResponse<PostDTO>>> getAllPost(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String searchKey
+    ){
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getAllPost(page, size, searchKey),"success"));
     }
 

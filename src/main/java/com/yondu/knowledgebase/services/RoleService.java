@@ -58,8 +58,7 @@ public class RoleService {
                 .map(RoleDTO::new)
                 .collect(Collectors.toList());
 
-        PaginatedResponse<RoleDTO> paginatedResponse = new PaginatedResponse<>(roleDTOs, offset, size, (long) roles.getTotalPages());
-        return paginatedResponse;
+        return new PaginatedResponse<>(roleDTOs, offset, size, (long) roles.getTotalPages());
     }
 
     public List<RoleDTO> getAllRoles() {

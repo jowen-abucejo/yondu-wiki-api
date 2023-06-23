@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
 import com.yondu.knowledgebase.entities.Category;
@@ -43,14 +44,18 @@ public class PostService {
         this.notificationService = notificationService;
     }
 
-    public List<PostDTO> getAllPost(int page, int size, String searchKey){
-        Pageable pageable = PageRequest.of(page, size);
+    public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey){
+        int adjustedPage = page - 1;
+        int offset = adjustedPage * size + 1;
+
+        Pageable pageable = PageRequest.of(adjustedPage, size);
         Page<Post> posts = postRepository.searchPosts(searchKey, pageable);
 
-        return posts.getContent().stream()
+        List<PostDTO> postDTOs = posts.getContent().stream()
                 .map(PostDTO::new)
                 .collect(Collectors.toList());
 
+        return new PaginatedResponse<>(postDTOs, offset, size, (long) posts.getTotalPages());
     }
 
     public PostDTO getPostById(Long id) {
