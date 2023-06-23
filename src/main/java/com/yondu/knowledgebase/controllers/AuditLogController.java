@@ -23,7 +23,7 @@ public class AuditLogController {
 
 
     @GetMapping("/get-activities")
-    public ResponseEntity<?> getAuditLogByU(
+    public ResponseEntity<?> getAuditLogByUser(
             @RequestParam(defaultValue = "") String searchKey,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
