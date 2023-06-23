@@ -88,7 +88,7 @@ public class PostService {
         Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " created a post");
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"created a post");
 
         //Notify mentioned Users in a POST
         for (User mentionedUser:mentions){
@@ -121,7 +121,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " edited a post");
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"edited a post");
 
 
         return new PostDTO(post);
@@ -136,7 +136,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " deleted a post");
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"deleted a post");
 
 
         return new PostDTO(post);
@@ -151,7 +151,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),user.getFirstName() + " " + user.getLastName() + " archived a post");
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"archived a post");
 
 
         return new PostDTO(post);
