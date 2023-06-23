@@ -19,6 +19,11 @@ public class Review {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "workflow_step_id")
+    private WorkflowStep workflowStep;
+
     private String comment;
     private LocalDate reviewDate;
 
@@ -27,9 +32,10 @@ public class Review {
     public Review() {
     }
 
-    public Review(PageVersion pageVersion, User user, String comment, LocalDate reviewDate, String status) {
+    public Review(PageVersion pageVersion, User user,WorkflowStep workflowStep, String comment, LocalDate reviewDate, String status) {
         this.pageVersion = pageVersion;
         this.user = user;
+        this.workflowStep = workflowStep;
         this.comment = comment;
         this.reviewDate = reviewDate;
         this.status = status;
@@ -47,6 +53,11 @@ public class Review {
     @JsonBackReference
     public User getUser() {
         return user;
+    }
+
+    @JsonBackReference
+    public WorkflowStep getWorkflowStep() {
+        return workflowStep;
     }
 
     public String getComment() {
@@ -79,6 +90,10 @@ public class Review {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public void setWorkflowStep(WorkflowStep workflowStep) {
+        this.workflowStep = workflowStep;
     }
 
     public void setComment(String comment) {
