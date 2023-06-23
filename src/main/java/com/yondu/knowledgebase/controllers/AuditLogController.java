@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.audit_log.AuditLogDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.services.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,16 @@ public class AuditLogController {
     }
 
 
-    @GetMapping ("/get-activity")
-    public ResponseEntity<ApiResponse<List<AuditLogDTO.BaseResponse>>> getAuditLogByUser(@RequestBody AuditLogDTO.GetRequest request) {
-        List<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(request.email());
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(auditLogs, "User activity retrieved successfully"));
+    @GetMapping("/get-activities")
+    public ResponseEntity<?> getAuditLogByU(
+            @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestBody AuditLogDTO.GetRequest request){
+        PaginatedResponse<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(searchKey, request.email(), page,size);
+
+        ApiResponse apiResponse = ApiResponse.success(auditLogs, "Retrieved audit logs per user successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping ("/{entityType}/{entityId}")

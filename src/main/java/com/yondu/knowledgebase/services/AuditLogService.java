@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.audit_log.AuditLogDTO;
 import com.yondu.knowledgebase.DTO.audit_log.AuditLogDTOMapper;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.AuditLog;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
@@ -10,13 +11,17 @@ import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.repositories.AuditLogRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.awt.print.Pageable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AuditLogService {
@@ -40,20 +45,21 @@ public class AuditLogService {
         auditLogRepository.save(activity);
     }
 
-    public List<AuditLogDTO.BaseResponse> getAuditLogsByUser(String email) {
+    public PaginatedResponse<AuditLogDTO.BaseResponse> getAuditLogsByUser(String searchKey,String email, int page, int size) {
         // Check if logged-in user is admin
-        if (!userIsAdmin()) {
-            throw new AccessDeniedException();
-        }
+//        if (!userIsAdmin()) {
+//            throw new AccessDeniedException();
+//        }
 
         User currentUser = userRepository.getUserByEmail(email);
-        List<AuditLog> auditLogs = auditLogRepository.findByUserOrderByTimestampDesc(currentUser);
-        List<AuditLogDTO.BaseResponse> auditLogResponse = new ArrayList<>();
-        for (AuditLog auditLog : auditLogs) {
-            AuditLogDTO.BaseResponse baseResponse = AuditLogDTOMapper.mapToBaseResponse(auditLog);
-            auditLogResponse.add(baseResponse);
-        }
-        return auditLogResponse;
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<AuditLog> auditLogPages = auditLogRepository.findByEntityTypeOrActionAndUserOrderByTimestampDesc(searchKey,currentUser, pageRequest);
+        List<AuditLog> auditLogs = auditLogPages.getContent();
+
+        List<AuditLogDTO.BaseResponse> auditLog = auditLogs.stream()
+                .map(audLog -> AuditLogDTOMapper.mapToBaseResponse(audLog))
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(auditLog, page, size, (long)auditLog.size());
 
     }
     public List<AuditLogDTO.BaseResponse> getAuditLogByEntity(String entityType, Long entityId) {
