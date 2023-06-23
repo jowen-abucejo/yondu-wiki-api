@@ -8,12 +8,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 public class UserDTO {
     @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty("id")
     private Long id;
 
     @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty("username")
     private String username;
 
     @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty("email")
     private String email;
 
     @JsonInclude(Include.NON_EMPTY)
