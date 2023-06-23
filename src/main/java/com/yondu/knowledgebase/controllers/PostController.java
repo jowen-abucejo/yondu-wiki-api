@@ -21,8 +21,8 @@ public class PostController {
     }
 
     @GetMapping("/posts")
-    public ResponseEntity<ApiResponse<List<PostDTO>>> getAllPost(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size){
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getAllPost(page, size),"success"));
+    public ResponseEntity<ApiResponse<List<PostDTO>>> getAllPost(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,@RequestParam(defaultValue = "") String searchKey ){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getAllPost(page, size, searchKey),"success"));
     }
 
     @GetMapping("/posts/{id}")

@@ -43,9 +43,9 @@ public class PostService {
         this.notificationService = notificationService;
     }
 
-    public List<PostDTO> getAllPost(int page, int size){
+    public List<PostDTO> getAllPost(int page, int size, String searchKey){
         Pageable pageable = PageRequest.of(page, size);
-        Page<Post> posts = postRepository.findAll(pageable);
+        Page<Post> posts = postRepository.searchPosts(searchKey, pageable);
 
         return posts.getContent().stream()
                 .map(PostDTO::new)
