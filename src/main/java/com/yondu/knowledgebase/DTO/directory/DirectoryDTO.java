@@ -22,7 +22,7 @@ public class DirectoryDTO {
                               LocalDate dateCreated,
                               LocalDate dateModified,
                               List<ShortResponse> fullPath,
-                              Set<BaseResponse> subdirectories){}
+                              Set<GetResponse> subdirectories){}
 
     public record ShortResponse(Long id,
                                String name){}

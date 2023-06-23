@@ -98,7 +98,7 @@ public class DirectoryService {
         Long permissionId = 17L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(()->new ResourceNotFoundException(String.format("Directory permission id '%d' not found", permissionId)));
 
-//        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
         Directory newParentDirectory = directoryRepository.findById(newParentId).orElseThrow(()-> new ResourceNotFoundException(String.format("New parent directory id '%d' not found", parentId)));
@@ -107,9 +107,9 @@ public class DirectoryService {
             throw new ResourceNotFoundException(String.format("Directory '%s' with parent id '%d' does not exists", directory.getName(), parentId));
         }
 
-//        if (!hasPermission(currentUser, directory, permission)) {
-//            throw new AccessDeniedException();
-//        }
+        if (!hasPermission(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
 
         if (isDirectoryNameDuplicate(directory.getName(), newParentDirectory.getSubDirectories())){
             throw new DuplicateResourceException(String.format("Directory with same name '%s' already exists in new parent's subdirectories", directory.getName()));
@@ -160,13 +160,12 @@ public class DirectoryService {
 
         Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Directory not found: " + id));
 
-//        if (!hasDirectoryUserRights(currentUser, directory, permission)) {
-//            throw new AccessDeniedException();
-//        }
+        if (!hasPermission(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
 
 
         if (isNotEmptyDirectory(directory)) {
-            // throw bawal i delete
             throw new ResourceDeletionException("Directory is not empty");
         }
 
@@ -178,12 +177,6 @@ public class DirectoryService {
             return true;
         }
 
-//        for (Directory subdirectory : directory.getSubDirectories()) {
-//            if (isNotEmptyDirectory(subdirectory)) {
-//                return true;
-//            }
-//        }
-
         return false;
     }
 
@@ -193,10 +186,7 @@ public class DirectoryService {
     }
 
     private boolean hasPermission(User user, Directory directory, Permission permission) {
-        if (user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
-            return true;
-        }
-        return false;
+        return user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"));
     }
 
     private boolean isDirectoryNameDuplicate(String directoryName, Set<Directory> subdirectories) {

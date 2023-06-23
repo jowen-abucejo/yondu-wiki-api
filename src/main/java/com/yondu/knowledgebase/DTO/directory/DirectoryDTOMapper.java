@@ -30,7 +30,7 @@ public class DirectoryDTOMapper {
                 directory.getDateCreated(),
                 directory.getDateModified(),
                 getPathFromParentToChild(directory),
-                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToBaseResponse).collect(Collectors.toSet())
+                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse).collect(Collectors.toSet())
         );
     }
 
