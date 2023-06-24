@@ -229,8 +229,6 @@ public class UserController {
 
         Page p = pageService.getPage(PageType.WIKI, id);
 
-        log.info("p.lockedBy : " + p.getLockedBy());
-
         PageVersion pv = p.getPageVersions()
                 .stream()
                 .sorted(Comparator.comparing(PageVersion::getDateModified))

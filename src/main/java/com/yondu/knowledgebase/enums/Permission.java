@@ -1,65 +1,58 @@
 package com.yondu.knowledgebase.enums;
 
 public enum Permission {
+    CREATE_USERS(1, "User", "Create users", "CREATE_USERS"),
+    UPDATE_USERS(2, "User", "Update users", "UPDATE_USERS"),
+    DEACTIVATE_USERS(3, "User", "Deactivate users", "DEACTIVATE_USERS"),
+    VIEW_USERS(4, "User", "View users", "VIEW_USERS"),
+    CREATE_CONTENT(5, "Content", "Allows user to create content", "CREATE_CONTENT"),
+    UPDATE_CONTENT(6, "Content", "Allows user to update created content", "UPDATE_CONTENT"),
+    DELETE_CONTENT(7, "Content", "Allows user to delete created content", "DELETE_CONTENT"),
+    READ_CONTENT(8, "Content", "Allows user to read created contents", "READ_CONTENT"),
+    CONTENT_APPROVAL(9, "Content Moderation", "Allows user to approve created content", "CONTENT_APPROVAL"),
+    COMMENT_AVAILABILITY(10, "Comment", "Allows user to enable or disable content", "COMMENT_AVAILABILITY"),
+    CREATE_COMMENT(11, "Comment", "Allows user to create comment in a page", "CREATE_COMMENT"),
+    UPDATE_COMMENT(12, "Comment", "Allows user to update comment in a page", "UPDATE_COMMENT"),
+    DELETE_COMMENT(13, "Comment", "Allows user to delete their own comment", "DELETE_COMMENT"),
+    VIEW_COMMENTS(14, "Comment", "Allows user to view comments in the page", "VIEW_COMMENTS"),
+    UPDATE_PAGE_EDITOR(15, "Page Editor", "Allow user to add/remove page editors in a page", "UPDATE_PAGE_EDITOR"),
+    CREATE_DIRECTORY(16, "Directory", "Allow user to create directory", "CREATE_DIRECTORY"),
+    UPDATE_DIRECTORY(17, "Directory", "Allow user to update directory", "UPDATE_DIRECTORY"),
+    DELETE_DIRECTORY(18, "Directory", "Allow user to delete directory", "DELETE_DIRECTORY"),
+    VIEW_DIRECTORY(19, "Directory", "Allow user to view directory", "VIEW_DIRECTORY"),
+    CREATE_ROLES(20, "Roles", "Allow user to create new roles", "CREATE_ROLES"),
+    UPDATE_ROLES(21, "Roles", "Allow user to update roles", "UPDATE_ROLES"),
+    DELETE_ROLES(22, "Roles", "Allow user to delete roles", "DELETE_ROLES"),
+    MANAGE_ROLES(23, "Roles", "Allow user to manage roles", "MANAGE_ROLES"),
+    READ_ROLES(24, "Roles", "Allow user to view roles", "READ_ROLES"),
+    MANAGE_DIRECTORY_PERMISSIONS(25, "Directory", "Allow user to manage the directory permissions", "MANAGE_DIRECTORY_PERMISSIONS"),
+    MANAGE_PAGE_PERMISSIONS(26, "Content", "Allow user to manage the page permissions", "MANAGE_PAGE_PERMISSIONS");
 
-    CREATE_USERS(1, "CREATE_USERS", "Create users", "User"),
-    UPDATE_USERS(2, "UPDATE_USERS", "Update users", "User"),
-    DEACTIVATE_USERS(3, "DEACTIVATE_USERS", "Deactivate users", "User"),
-    VIEWER_USERS(4, "VIEW_USERS", "View users", "User"),
+    private long id;
+    private String category;
+    private String description;
+    private String code;
 
-    CREATE_CONTENT(5, "CREATE_CONTENT", "Allows user to create content", "Content"),
-    UPDATE_CONTENT(6, "UPDATE_CONTENT", "Allows user to update created content", "Content"),
-    DELETE_CONTENT(7, "DELETE_CONTENT", "Allows user to delete created content", "Content"),
-    READ_CONTENT(8, "READ_CONTENT", "Allows user to read created contents", "Content"),
-
-    CONTENT_APPROVAL(9, "CONTENT_APPROVAL", "Allows user to approve created content", "Content Moderation"),
-
-    COMMENT_AVAILABILITY(10, "COMMENT_AVAILABILITY", "Allows user to enable or disable content", "Comment"),
-    CREATE_COMMENT(11, "CREATE_COMMENT", "Allows user to create comment in a page", "Comment"),
-    UPDATE_COMMENT(12, "UPDATE_COMMENT", "Allows user to update comment in a page", "Comment"),
-    DELETE_COMMENT(13, "DELETE_COMMENT", "Allows user to delete their own comment", "Comment"),
-    VIEW_COMMENTS(14, "VIEW_COMMENTS", "Allows user to view comments in the page", "Comment"),
-
-    UPDATE_PAGE_EDITOR(15, "UPDATE_PAGE_EDITOR", "Allow user to add/remove page editors in a page", "Page Editor"),
-
-    CREATE_DIRECTORY(16, "CREATE_DIRECTORY", "Allow user to create directory", "Directory"),
-    UPDATE_DIRECTORY(17, "UPDATE_DIRECTORY", "Allow user to create directory", "Directory"),
-    DELETE_DIRECTORY(18, "DELETE_DIRECTORY", "Allow user to create directory", "Directory"),
-    VIEW_DIRECTORY(19, "VIEW_DIRECTORY", "Allow user to create directory", "Directory"),
-    MANAGE_DIRECTORY_PERMISSION(25, "MANAGE_DIRECTOR_PERMISSIONS", "Allow user to manage the directory permissions",
-            "Directory"),
-
-    CREATE_ROLES(20, "CREATE_ROLES", "Allow user to create new roles", "Roles"),
-    UPDATE_ROLES(21, "UPDATE_ROLES", "Allow user to update roles", "Roles"),
-    DELETE_ROLES(22, "DELETE_ROLES", "Allow user to delete roles", "Roles"),
-    MANAGE_ROLES(23, "MANAGE_ROLES", "Allow user to manage roles", "Roles"),
-    READ_ROLES(24, "READ_ROLES", "Allow user to view roles", "Roles");
-
-    long id;
-    String code;
-    String description;
-    String category;
-
-    Permission(long id, String code, String description, String category) {
+    Permission(long id, String category, String description, String code) {
         this.id = id;
-        this.code = code;
-        this.description = description;
         this.category = category;
+        this.description = description;
+        this.code = code;
     }
 
     public long getId() {
         return id;
     }
 
-    public String getCode() {
-        return code;
+    public String getCategory() {
+        return category;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public String getCategory() {
-        return category;
+    public String getCode() {
+        return code;
     }
 }
