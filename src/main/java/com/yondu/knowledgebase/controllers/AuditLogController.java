@@ -25,11 +25,12 @@ public class AuditLogController {
     @GetMapping("/get-activities")
     public ResponseEntity<?> getAuditLogByUser(
             @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "") String entityType,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size){
-        PaginatedResponse<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(searchKey,page,size);
+            @RequestParam(defaultValue = "10") int size) {
+        PaginatedResponse<AuditLogDTO.BaseResponse> auditLogs = auditLogService.getAuditLogsByUser(searchKey, entityType, page, size);
 
-        ApiResponse apiResponse = ApiResponse.success(auditLogs, "Retrieved audit logs per user successfully");
+        ApiResponse apiResponse = ApiResponse.success(auditLogs, "Retrieved audit logs successfully");
         return ResponseEntity.ok(apiResponse);
     }
 
