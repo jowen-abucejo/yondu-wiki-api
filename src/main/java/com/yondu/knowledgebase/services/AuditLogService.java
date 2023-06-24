@@ -62,7 +62,7 @@ public class AuditLogService {
         List<AuditLogDTO.BaseResponse> auditLog = auditLogs.stream()
                 .map(AuditLogDTOMapper::mapToBaseResponse)
                 .collect(Collectors.toList());
-        return new PaginatedResponse<>(auditLog, page, size, auditLogPages.getTotalElements());
+        return new PaginatedResponse<>(auditLog, page, size, (long) auditLogPages.getTotalPages());
     }
 
     public List<AuditLogDTO.BaseResponse> getAuditLogByEntity(String entityType, Long entityId) {
