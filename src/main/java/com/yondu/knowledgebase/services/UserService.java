@@ -1,11 +1,9 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
-import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.Status;
@@ -21,11 +19,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -189,8 +185,10 @@ public class UserService implements UserDetailsService {
             userPages = userRepository.findAllByFullNameAndStatus(searchKey, statusFilter, pageRequest);
         } else if (!roleFilter.isEmpty()) {
             userPages = userRepository.findAllByFullNameAndRole(searchKey, roleFilter, pageRequest);
-        } else {
+        } else if(!searchKey.isEmpty()){
             userPages = userRepository.findAllByFullName(searchKey, pageRequest);
+        }else{
+            userPages = userRepository.findAll(pageRequest);
         }
 
         List<User> users = userPages.getContent();

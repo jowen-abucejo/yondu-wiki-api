@@ -4,17 +4,10 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
-import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.PageType;
-import com.yondu.knowledgebase.enums.Permission;
-import com.yondu.knowledgebase.enums.ReviewStatus;
-import com.yondu.knowledgebase.exceptions.InvalidEmailException;
-import com.yondu.knowledgebase.exceptions.MissingFieldException;
-import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.UserService;
@@ -26,9 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,8 +52,6 @@ public class UserController {
         log.info("size: " + size);
 
         ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> response;
-
-        searchKey = "%" + searchKey + "%";
 
         PaginatedResponse<UserDTO.WithRolesResponse> fetchedUsers = userService.getAllUser(searchKey, statusFilter, roleFilter, page, size);
 
