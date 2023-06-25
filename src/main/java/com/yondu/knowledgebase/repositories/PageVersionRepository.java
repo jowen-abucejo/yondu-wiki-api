@@ -70,18 +70,25 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 p.lock_start AS lockStart,
                 p.lock_end AS lockEnd,
                 p.page_type AS pageType,
+                dr.id as directoryId,
+                dr.name as directoryName,
+                w3.workflow_id as workflowId,
+                w3.totalRequiredApproval as workflowStepCount,
                 (SELECT GROUP_CONCAT(t.name SEPARATOR '|') FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id WHERE pt.page_id = p.id LIMIT 1) AS pageTags,
                 (SELECT GROUP_CONCAT(ct.name SEPARATOR '|') FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id WHERE pcat.page_id = p.id LIMIT 1) AS pageCategories
-            FROM
+             FROM
                 page_version v JOIN
                 page p ON v.page_id = p.id LEFT JOIN
                 users mb ON v.modified_by = mb.id LEFT JOIN
                 users a ON p.author = a.id LEFT JOIN
+                directory dr ON dr.id = p.directory_id LEFT JOIN
+                workflow w ON w.directory_id=dr.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalApprovedReviews FROM review WHERE status = 'APPROVED' GROUP BY page_version_id ) rv ON rv.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id
+                (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
+                (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
+                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
+                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id
             WHERE
                 p.page_type = :pageTypeFilter
                 AND CASE
@@ -103,12 +110,14 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 (
                                     (:allVersions AND (v.page_id , v.id) IN
                                         (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                         GROUP BY pv.page_id)
                                         )
                                     OR (v.page_id , v.id) IN
                                     (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                     GROUP BY pv.page_id)
                                     )
                                 AND (
@@ -145,7 +154,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             THEN (
                                 (v.page_id , v.id) IN
                                     (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
-                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                     GROUP BY pv.page_id)
                                 AND (
                                     EXISTS(SELECT r10.id FROM users u10
@@ -220,12 +230,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 page p ON v.page_id = p.id LEFT JOIN
                 users mb ON v.modified_by = mb.id LEFT JOIN
                 users a ON p.author = a.id LEFT JOIN
+                directory dr ON dr.id = p.directory_id LEFT JOIN
+                workflow w ON w.directory_id=dr.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalApprovedReviews FROM review WHERE status = 'APPROVED' GROUP BY page_version_id ) rv ON rv.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalDisapprovedReviews FROM review WHERE status = 'DISAPPROVED' GROUP BY page_version_id) rv2 ON rv2.page_version_id = v.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id
-                       WHERE
+                (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
+                (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
+                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
+                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id
+            WHERE
                 p.page_type = :pageTypeFilter
                 AND CASE
                     WHEN :parentDirectory IS NOT NULL
@@ -246,12 +259,14 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 (
                                     (:allVersions AND (v.page_id , v.id) IN
                                         (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                            (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                         GROUP BY pv.page_id)
                                         )
                                     OR (v.page_id , v.id) IN
                                     (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                     GROUP BY pv.page_id)
                                     )
                                 AND (
@@ -288,7 +303,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             THEN (
                                 (v.page_id , v.id) IN
                                     (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
-                                        (SELECT 1 FROM review r2 WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id)
+                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
                                     GROUP BY pv.page_id)
                                 AND (
                                     EXISTS(SELECT r10.id FROM users u10
