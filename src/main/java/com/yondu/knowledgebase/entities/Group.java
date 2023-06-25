@@ -16,6 +16,8 @@ public class Group {
 
     private String description;
 
+    private Boolean isActive;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users;
@@ -33,6 +35,7 @@ public class Group {
     public Group(String name, String description) {
         this.name = name;
         this.description = description;
+        this.isActive = true;
         this.users = new HashSet<>();
         this.rights = new HashSet<>();
         this.groupPageAccess = new HashSet<>();
@@ -60,6 +63,14 @@ public class Group {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    public void setActive(Boolean active) {
+        isActive = active;
     }
 
     public Set<User> getUsers() {

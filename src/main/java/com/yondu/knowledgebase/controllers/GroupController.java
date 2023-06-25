@@ -32,6 +32,17 @@ public class GroupController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Group created successfully"));
     }
 
+    @PostMapping("/deactivate")
+    public ResponseEntity<ApiResponse<?>> inactivateGroup(@RequestBody GroupDTO.AddRightsRequest groupId) {
+        GroupDTO.BaseResponse data = groupService.inactivateGroup(groupId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Group deleted successfully"));
+    }
+    @PostMapping("/activate")
+    public ResponseEntity<ApiResponse<?>> activateGroup(@RequestBody GroupDTO.AddRightsRequest groupId) {
+        GroupDTO.BaseResponse data = groupService.activateGroup(groupId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Group deleted successfully"));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> getGroupById(@PathVariable Long id) {
         GroupDTO.BaseResponse data = groupService.getGroupById(id);

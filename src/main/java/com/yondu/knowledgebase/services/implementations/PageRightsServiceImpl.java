@@ -120,7 +120,7 @@ public class PageRightsServiceImpl implements PageRightsService {
 
         Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
         Permission permission = permissionRepository.findById(rightsId).orElseThrow(()-> new ResourceNotFoundException("Permission does not exist."));
-        Group group = groupRepository.findById(groupId.groupId()).orElseThrow(()-> new ResourceNotFoundException("User Group does not exist."));
+        Group group = groupRepository.findByIdAndIsActive(groupId.groupId(), true).orElseThrow(()-> new ResourceNotFoundException("User Group does not exist."));
         GroupPageAccess pageAccess = groupPageAccessRepository.findByPageAndGroupAndPermission(page, group, permission).orElse(null);
 
         if (pageAccess != null){

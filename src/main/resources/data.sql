@@ -290,7 +290,7 @@ VALUES
     ('Moonlit Beach Walk', 'They took a romantic stroll along the moonlit beach, listening to the soothing sound of crashing waves.', '<div>They took a romantic stroll along the moonlit beach, listening to the soothing sound of crashing waves.</div>', '2023-11-19 21:45:00', 1, 9),
     ('New Year\'s Resolutions', 'She reflected on the past year and set meaningful resolutions for the upcoming year.', '<div>She reflected on the past year and set meaningful resolutions for the upcoming year.</div>', '2023-12-24 00:00:00', 1, 9);
 
-INSERT INTO CLUSTER(id, name, description) VALUES (1, "HI", "HELLO");
+INSERT INTO CLUSTER(id, name, description, is_active) VALUES (1, "HI", "HELLO", true);
 
 -- INITIALIZE CATEGORIES
 INSERT IGNORE INTO category(id, is_deleted, name) VALUES

@@ -74,7 +74,7 @@ public class GroupService {
             throw new RequestValidationException("Email is required");
         }
 
-        Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
+        Group group = groupRepository.findByIdAndIsActive(id, true).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
         User user = userRepository.findByEmail(request.email()).orElseThrow(()-> new ResourceNotFoundException("User not found with email: " + request.email()));
 
         if (group.getUsers().contains(user)) {
@@ -91,7 +91,7 @@ public class GroupService {
             throw new RequestValidationException("Email is required");
         }
 
-        Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
+        Group group = groupRepository.findByIdAndIsActive(id, true).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
         User user = userRepository.findByEmail(request.email()).orElseThrow(()-> new ResourceNotFoundException("User not found with email: " + request.email()));
 
         if (!group.getUsers().contains(user)) {
@@ -103,10 +103,25 @@ public class GroupService {
         return GroupDTOMapper.mapToBaseResponse(group);
     }
 
+    public GroupDTO.BaseResponse inactivateGroup(GroupDTO.AddRightsRequest groupId) {
+        Group group = groupRepository.findById(groupId.groupId()).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + groupId));
+        group.setActive(false);
+        groupRepository.save(group);
+        return GroupDTOMapper.mapToBaseResponse(group);
+    }
+
+    public GroupDTO.BaseResponse activateGroup(GroupDTO.AddRightsRequest groupId) {
+        Group group = groupRepository.findById(groupId.groupId()).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + groupId));
+        group.setActive(true);
+        groupRepository.save(group);
+        return GroupDTOMapper.mapToBaseResponse(group);
+    }
+
     public GroupDTO.BaseResponse addUserGroupPermissionToPage(Long userGroupId, Long pageId, GroupDTO.AddPermission request) {
         return null;
     }
     public GroupDTO.BaseResponse removeUserGroupPermissionToPage(Long userGroupId, Long pageId, GroupDTO.AddPermission request) {
         return null;
     }
+
 }
