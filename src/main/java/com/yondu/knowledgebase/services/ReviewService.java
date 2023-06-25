@@ -33,21 +33,17 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final UserPermissionValidatorService userPermissionValidatorService;
     private final AuditLogService auditLogService;
-    private final WorkflowRepository workflowRepository;
-    private final WorkflowStepRepository workflowStepRepository;
 
 
 
     @Autowired
-    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, NotificationService notificationService, UserRepository userRepository, UserPermissionValidatorService userPermissionValidatorService, AuditLogService auditLogService, WorkflowRepository workflowRepository, WorkflowStepRepository workflowStepRepository) {
+    public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository, NotificationService notificationService, UserRepository userRepository, UserPermissionValidatorService userPermissionValidatorService, AuditLogService auditLogService) {
         this.reviewRepository = reviewRepository;
         this.pageVersionRepository = pageVersionRepository;
         this.notificationService = notificationService;
         this.userRepository = userRepository;
         this.userPermissionValidatorService = userPermissionValidatorService;
         this.auditLogService = auditLogService;
-        this.workflowRepository = workflowRepository;
-        this.workflowStepRepository = workflowStepRepository;
     }
 
     public PaginatedResponse<ReviewDTO.BaseResponse> getAllReviews( int page, int size){
@@ -106,6 +102,7 @@ public class ReviewService {
         if (reviewRepository.existsByPageVersionAndStatus(pageVersion, ReviewStatus.PENDING.getCode())) {
             throw new RequestValidationException("A pending review already exists for this page version.");
         }
+        if (isContentDisapproved(pageVersion)) throw new RequestValidationException("Someone already disapproved the content.");
 
         boolean pageOwner = currentUser.getId().equals(pageVersion.getPage().getAuthor().getId());
         System.out.println(pageOwner);
@@ -166,62 +163,46 @@ public class ReviewService {
         if(!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
 
         Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
+        if (review==null) throw new RequestValidationException("Submit a pending review first");
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
-        Set<WorkflowStep> steps =  pageVersion.getPage().getDirectory().getWorkflow().getSteps();
 
-        // Sort the steps based on the step number in ascending order
-        List<WorkflowStep> sortedSteps = sortSteps(steps);
-
-        AtomicInteger approvedApprovers = new AtomicInteger(0);
-        AtomicBoolean isReviewSaved = new AtomicBoolean(false);
         boolean isPending = Objects.equals(review.getStatus(), ReviewStatus.PENDING.getCode());
 
         Map <String, Long> test = userRepository.checkUserPageApprovalPermissionAndGetNextWorkflowStep(currentUser.getId(), pageId,versionId);
 
+        Map <WorkflowStep, Boolean> currentStep = isStepDone(pageVersion);
+        List<WorkflowStep> sortedSteps = sortSteps(currentStep.keySet());
 
 
-        sortedSteps.forEach(step -> {
-            Set<User> approvers = getStepApprovers(step);
-            int totalApprovers = approvers.size();
+        if (isContentDisapproved(pageVersion)) throw new RequestValidationException("Someone already disapproved the content.");
 
-            approvers.forEach(approver -> {
-                if (reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), approver)) {
-                    approvedApprovers.incrementAndGet();
 
-                    if(approver.equals(currentUser)) {
-                        throw new RequestValidationException("You already Approved the Content.");
+        for (WorkflowStep step : sortedSteps) {
+            boolean isStepDone = currentStep.get(step);
+
+            if (!isStepDone) {
+                Set<User> approvers = getStepApprovers(step);
+                // Check if the current user is an approver for this step
+                if (containsUser(approvers,currentUser)) {
+                    // Check if the current user has already approved the content
+                    if (!reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), currentUser) && isPending) {
+                        // Update the review with the current step and other information
+                        review.setWorkflowStep(step);
+                        review.setPageVersion(review.getPageVersion());
+                        review.setUser(currentUser);
+                        review.setComment(request.comment());
+                        review.setReviewDate(LocalDate.now());
+                        review.setStatus(request.status());
+                        updatedReviewRef.set(reviewRepository.save(review));
+
+                        break;
                     }
+                } else {
+                        throw new RequestValidationException("You are not permitted to approve this content yet.");
                 }
-                if (reviewRepository.hasUserReviewedContentAsDisapprovedInPageVersion(review.getPageVersion(), approver)) {
-                    throw new RequestValidationException("Your content was disapproved by a content approver, resubmit your content again.");
-                }
-                if(approver.equals(currentUser)&&isPending) {
-                    review.setWorkflowStep(step);
-                    review.setPageVersion(review.getPageVersion());
-                    review.setUser(currentUser);
-                    review.setComment(request.comment());
-                    review.setReviewDate(LocalDate.now());
-                    review.setStatus(request.status());
-                    updatedReviewRef.set(reviewRepository.save(review));
-
-                    if (reviewRepository.save(review) != null) {
-                        isReviewSaved.set(true);
-                        updatedReviewRef.set(review);
-                    }
-                }
-            });
-
-            if(isReviewSaved.get()) {
-                System.out.println("Proceed");
-            } else if (approvedApprovers.get() != totalApprovers) {
-                throw new RequestValidationException("Your content does not have enough approval from the required approvers from step "+step.getStep());
-            } else {
-                // Reset approvedApprovers count for the next sortedStep
-                approvedApprovers.set(0);
             }
-        });
-
+        }
         if(request.status().equals(ReviewStatus.PENDING.getCode())) {
             throw new RequestValidationException("Content is already submitted as pending.");
         }
@@ -256,6 +237,15 @@ public class ReviewService {
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
     }
 
+    private boolean containsUser(Set<User> set, User user) {
+        for (User item : set) {
+            if (item.equals(user)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private List<WorkflowStep> sortSteps(Set<WorkflowStep> steps) {
         return steps.stream()
                 .sorted(Comparator.comparingInt(WorkflowStep::getStep))
@@ -269,55 +259,44 @@ public class ReviewService {
                 .collect(Collectors.toSet());
     }
 
-    private Map<WorkflowStep, AtomicInteger> countApproverWhoApprovedContentPerStep (PageVersion pageVersion) {
 
-        Map<WorkflowStep, AtomicInteger> data = new HashMap<>();
-        Set<WorkflowStep> steps =  pageVersion.getPage().getDirectory().getWorkflow().getSteps();
+    private Map<WorkflowStep, Boolean> isStepDone(PageVersion pageVersion) {
+        Map<WorkflowStep, Boolean> data = new HashMap<>();
+        Set<WorkflowStep> steps = pageVersion.getPage().getDirectory().getWorkflow().getSteps();
 
         List<WorkflowStep> sortedSteps = sortSteps(steps);
 
         sortedSteps.forEach(step -> {
             Set<User> approvers = getStepApprovers(step);
-            AtomicInteger approvedApprovers = new AtomicInteger(0);
-            approvers.forEach(approver -> {
-                if (reviewRepository.hasUserApprovedContentInPageVersion(pageVersion, approver)) {
-                    approvedApprovers.incrementAndGet();
-                }
-            });
-                    data.put(step,approvedApprovers);
-                    approvedApprovers.set(0);
+            boolean isAnyApproverApproved = approvers.stream()
+                    .anyMatch(approver -> reviewRepository.hasUserApprovedContentInPageVersion(pageVersion, approver));
+            data.put(step, isAnyApproverApproved);
         });
+
         return data;
     }
-    private Map<WorkflowStep, Boolean> isStepDone(PageVersion pageVersion) {
-        Map<WorkflowStep, Boolean> stepStatusMap = new HashMap<>();
+    private boolean isContentDisapproved(PageVersion pageVersion) {
+        Set<WorkflowStep> steps = pageVersion.getPage().getDirectory().getWorkflow().getSteps();
 
-        Map<WorkflowStep, AtomicInteger> approverCountMap = countApproverWhoApprovedContentPerStep(pageVersion);
+        List<WorkflowStep> sortedSteps = sortSteps(steps);
 
-        approverCountMap.forEach((step, approvedApprovers) -> {
+        for (WorkflowStep step : sortedSteps) {
             Set<User> approvers = getStepApprovers(step);
+            boolean isAnyApproverDisapproved = approvers.stream()
+                    .anyMatch(approver -> reviewRepository.hasUserReviewedContentAsDisapprovedInPageVersion(pageVersion, approver));
 
-            int totalApprovers = approvers.size();
-            boolean isDone = (approvedApprovers.get() == totalApprovers);
-            stepStatusMap.put(step, isDone);
-        });
+            if (isAnyApproverDisapproved) {
+                return true; // If someone has disapproved the content, return true
+            }
+        }
 
-        return stepStatusMap;
+        return false; // If no one has disapproved the content, return false
     }
 
     private boolean pagePermissionGranted(Long pageId, String permission) {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return userPermissionValidatorService.userHasPagePermission(currentUser.getId(), pageId,
                 permission);
-    }
-
-    public boolean reviewIsPending(PageVersion pageVersion) {
-        for (Review pageRev : pageVersion.getReviews()) {
-            if (pageRev.getStatus().equals(ReviewStatus.PENDING.getCode())) {
-                return true;
-            }
-        }
-        return false;
     }
     public boolean hasContentApprovalPermission(User user) {
         Set<Role> roles = user.getRole();
