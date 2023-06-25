@@ -70,6 +70,10 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 p.lock_start AS lockStart,
                 p.lock_end AS lockEnd,
                 p.page_type AS pageType,
+                dr.id as directoryId,
+                dr.name as directoryName,
+                w3.workflow_id as workflowId,
+                w3.totalRequiredApproval as workflowStepCount,
                 (SELECT GROUP_CONCAT(t.name SEPARATOR '|') FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id WHERE pt.page_id = p.id LIMIT 1) AS pageTags,
                 (SELECT GROUP_CONCAT(ct.name SEPARATOR '|') FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id WHERE pcat.page_id = p.id LIMIT 1) AS pageCategories
              FROM
