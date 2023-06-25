@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,10 +90,9 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
-    public DirectoryDTO.GetResponse moveDirectory(Long id, Long parentId, Long newParentId) {
-
-        if (parentId == null || newParentId == null) {
-             throw new RequestValidationException("Invalid request parameters");
+    public List<DirectoryDTO.GetResponse> moveDirectories(DirectoryDTO.MoveRequest request) {
+        if (request.ids() == null || request.parentId() == null || request.newParentId() == null) {
+            throw new RequestValidationException("Invalid request parameters");
         }
 
         Long permissionId = 17L;
@@ -100,25 +100,60 @@ public class DirectoryService {
 
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
-        Directory newParentDirectory = directoryRepository.findById(newParentId).orElseThrow(()-> new ResourceNotFoundException(String.format("New parent directory id '%d' not found", parentId)));
+        List<DirectoryDTO.GetResponse> data = new ArrayList<>();
+        for (Long id: request.ids()) {
+            Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
+            Directory newParentDirectory = directoryRepository.findById(request.newParentId()).orElseThrow(()-> new ResourceNotFoundException(String.format("New parent directory id '%d' not found", request.newParentId())));
 
-        if (!directory.getParent().getId().equals(parentId)) {
-            throw new ResourceNotFoundException(String.format("Directory '%s' with parent id '%d' does not exists", directory.getName(), parentId));
+            if (!directory.getParent().getId().equals(request.parentId())) {
+                throw new ResourceNotFoundException(String.format("Directory '%s' with parent id '%d' does not exists", directory.getName(), request.parentId()));
+            }
+
+            if (!hasPermission(currentUser, directory, permission)) {
+                throw new AccessDeniedException();
+            }
+
+            if (isDirectoryNameDuplicate(directory.getName(), newParentDirectory.getSubDirectories())){
+                throw new DuplicateResourceException(String.format("Directory with same name '%s' already exists in new parent's subdirectories", directory.getName()));
+            }
+
+            directory.setParent(newParentDirectory);
+            Directory savedDirectory = directoryRepository.save(directory);
+            data.add(DirectoryDTOMapper.mapToGetResponse(savedDirectory));
         }
-
-        if (!hasPermission(currentUser, directory, permission)) {
-            throw new AccessDeniedException();
-        }
-
-        if (isDirectoryNameDuplicate(directory.getName(), newParentDirectory.getSubDirectories())){
-            throw new DuplicateResourceException(String.format("Directory with same name '%s' already exists in new parent's subdirectories", directory.getName()));
-        }
-
-        directory.setParent(newParentDirectory);
-        Directory savedDirectory = directoryRepository.save(directory);
-        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
+        return data;
     }
+
+//    public DirectoryDTO.GetResponse moveDirectory(Long id, Long parentId, Long newParentId) {
+//
+//        if (parentId == null || newParentId == null) {
+//             throw new RequestValidationException("Invalid request parameters");
+//        }
+//
+//        Long permissionId = 17L;
+//        Permission permission = permissionRepository.findById(permissionId).orElseThrow(()->new ResourceNotFoundException(String.format("Directory permission id '%d' not found", permissionId)));
+//
+//        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+//
+//        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
+//        Directory newParentDirectory = directoryRepository.findById(newParentId).orElseThrow(()-> new ResourceNotFoundException(String.format("New parent directory id '%d' not found", newParentId)));
+//
+//        if (!directory.getParent().getId().equals(parentId)) {
+//            throw new ResourceNotFoundException(String.format("Directory '%s' with parent id '%d' does not exists", directory.getName(), parentId));
+//        }
+//
+//        if (!hasPermission(currentUser, directory, permission)) {
+//            throw new AccessDeniedException();
+//        }
+//
+//        if (isDirectoryNameDuplicate(directory.getName(), newParentDirectory.getSubDirectories())){
+//            throw new DuplicateResourceException(String.format("Directory with same name '%s' already exists in new parent's subdirectories", directory.getName()));
+//        }
+//
+//        directory.setParent(newParentDirectory);
+//        Directory savedDirectory = directoryRepository.save(directory);
+//        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
+//    }
 
     public DirectoryDTO.GetResponse renameDirectory(Long id, DirectoryDTO.RenameRequest request) {
 
