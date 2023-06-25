@@ -1,9 +1,9 @@
 package com.yondu.knowledgebase.repositories;
 
 import com.yondu.knowledgebase.entities.Permission;
-import com.yondu.knowledgebase.entities.Rights;
 import com.yondu.knowledgebase.entities.User;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,9 +35,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 
     User findByFirstNameOrLastName(String firstName, String lastName);
-
-    @Query("SELECT u.rights FROM users u WHERE u.id = :userId ")
-    Set<Rights> findRightsById(Long userId);
 
     @Query("SELECT u FROM users u JOIN u.role r JOIN r.permissions p WHERE p.name = 'CONTENT_APPROVAL'")
     Set<User> findUsersWithContentApprovalPermission();
@@ -112,14 +109,70 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findAllByFullName(String fullName, Pageable pageable);
 
     @Query("""
-           SELECT u FROM users u
-           JOIN u.role r
-           JOIN r.permissions p
-           WHERE (u.firstName LIKE ?1
-           OR u.lastName LIKE ?1
-           OR u.email LIKE ?1)
-           AND p.id = ?2
-           """)
+            SELECT u FROM users u
+            JOIN u.role r
+            JOIN r.permissions p
+            WHERE (u.firstName LIKE ?1
+            OR u.lastName LIKE ?1
+            OR u.email LIKE ?1)
+            AND p.id = ?2
+            """)
     Page<User> findAllByFullNameAndHasPermission(String searchKey, Long permissionId, Pageable pageable);
+
+    @Query(nativeQuery = true, value = """
+            SELECT
+                p.id AS pageId,
+                pv.id AS pageVersionId,
+                u.id AS userId,
+                ws.id AS nextWorkflowStepId,
+                ws.step AS nextStep,
+                COALESCE(rv3.pendingReviewCount, 0) AS pendingReviewCount
+            FROM
+                knowledge_base_dev.page_version pv
+                    LEFT JOIN
+                knowledge_base_dev.page p ON pv.page_id = p.id
+                    LEFT JOIN
+                knowledge_base_dev.directory d ON d.id = p.directory_id
+                    LEFT JOIN
+                knowledge_base_dev.workflow w ON d.id = w.directory_id
+                    LEFT JOIN
+                knowledge_base_dev.workflow_step ws ON w.id = ws.workflow_id
+                    LEFT JOIN
+                knowledge_base_dev.workflow_step_approver wsp ON wsp.workflow_step_id = ws.id
+                    LEFT JOIN
+                knowledge_base_dev.users u ON wsp.approver_id = u.id
+                    LEFT JOIN
+                (SELECT
+                    page_version_id, COUNT(*) AS pendingReviewCount
+                FROM
+                    knowledge_base_dev.review r3
+                WHERE
+                    status = 'PENDING'
+                GROUP BY page_version_id) rv3 ON rv3.page_version_id = pv.id
+            WHERE
+                u.id = :userId AND p.id=:pageId AND pv.id = :versionId
+                    AND ws.step = ((SELECT
+                        COALESCE(MAX(ws2.step), 0)
+                    FROM
+                        knowledge_base_dev.review r
+                            LEFT JOIN
+                        knowledge_base_dev.workflow_step ws2 ON ws2.id = r.workflow_step_id
+                    WHERE
+                        r.page_version_id = :versionId) + 1)
+            		ANd rv3.pendingReviewCount > 0
+                                    """)
+    /**
+     * Get a map of ids for user, page, version and next workflow step
+     * only if both (1) user with the given id is approver for the next step
+     * and (2) page version is already submitted as 'PENDING'
+     * 
+     * @param userId
+     * @param pageId
+     * @param versionId
+     * @return a map containing the userId, pageId, pageVersionId,
+     *         nextWorkflowStepId, nextStep, and pendingReviewCount
+     */
+    public Map<String, Long> checkUserPageApprovalPermissionAndGetNextWorkflowStep(Long userId, Long pageId,
+            Long versionId);
 
 }

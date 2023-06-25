@@ -78,6 +78,11 @@ public class PageDTO {
     @JsonProperty(value = "type")
     private String pageType;
 
+    private Long directoryId;
+    private String directoryName;
+    private Long directoryWorkflowId;
+    private Long directoryWorkflowStepCount;
+
     private PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
         this.dateCreated = builder.dateCreated;
@@ -96,6 +101,10 @@ public class PageDTO {
         this.categories = builder.categories;
         this.tags = builder.tags;
         this.pageType = builder.pageType;
+        this.directoryId = builder.directoryId;
+        this.directoryName = builder.directoryName;
+        this.directoryWorkflowId = builder.directoryWorkflowId;
+        this.directoryWorkflowStepCount = builder.directoryWorkflowStepCount;
     }
 
     /**
@@ -230,6 +239,11 @@ public class PageDTO {
         private Long totalRatings;
         private String[] categories;
         private String[] tags;
+        private Long directoryId;
+        private Long directoryWorkflowId;
+        private Long directoryWorkflowStepCount;
+        private String directoryName;
+
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
 
@@ -315,6 +329,26 @@ public class PageDTO {
 
         public PageDTOBuilder pageType(String pageType) {
             this.pageType = StringUtils.capitalize(pageType.toLowerCase());
+            return this;
+        }
+
+        public PageDTOBuilder directoryName(String directoryName) {
+            this.directoryName = directoryName;
+            return this;
+        }
+
+        public PageDTOBuilder directoryId(Long directoryId) {
+            this.directoryId = directoryId;
+            return this;
+        }
+
+        public PageDTOBuilder directoryWorkflowId(Long directoryWorkflowId) {
+            this.directoryWorkflowId = directoryWorkflowId;
+            return this;
+        }
+
+        public PageDTOBuilder directoryWorkflowStepCount(Long directoryWorkflowStepCount) {
+            this.directoryWorkflowStepCount = directoryWorkflowStepCount;
             return this;
         }
 

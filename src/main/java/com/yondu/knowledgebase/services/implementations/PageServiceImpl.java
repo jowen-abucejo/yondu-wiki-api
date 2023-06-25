@@ -304,22 +304,23 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
     @Override
     public PageDTO findById(PageType pageType, Long id) {
-        var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(id,
-                        pageType.getCode(),
-                        false,
-                        ReviewStatus.APPROVED.getCode())
-                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id,
-                        pageType)));
 
-        String requiredPermission = Permission.READ_CONTENT.getCode();
-        if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(),
-                        requiredPermission)) {
-            return pageDTODefault(pageVersion).build();
-        }
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+        if (!pageRepository.existsByIdAndTypeAndDeleted(id, pageType.getCode(), false))
+            throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
+                        null, null, userId, List.of(id), null, PageRequest.of(0, 1))
+                .orElse(null);
+
+        if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+
+        var pageList = optionalPageVersions.getContent();
+
+        return convertMapToPageDTO(pageList.get(0), pageList);
     }
 
     @Override
