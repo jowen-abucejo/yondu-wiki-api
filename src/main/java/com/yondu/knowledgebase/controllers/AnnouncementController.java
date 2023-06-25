@@ -48,11 +48,11 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "0", name = "exactSearch") Boolean exactSearch,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
+            @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys) {
 
-        return pageService.findAllByFullTextSearch(pageType, searchKey, categories, tags, archived, published,
-                exactSearch,
-                pageNumber, pageSize, sortBy);
+        return pageService.findAllByFullTextSearch(pageType, searchKey, primaryKeys, categories, tags, archived,
+                published, exactSearch, pageNumber, pageSize, sortBy);
     }
 
     @GetMapping(path = "announcements")
@@ -63,7 +63,7 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "50", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAllByFullTextSearch(pageType, "", categories, tags, false, true, false,
+        return pageService.findAllByFullTextSearch(pageType, "", new Long[] {}, categories, tags, false, true, false,
                 pageNumber, pageSize, sortBy);
     }
 
