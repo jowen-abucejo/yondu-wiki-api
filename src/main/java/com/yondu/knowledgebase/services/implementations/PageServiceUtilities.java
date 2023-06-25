@@ -142,7 +142,11 @@ class PageServiceUtilities {
                 .body(convertMapToPageVersionDTO(pageVersion))
                 .categories(getAsArray(pageVersion.getOrDefault("pageCategories", null)))
                 .tags(getAsArray(pageVersion.getOrDefault("pageTags", null)))
-                .pageType((String) pageVersion.getOrDefault("pageType", "wiki"));
+                .pageType((String) pageVersion.getOrDefault("pageType", "Wiki"))
+                .directoryId((Long) pageVersion.getOrDefault("directoryId", 0L))
+                .directoryWorkflowId((Long) pageVersion.getOrDefault("workflowId", 0L))
+                .directoryWorkflowStepCount((Long) pageVersion.getOrDefault("workflowStepCount", 0L))
+                .directoryName((String) pageVersion.getOrDefault("directoryName", "-----"));
     }
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {

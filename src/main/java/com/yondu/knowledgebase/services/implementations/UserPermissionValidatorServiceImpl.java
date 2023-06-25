@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.services.implementations;
 
+import java.util.Map;
+
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +43,13 @@ public class UserPermissionValidatorServiceImpl implements UserPermissionValidat
             }
         }
         return false;
+    }
+
+    @Override
+    public Map<String, Long> checkUserPageApprovalPermissionAndGetNextWorkflowStep(Long userId, Long pageId,
+            Long versionId) {
+        return userRepository.checkUserPageApprovalPermissionAndGetNextWorkflowStep(userId, pageId,
+                versionId);
     }
 
 }
