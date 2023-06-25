@@ -118,6 +118,8 @@ public class ReviewService {
          else if (!pagePermissionGranted(pId, Permission.UPDATE_CONTENT.getCode())) {
             if (!pageOwner) throw new RequestValidationException("You are not permitted to submit this page.");}
 
+
+
             Review review = new Review();
             review.setPageVersion(pageVersion);
             review.setUser(null);
@@ -139,10 +141,12 @@ public class ReviewService {
                 Set<User> approvers = getStepApprovers(step);
 
                 for (User approver : approvers) {
-                    System.out.println(approver.getEmail());
-                    notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(), review.getPageVersion().getPage().getAuthor().getId(),
-                            String.format("A content needs to be approved for page ID %d", pageVersion.getPage().getId()),
-                            NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pageVersion.getPage().getId()));
+
+                    if (!reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), approver)) {
+                        notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(), review.getPageVersion().getPage().getAuthor().getId(),
+                                String.format("A content needs to be approved for page ID %d", pageVersion.getPage().getId()),
+                                NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pageVersion.getPage().getId()));
+                    }
                 }
                 break;
             }
@@ -173,6 +177,10 @@ public class ReviewService {
         AtomicBoolean isReviewSaved = new AtomicBoolean(false);
         boolean isPending = Objects.equals(review.getStatus(), ReviewStatus.PENDING.getCode());
 
+        Map <String, Long> test = userRepository.checkUserPageApprovalPermissionAndGetNextWorkflowStep(currentUser.getId(), pageId,versionId);
+
+
+
         sortedSteps.forEach(step -> {
             Set<User> approvers = getStepApprovers(step);
             int totalApprovers = approvers.size();
@@ -180,6 +188,10 @@ public class ReviewService {
             approvers.forEach(approver -> {
                 if (reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), approver)) {
                     approvedApprovers.incrementAndGet();
+
+                    if(approver.equals(currentUser)) {
+                        throw new RequestValidationException("You already Approved the Content.");
+                    }
                 }
                 if (reviewRepository.hasUserReviewedContentAsDisapprovedInPageVersion(review.getPageVersion(), approver)) {
                     throw new RequestValidationException("Your content was disapproved by a content approver, resubmit your content again.");
@@ -235,6 +247,10 @@ public class ReviewService {
         // Handle the case when no review is updated
         if (updatedReview == null) {
             throw new RequestValidationException("No review was updated.");
+        }
+
+        for (Map.Entry<String, Long> entry : test.entrySet()) {
+            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
         }
 
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
