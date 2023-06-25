@@ -356,4 +356,39 @@ public class PageDTO {
             return new PageDTO(this);
         }
     }
+
+    /**
+     * @return the pageType
+     */
+    public String getPageType() {
+        return pageType;
+    }
+
+    /**
+     * @return the directoryId
+     */
+    public Long getDirectoryId() {
+        return directoryId;
+    }
+
+    /**
+     * @return the directoryName
+     */
+    public String getDirectoryName() {
+        return directoryName;
+    }
+
+    /**
+     * @return the directoryWorkflowId
+     */
+    public Long getDirectoryWorkflowId() {
+        return directoryWorkflowId;
+    }
+
+    /**
+     * @return the directoryWorkflowStepCount
+     */
+    public Long getDirectoryWorkflowStepCount() {
+        return directoryWorkflowStepCount;
+    }
 }
