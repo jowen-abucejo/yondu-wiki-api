@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/directories")
 public class DirectoryController {
@@ -40,11 +42,18 @@ public class DirectoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
     }
 
-    @PutMapping("/{id}/move")
-    public ResponseEntity<ApiResponse<?>> moveDirectory(@PathVariable("id") Long id, @RequestParam Long parentId, @RequestParam Long newParentId) {
-        DirectoryDTO.GetResponse data = directoryService.moveDirectory(id, parentId, newParentId);
+    @PutMapping("/move")
+    public ResponseEntity<ApiResponse<?>> moveDirectory(@RequestBody DirectoryDTO.MoveRequest request) {
+        List<DirectoryDTO.GetResponse> data = directoryService.moveDirectories(request);
+        System.out.println(data);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory moved successfully"));
     }
+
+//    @PutMapping("/{id}/move")
+//    public ResponseEntity<ApiResponse<?>> moveDirectory(@PathVariable("id") Long id, @RequestParam Long parentId, @RequestParam Long newParentId) {
+//        DirectoryDTO.GetResponse data = directoryService.moveDirectory(id, parentId, newParentId);
+//        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory moved successfully"));
+//    }
 
     @PutMapping("/{id}/rename")
     public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryDTO.RenameRequest request) {
