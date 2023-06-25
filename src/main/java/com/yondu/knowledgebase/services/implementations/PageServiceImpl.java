@@ -58,7 +58,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository,
             UserPermissionValidatorService userPermissionValidatorService,
             PageRightsService pageRightsService,
-            AuditorAware<User> auditorAware, TagRepository tagRepository, CategoryRepository categoryRepository) {
+            AuditorAware<User> auditorAware, TagRepository tagRepository,
+            CategoryRepository categoryRepository) {
         super(userPermissionValidatorService, auditorAware, categoryRepository, tagRepository);
         this.pageRepository = pageRepository;
         this.pageVersionRepository = pageVersionRepository;
@@ -76,7 +77,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         String requiredPermission = Permission.READ_CONTENT.getCode();
         if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(), requiredPermission)) {
+                || directoryPermissionGranted(pageVersion.getPage().getDirectory().getId(),
+                        requiredPermission)) {
             return pageDTODefault(pageVersion).build();
         }
 
@@ -110,18 +112,22 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         pageRightsService.createPageRights(newPage);
 
-        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L, 0L }).categories(categories).tags(tags).build();
+        return pageDTODefault(newPageVersion, new Long[] { 0L, 0L, 0L }).categories(categories).tags(tags)
+                .build();
 
     }
 
     @Override
     public PageDTO updatePageDraft(PageType pageType, Long pageId, Long versionId, PageVersionDTO pageDTO) {
-        var pageDraft = pageVersionRepository.findByPageIdAndPageTypeAndId(pageId, pageType.getCode(), versionId)
-                .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, versionId, pageType)));
+        var pageDraft = pageVersionRepository
+                .findByPageIdAndPageTypeAndId(pageId, pageType.getCode(), versionId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        pageNotFoundPhrase(pageId, versionId, pageType)));
 
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
-                || directoryPermissionGranted(pageDraft.getPage().getDirectory().getId(), requiredPermission)) {
+                || directoryPermissionGranted(pageDraft.getPage().getDirectory().getId(),
+                        requiredPermission)) {
             // lock the page
             checkLock(pageDraft.getPage(), true);
 
@@ -154,7 +160,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     @Override
     public PageDTO deletePage(PageType pageType, Long pageId) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId,
+                        pageType.getCode(), false)
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
@@ -177,7 +184,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     @Override
     public PageDTO updateActiveStatus(PageType pageType, Long pageId, Boolean isActive) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId,
+                        pageType.getCode(), false)
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
@@ -199,7 +207,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     @Override
     public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting) {
         var pageVersion = pageVersionRepository
-                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId, pageType.getCode(), false)
+                .findTopByPageIdAndPageTypeAndPageDeletedOrderByDateModifiedDesc(pageId,
+                        pageType.getCode(), false)
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
         String requiredPermission = Permission.UPDATE_CONTENT.getCode();
@@ -220,7 +229,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     @Override
     public Page getPage(Long id) {
         var page = pageRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Page with id: " + id + " not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Page with id: " + id + " not found!"));
         Long directoryId = page.getDirectory().getId();
 
         String requiredPermission = Permission.READ_CONTENT.getCode();
@@ -234,40 +244,13 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
     @Override
     public PageDTO findByIdWithVersions(PageType pageType, Long id) {
-        var page = getPage(pageType, id);
-
-        Long directoryId = page.getDirectory().getId();
-        List<String> reviewsStatus = new ArrayList<>();
-        reviewsStatus.add(ReviewStatus.APPROVED.getCode());
-
-        String requiredPermission = Permission.CONTENT_APPROVAL.getCode();
-        if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(directoryId, requiredPermission)) {
-            reviewsStatus.add(ReviewStatus.PENDING.getCode());
-            reviewsStatus.add(ReviewStatus.DISAPPROVED.getCode());
-        }
-
-        requiredPermission = Permission.UPDATE_CONTENT.getCode();
-        if (pagePermissionGranted(id, requiredPermission)
-                || directoryPermissionGranted(directoryId, requiredPermission)) {
-            page = pageRepository
-                    .findTopByIdAndTypeAndDeletedAndPageVersionsReviewsStatusInOrPageVersionsReviewsIsEmpty(id,
-                            pageType.getCode(), false, reviewsStatus)
-                    .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
-        } else {
-            page = pageRepository
-                    .findTopByIdAndTypeAndDeletedAndPageVersionsReviewsStatusIn(id, pageType.getCode(), false,
-                            reviewsStatus)
-                    .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(id, pageType)));
-        }
-
-        return pageWithVersionsDTODefault(page).build();
+        return findById(pageType, id);
     }
 
-    public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey, String[] categories,
-            String[] tags,
-            Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber, Integer pageSize,
-            String[] sortBy) {
+    public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
+            Long[] primaryKeys, String[] categories,
+            String[] tags, Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+            Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
         retrievedPage = Math.min(100, retrievedPage);
@@ -284,9 +267,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
         var optionalPageVersions = pageVersionRepository
-                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive, isPublished,
-                        false, Arrays.asList(categories),
-                        Arrays.asList(tags), userId, Arrays.asList(), null, paging)
+                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
+                        isPublished, false, arrayToSqlStringList(categories),
+                        arrayToSqlStringList(tags), userId,
+                        arrayToSqlStringList(primaryKeys), null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -296,7 +280,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         var otherConfiguration = new HashMap<String, Object>();
         otherConfiguration.put("available_sorting", validSortAliases);
         otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
-                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection())).toList());
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
         return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
                 optionalPageVersions.getTotalElements(), otherConfiguration);
 
@@ -312,7 +297,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, List.of(id), null, PageRequest.of(0, 1))
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 1))
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -358,9 +343,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
         var optionalPageVersions = pageVersionRepository
-                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive, isPublished,
-                        true, Arrays.asList(categories),
-                        Arrays.asList(tags), userId, Arrays.asList(), directoryId, paging)
+                .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
+                        isPublished,
+                        true, arrayToSqlStringList(categories),
+                        arrayToSqlStringList(tags), userId, null, directoryId, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -370,7 +356,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         var otherConfiguration = new HashMap<String, Object>();
         otherConfiguration.put("available_sorting", validSortAliases);
         otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
-                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection())).toList());
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
         return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
                 optionalPageVersions.getTotalElements(), otherConfiguration);
 
@@ -386,8 +373,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         User user = auditorAware.getCurrentAuditor().get();
         PageRequest pageRequest = PageRequest.of(page - 1, size);
 
-        org.springframework.data.domain.Page<Page> fetchPages = pageRepository.findByAuthorOrderByDateCreatedDesc(user,
-                type, pageRequest);
+        org.springframework.data.domain.Page<Page> fetchPages = pageRepository
+                .findByAuthorOrderByDateCreatedDesc(user,
+                        type, pageRequest);
 
         if (fetchPages.hasContent()) {
             List<PageDTO> listPages = fetchPages
@@ -412,7 +400,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                     })
                     .collect(Collectors.toList());
 
-            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size, (long) listPages.size());
+            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size,
+                    (long) listPages.size());
             return pages;
         } else {
             throw new NoContentException("No pages found");

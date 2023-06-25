@@ -128,24 +128,24 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 ws.step AS nextStep,
                 COALESCE(rv3.pendingReviewCount, 0) AS pendingReviewCount
             FROM
-                knowledge_base.page_version pv
+                page_version pv
                     LEFT JOIN
-                knowledge_base.page p ON pv.page_id = p.id
+                page p ON pv.page_id = p.id
                     LEFT JOIN
-                knowledge_base.directory d ON d.id = p.directory_id
+                directory d ON d.id = p.directory_id
                     LEFT JOIN
-                knowledge_base.workflow w ON d.id = w.directory_id
+                workflow w ON d.id = w.directory_id
                     LEFT JOIN
-                knowledge_base.workflow_step ws ON w.id = ws.workflow_id
+                workflow_step ws ON w.id = ws.workflow_id
                     LEFT JOIN
-                knowledge_base.workflow_step_approver wsp ON wsp.workflow_step_id = ws.id
+                workflow_step_approver wsp ON wsp.workflow_step_id = ws.id
                     LEFT JOIN
-                knowledge_base.users u ON wsp.approver_id = u.id
+                users u ON wsp.approver_id = u.id
                     LEFT JOIN
                 (SELECT
                     page_version_id, COUNT(*) AS pendingReviewCount
                 FROM
-                    knowledge_base.review r3
+                    review r3
                 WHERE
                     status = 'PENDING'
                 GROUP BY page_version_id) rv3 ON rv3.page_version_id = pv.id
@@ -154,9 +154,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     AND ws.step = ((SELECT
                         COALESCE(MAX(ws2.step), 0)
                     FROM
-                        knowledge_base.review r
+                        review r
                             LEFT JOIN
-                        knowledge_base.workflow_step ws2 ON ws2.id = r.workflow_step_id
+                        workflow_step ws2 ON ws2.id = r.workflow_step_id
                     WHERE
                         r.page_version_id = :versionId) + 1)
             		ANd rv3.pendingReviewCount > 0
