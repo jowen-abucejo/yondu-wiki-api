@@ -1,6 +1,5 @@
 package com.yondu.knowledgebase.DTO.group;
 
-import com.yondu.knowledgebase.DTO.rights.RightsDTOMapper;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Group;
 
@@ -13,7 +12,7 @@ public class GroupDTOMapper {
                 group.getName(),
                 group.getDescription(),
                 group.getActive(),
-                group.getUsers().stream().map(UserDTOMapper::mapToShortResponse).collect(Collectors.toSet()));
+                group.getUsers().stream().map(UserDTOMapper::mapToGeneralResponse).collect(Collectors.toSet()));
     }
 
     public static GroupDTO.ShortResponse mapToShortResponse(Group group) {
