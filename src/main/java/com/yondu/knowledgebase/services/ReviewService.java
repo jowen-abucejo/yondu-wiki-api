@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -117,14 +114,10 @@ public class ReviewService {
         String requiredPermission = Permission.CREATE_CONTENT.getCode();
 
         if (!pagePermissionGranted(pId,requiredPermission)) {
-            if (pageOwner) {System.out.println("Proceed");} else {
-                throw new RequestValidationException("You are not permitted to submit this page.");
-            }
-        } else if (!pagePermissionGranted(pId, Permission.UPDATE_CONTENT.getCode())) {
-            if (pageOwner) {System.out.println("Proceed");} else {
-                throw new RequestValidationException("You are not permitted to submit this page.");
-            }
-        }
+            if (!pageOwner) throw new RequestValidationException("You are not permitted to submit this page.");}
+         else if (!pagePermissionGranted(pId, Permission.UPDATE_CONTENT.getCode())) {
+            if (!pageOwner) throw new RequestValidationException("You are not permitted to submit this page.");}
+
             Review review = new Review();
             review.setPageVersion(pageVersion);
             review.setUser(null);
@@ -135,15 +128,25 @@ public class ReviewService {
 
             reviewRepository.save(review);
 
-            // Get users with the CONTENT_APPROVAL permission
-            Set<User> approvers = userRepository.findUsersWithContentApprovalPermission();
+        // Notify current step approvers
+        Map<WorkflowStep, Boolean> notifyApprovers = isStepDone(pageVersion);
+        List<WorkflowStep> sortedSteps = sortSteps(notifyApprovers.keySet());
 
-            for (User approver : approvers) {
-                System.out.println(approver.getEmail());
-                notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(), review.getPageVersion().getPage().getAuthor().getId(),
-                        String.format("A content needs to be approved for page ID %d", pageVersion.getPage().getId()),
-                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pageVersion.getPage().getId()));
+        for (WorkflowStep step : sortedSteps) {
+            boolean isStepDone = notifyApprovers.get(step);
+
+            if (!isStepDone) {
+                Set<User> approvers = getStepApprovers(step);
+
+                for (User approver : approvers) {
+                    System.out.println(approver.getEmail());
+                    notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(), review.getPageVersion().getPage().getAuthor().getId(),
+                            String.format("A content needs to be approved for page ID %d", pageVersion.getPage().getId()),
+                            NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pageVersion.getPage().getId()));
+                }
+                break;
             }
+        }
             auditLogService.createAuditLog(currentUser, EntityType.PAGE.getCode(),pId,"submitted a page titled "+pageVersion.getTitle()+" for review.");
 
             return ReviewDTOMapper.mapToBaseResponse(review);
@@ -154,8 +157,8 @@ public class ReviewService {
     public ReviewDTO.UpdatedResponse updateReview(Long pageId, Long versionId, ReviewDTO.UpdateRequest request) {
         AtomicReference<Review> updatedReviewRef = new AtomicReference<>();
 
+        // Validate Permission
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        System.out.println(currentUser);
         if(!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
 
         Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
@@ -164,20 +167,14 @@ public class ReviewService {
         Set<WorkflowStep> steps =  pageVersion.getPage().getDirectory().getWorkflow().getSteps();
 
         // Sort the steps based on the step number in ascending order
-        List<WorkflowStep> sortedSteps = steps.stream()
-                .sorted(Comparator.comparingInt(WorkflowStep::getStep))
-                .collect(Collectors.toList());
+        List<WorkflowStep> sortedSteps = sortSteps(steps);
 
         AtomicInteger approvedApprovers = new AtomicInteger(0);
         AtomicBoolean isReviewSaved = new AtomicBoolean(false);
         boolean isPending = Objects.equals(review.getStatus(), ReviewStatus.PENDING.getCode());
 
         sortedSteps.forEach(step -> {
-            Set<User> approvers = step.getStepApprovers()
-                    .stream()
-                    .map(WorkflowStepApprover::getApprover)
-                    .collect(Collectors.toSet());
-
+            Set<User> approvers = getStepApprovers(step);
             int totalApprovers = approvers.size();
 
             approvers.forEach(approver -> {
@@ -220,6 +217,7 @@ public class ReviewService {
         long pageAuthorId = review.getPageVersion().getPage().getAuthor().getId();
         long pId = review.getPageVersion().getPage().getId();
 
+    // Notify Author
     if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
         notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                 String.format("Your Content has been Approved by %s!", currentUser.getEmail()), NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),pId));
@@ -240,6 +238,55 @@ public class ReviewService {
         }
 
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);
+    }
+
+    private List<WorkflowStep> sortSteps(Set<WorkflowStep> steps) {
+        return steps.stream()
+                .sorted(Comparator.comparingInt(WorkflowStep::getStep))
+                .collect(Collectors.toList());
+    }
+
+    private Set<User> getStepApprovers(WorkflowStep step) {
+        return step.getStepApprovers()
+                .stream()
+                .map(WorkflowStepApprover::getApprover)
+                .collect(Collectors.toSet());
+    }
+
+    private Map<WorkflowStep, AtomicInteger> countApproverWhoApprovedContentPerStep (PageVersion pageVersion) {
+
+        Map<WorkflowStep, AtomicInteger> data = new HashMap<>();
+        Set<WorkflowStep> steps =  pageVersion.getPage().getDirectory().getWorkflow().getSteps();
+
+        List<WorkflowStep> sortedSteps = sortSteps(steps);
+
+        sortedSteps.forEach(step -> {
+            Set<User> approvers = getStepApprovers(step);
+            AtomicInteger approvedApprovers = new AtomicInteger(0);
+            approvers.forEach(approver -> {
+                if (reviewRepository.hasUserApprovedContentInPageVersion(pageVersion, approver)) {
+                    approvedApprovers.incrementAndGet();
+                }
+            });
+                    data.put(step,approvedApprovers);
+                    approvedApprovers.set(0);
+        });
+        return data;
+    }
+    private Map<WorkflowStep, Boolean> isStepDone(PageVersion pageVersion) {
+        Map<WorkflowStep, Boolean> stepStatusMap = new HashMap<>();
+
+        Map<WorkflowStep, AtomicInteger> approverCountMap = countApproverWhoApprovedContentPerStep(pageVersion);
+
+        approverCountMap.forEach((step, approvedApprovers) -> {
+            Set<User> approvers = getStepApprovers(step);
+
+            int totalApprovers = approvers.size();
+            boolean isDone = (approvedApprovers.get() == totalApprovers);
+            stepStatusMap.put(step, isDone);
+        });
+
+        return stepStatusMap;
     }
 
     private boolean pagePermissionGranted(Long pageId, String permission) {
