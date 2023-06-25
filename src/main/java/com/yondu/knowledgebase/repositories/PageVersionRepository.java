@@ -380,10 +380,10 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("isArchived") Boolean isArchived,
             @Param("isPublished") Boolean isPublished,
             @Param("allVersions") Boolean allVersions,
-            @Param("categories") List<String> categories,
-            @Param("tags") List<String> tags,
+            @Param("categories") String categories,
+            @Param("tags") String tags,
             @Param("userId") Long userId,
-            @Param("pagePrimaryKeys") List<Long> pageIds,
+            @Param("pagePrimaryKeys") String pageIds,
             @Param("parentDirectory") Long directoryId,
             Pageable pageable);
 
