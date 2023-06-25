@@ -8,36 +8,36 @@ import com.yondu.knowledgebase.enums.PageType;
 
 public interface PageService {
 
-        public PageDTO findById(Long id);
+    public PageDTO findById(Long id);
 
-        public PageDTO findById(PageType pageType, Long id);
+    public PageDTO findById(PageType pageType, Long id);
 
-        public PageDTO createNewPage(PageType pageType, Long directoryId, PageVersionDTO page);
+    public PageDTO createNewPage(PageType pageType, Long directoryId, PageVersionDTO page);
 
-        public PageDTO updatePageDraft(PageType pageType, Long pageId, Long versionId, PageVersionDTO page);
+    public PageDTO updatePageDraft(PageType pageType, Long pageId, Long versionId, PageVersionDTO page);
 
-        public PageDTO deletePage(PageType pageType, Long pageId);
+    public PageDTO deletePage(PageType pageType, Long pageId);
 
-        public PageDTO updateActiveStatus(PageType pageType, Long pageId, Boolean isActive);
+    public PageDTO updateActiveStatus(PageType pageType, Long pageId, Boolean isActive);
 
-        public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting);
+    public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting);
 
-        public Page getPage(PageType pageType, Long pageId);
+    public Page getPage(PageType pageType, Long pageId);
 
-        public PageDTO findByIdWithVersions(PageType pageType, Long pageId);
+    public PageDTO findByIdWithVersions(PageType pageType, Long pageId);
 
-        public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
-                        String[] categories, String[] tags,
-                        Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-                        Integer pageSize, String[] sortBy);
+    public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
+            Long[] primaryKeys, String[] categories, String[] tags,
+            Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+            Integer pageSize, String[] sortBy);
 
-        public Page getPage(Long pageId);
+    public Page getPage(Long pageId);
 
-        public PaginatedResponse<PageDTO> findAllByDirectoryIdAndFullTextSearch(PageType pageType, Long directoryId,
-                        String searchKey,
-                        String[] categories, String[] tags,
-                        Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-                        Integer pageSize, String[] sortBy);
+    public PaginatedResponse<PageDTO> findAllByDirectoryIdAndFullTextSearch(PageType pageType, Long directoryId,
+            String searchKey,
+            String[] categories, String[] tags,
+            Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+            Integer pageSize, String[] sortBy);
 
     PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type);
 }
