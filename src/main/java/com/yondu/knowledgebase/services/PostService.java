@@ -48,17 +48,14 @@ public class PostService {
     }
 
     public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey){
-        int adjustedPage = page - 1;
-        int offset = adjustedPage * size + 1;
-
-        Pageable pageable = PageRequest.of(adjustedPage, size);
+        Pageable pageable = PageRequest.of(page - 1, size);
         Page<Post> posts = postRepository.searchPosts(searchKey, pageable);
 
         List<PostDTO> postDTOs = posts.getContent().stream()
                 .map(PostDTO::new)
                 .collect(Collectors.toList());
 
-        return new PaginatedResponse<>(postDTOs, offset, size, (long) posts.getTotalPages());
+        return new PaginatedResponse<>(postDTOs, page, size, (long) posts.getTotalPages());
     }
 
     public PostDTO getPostById(Long id) {
