@@ -309,3 +309,41 @@ ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
 
 -- Add FULLTEXT index to the `name` column in the `tag` table
 ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
+
+-- Populate Users to test Workflows pass: Adrianne!
+
+INSERT IGNORE INTO USERS (id, email, password, username, first_name, last_name, status, created_at)
+VALUES
+    (2, 'john@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user1', 'John', 'Doe', 'ACT', CURRENT_DATE),
+    (3, 'jane@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user2', 'Jane', 'Smith', 'ACT', CURRENT_DATE),
+    (4, 'michael@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user3', 'Michael', 'Johnson', 'ACT', CURRENT_DATE),
+    (5, 'emily@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user4', 'Emily', 'Williams', 'ACT', CURRENT_DATE),
+    (6, 'david@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user5', 'David', 'Brown', 'ACT', CURRENT_DATE);
+
+INSERT IGNORE INTO USER_ROLE (user_id, role_id)
+VALUES
+    (2, 2),
+    (3, 2),
+    (4, 2),
+    (5, 2),
+    (6, 2);
+
+-- Populate workflow Entity
+INSERT IGNORE INTO workflow (id, directory_id)
+VALUES (1, 1);
+
+-- Populate workflow Step Entity
+INSERT IGNORE INTO workflow_step (id, step, name , workflow_id)
+VALUES
+    (1, 1,'ADMIN', 1),
+    (2, 2,'MODERATOR', 1),
+    (3, 3,"SME", 1);
+
+-- Populate workflow Step Approver
+INSERT IGNORE INTO workflow_step_approver (id, workflow_step_id, approver_id)
+VALUES
+    (1, 1, 2),
+    (2, 1, 3),
+    (3, 2, 4),
+    (4, 2, 5),
+    (5, 3, 6);

@@ -20,6 +20,14 @@ public class WorkflowStep {
 
     public WorkflowStep() {}
 
+    public Set<WorkflowStepApprover> getStepApprovers() {
+        return stepApprovers;
+    }
+
+    public void setStepApprovers(Set<WorkflowStepApprover> stepApprovers) {
+        this.stepApprovers = stepApprovers;
+    }
+
     public WorkflowStep(Workflow workflow, String name, int step) {
         this.workflow = workflow;
         this.name = name;
