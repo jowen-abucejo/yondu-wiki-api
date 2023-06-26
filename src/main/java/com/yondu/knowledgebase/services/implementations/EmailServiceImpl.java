@@ -1,8 +1,10 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
-import com.yondu.knowledgebase.DTO.email.EmailResponseDTO;
+import com.yondu.knowledgebase.DTO.email.EmailDTO;
+import com.yondu.knowledgebase.DTO.email.EmailDTOMapper;
+import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidNotificationTypeException;
+import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -23,30 +24,36 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final ThreadPoolTaskExecutor executor;
+    private final UserRepository userRepository;
 
-    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, ThreadPoolTaskExecutor executor) {
+    public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, ThreadPoolTaskExecutor executor, UserRepository userRepository) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
         this.executor = executor;
+        this.userRepository = userRepository;
     }
 
     @Override
-    public EmailResponseDTO sendEmail (EmailRequestDTO emailRequestDTO){
+    public EmailDTO.BaseResponse sendEmail (EmailDTO.GeneralRequest request){
+        User toUser = userRepository.getUserByEmail(request.to());
+        User fromUser = userRepository.getUserByEmail(request.from());
+
         CompletableFuture.runAsync(() -> {
+
             MimeMessage email = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(email, "UTF-8");
 
             Context context = new Context();
-            context.setVariable("userProfileLink",emailRequestDTO.getFromLink());
-            context.setVariable("fromUser", emailRequestDTO.getFrom());
-            context.setVariable("contentType", emailRequestDTO.getContentType().toLowerCase());
-            context.setVariable("contentLink", emailRequestDTO.getContentLink());
+            context.setVariable("userProfileLink", request.fromProfile());
+            context.setVariable("fromUser", request.from());
+            context.setVariable("contentType", request.contentType().toLowerCase());
+            context.setVariable("contentLink", request.contentLink().toLowerCase());
 
-            Map<String, String> templateDetails = getEmailTemplateDetails(emailRequestDTO.getNotificationType());
+            Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
 
             try {
                 String htmlContent = templateEngine.process(templateDetails.get("templateName"), context);
-                helper.setTo(emailRequestDTO.getTo());
+                helper.setTo(request.to());
                 helper.setSubject(templateDetails.get("subjectText"));
                 helper.setText(htmlContent, true);
                 mailSender.send(email);
@@ -55,7 +62,38 @@ public class EmailServiceImpl implements EmailService {
             }
         }, executor);
 
-        return new EmailResponseDTO(LocalDateTime.now(), "knowledgebase0630@gmail.com", emailRequestDTO.getTo());
+        return EmailDTOMapper.generalRequestToBaseResponse(request, toUser, fromUser);
+    }
+
+    @Override
+    public EmailDTO.BaseResponse createUserEmailNotification (EmailDTO.NewUserRequest request){
+        User toUser = userRepository.getUserByEmail(request.to());
+        User fromUser = userRepository.getUserByEmail(request.from());
+
+        CompletableFuture.runAsync(() -> {
+
+            MimeMessage email = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(email, "UTF-8");
+
+            Context context = new Context();
+            context.setVariable("toUser", toUser.getFirstName().toUpperCase());
+            context.setVariable("temporaryPassword", request.temporaryPassword());
+            context.setVariable("userName", toUser.getEmail());
+
+            Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
+
+            try {
+                String htmlContent = templateEngine.process(templateDetails.get("templateName"), context);
+                helper.setTo(request.to());
+                helper.setSubject(templateDetails.get("subjectText"));
+                helper.setText(htmlContent, true);
+                mailSender.send(email);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+        }, executor);
+
+        return EmailDTOMapper.newUserRequestToBaseResponse(request, toUser, fromUser);
     }
 
     private Map<String, String> getEmailTemplateDetails(String notificationType) {
@@ -73,7 +111,10 @@ public class EmailServiceImpl implements EmailService {
         } else if (notificationType.equals("CONTENT")) {
             templateDetails.put("templateName", "Content");
             templateDetails.put("subjectText", "[UPDATE] See the latest update!");
-        } else {
+        } else if (notificationType.equals("CREATION")) {
+            templateDetails.put("templateName", "NewUser");
+            templateDetails.put("subjectText", "[CREATED] Account Created");
+        }else {
             throw new InvalidNotificationTypeException("Invalid Notification Type");
         }
 

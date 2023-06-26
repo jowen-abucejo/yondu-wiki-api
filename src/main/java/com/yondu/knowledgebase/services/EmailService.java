@@ -1,8 +1,8 @@
 package com.yondu.knowledgebase.services;
 
-import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
-import com.yondu.knowledgebase.DTO.email.EmailResponseDTO;
+import com.yondu.knowledgebase.DTO.email.EmailDTO;
 
 public interface EmailService {
-    public EmailResponseDTO sendEmail (EmailRequestDTO emailRequestDTO);
+    public EmailDTO.BaseResponse sendEmail (EmailDTO.GeneralRequest request);
+    public EmailDTO.BaseResponse createUserEmailNotification (EmailDTO.NewUserRequest request);
 }

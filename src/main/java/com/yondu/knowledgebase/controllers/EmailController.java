@@ -1,8 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
-import com.yondu.knowledgebase.DTO.email.EmailResponseDTO;
+import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.services.implementations.EmailServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +20,12 @@ public class EmailController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<EmailResponseDTO>> sendEmailNotification (@RequestBody EmailRequestDTO emailRequestDTO){
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(emailService.sendEmail(emailRequestDTO),"Email sent Successfully!"));
+    public ResponseEntity<ApiResponse<EmailDTO.BaseResponse>> sendEmailNotification (@RequestBody EmailDTO.GeneralRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(emailService.sendEmail(request),"Email sent Successfully!"));
+    }
+
+    @PostMapping ("/new-users")
+    public ResponseEntity<ApiResponse<EmailDTO.BaseResponse>> newUserEmailNotification (@RequestBody EmailDTO.NewUserRequest request){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(emailService.createUserEmailNotification(request),"Email sent Successfully!"));
     }
 }

@@ -1,6 +1,6 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.email.EmailRequestDTO;
+import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
@@ -13,7 +13,6 @@ import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
-import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.NotificationRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.NotificationService;
@@ -80,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
 
         Map <String,String> links = getLinksForEmailNotificationTemplate(newNotification);
-        EmailRequestDTO email = new EmailRequestDTO(user.getEmail(),fromUser.getEmail(),links.get("fromUserLink"),newNotification.getNotificationType(),newNotification.getType(),links.get("contentLink"));
+        EmailDTO.GeneralRequest email = new EmailDTO.GeneralRequest(user.getEmail(),fromUser.getEmail(),links.get("fromUserLink"),newNotification.getNotificationType(),newNotification.getType(),links.get("contentLink"));
         emailService.sendEmail(email);
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
