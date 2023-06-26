@@ -9,7 +9,7 @@ import java.util.Set;
 public class DirectoryDTO {
     public record CreateRequest(String name, String description){}
     public record RenameRequest(String name) {}
-    public record MoveRequest(Long[] ids, Long parentId, Long newParentId){}
+    public record MoveRequest(Long parentId, Long newParentId){}
     public record BaseResponse(Long id,
                                String name,
                                String description,
