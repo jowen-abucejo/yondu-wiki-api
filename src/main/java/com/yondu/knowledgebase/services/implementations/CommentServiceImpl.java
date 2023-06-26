@@ -31,7 +31,6 @@ public class CommentServiceImpl implements CommentService {
     private final PageServiceImpl pageService;
     private final AuditLogService auditLogService;
 
-
     public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService, AuditLogService auditLogService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
@@ -104,9 +103,9 @@ public class CommentServiceImpl implements CommentService {
             commentReplies.add(comment);
             parentComment.setCommentReplies(commentReplies);
             commentRepository.save(parentComment);
-            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), parentComment.getId(), String.format("replied to a comment id: %d", parentCommentId));
+            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), parentComment.getId(), "created a comment");
         }else
-            auditLogService.createAuditLog(user,contentType, entityId, String.format("created a comment id: %d to a %s with the ID %d", comment.getId(), contentType, entityId));
+            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), "created a comment");
         return CommentDTOMapper.mapToBaseResponse(comment);
     }
 
@@ -151,7 +150,7 @@ public class CommentServiceImpl implements CommentService {
         String message = allowReply ? "on" : "off";
         comment.setAllowReply(allowReply);
         commentRepository.save(comment);
-        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("turned %s replies in this comment id:%d", message,comment.getId()));
+        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("turned %s replies", message,comment.getId()));
         return CommentDTOMapper.mapToShortResponse(comment);
     }
 
@@ -162,7 +161,7 @@ public class CommentServiceImpl implements CommentService {
         String message = delete ? "deleted" : "undeleted";
         comment.setDeleted(delete);
         commentRepository.save(comment);
-        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("%s this comment id:%d", message,comment.getId()));
+        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("%s a comment", message,comment.getId()));
         return CommentDTOMapper.mapToShortResponse(comment);
     }
 
