@@ -244,7 +244,22 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
     @Override
     public PageDTO findByIdWithVersions(PageType pageType, Long id) {
-        return findById(pageType, id);
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+
+        if (!pageRepository.existsByIdAndTypeAndDeleted(id, pageType.getCode(), false))
+            throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 100))
+                .orElse(null);
+
+        if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+
+        var pageList = optionalPageVersions.getContent();
+
+        return convertMapToPageDTO(pageList.get(0), pageList);
     }
 
     public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
@@ -296,7 +311,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
 
         var optionalPageVersions = pageVersionRepository
-                .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
+                .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
                         null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 100))
                 .orElse(null);
 
