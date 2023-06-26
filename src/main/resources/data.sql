@@ -310,7 +310,7 @@ ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
 -- Add FULLTEXT index to the `name` column in the `tag` table
 ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
 
--- Populate Users to test Workflows pass: Adrianne!
+-- Populate Users to test Workflows pass: adm1n1strat0r
 
 INSERT IGNORE INTO USERS (id, email, password, username, first_name, last_name, status, created_at)
 VALUES
@@ -347,3 +347,5 @@ VALUES
     (3, 2, 4),
     (4, 2, 5),
     (5, 3, 6);
+
+UPDATE directory SET workflow_id = 1 WHERE id = 1;
