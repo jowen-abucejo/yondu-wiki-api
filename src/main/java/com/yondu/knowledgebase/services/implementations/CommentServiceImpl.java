@@ -13,6 +13,7 @@ import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import com.yondu.knowledgebase.services.AuditLogService;
 import com.yondu.knowledgebase.services.CommentService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,15 +29,17 @@ public class CommentServiceImpl implements CommentService {
     private final PageRepository pageRepository;
     private final NotificationServiceImpl notificationService;
     private final PageServiceImpl pageService;
+    private final AuditLogService auditLogService;
 
 
-    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService) {
+    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService, AuditLogService auditLogService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
         this.pageRepository = pageRepository;
         this.notificationService = notificationService;
         this.pageService = pageService;
+        this.auditLogService = auditLogService;
     }
 
     @Override
@@ -101,8 +104,9 @@ public class CommentServiceImpl implements CommentService {
             commentReplies.add(comment);
             parentComment.setCommentReplies(commentReplies);
             commentRepository.save(parentComment);
-        }
-
+            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), parentComment.getId(), String.format("replied to a comment id: %d", parentCommentId));
+        }else
+            auditLogService.createAuditLog(user,contentType, entityId, String.format("created a comment id: %d to a %s with the ID %d", comment.getId(), contentType, entityId));
         return CommentDTOMapper.mapToBaseResponse(comment);
     }
 
@@ -142,36 +146,38 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public CommentDTO.ShortResponse allowReply (Long id, boolean allowReply){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
+        String message = allowReply ? "on" : "off";
         comment.setAllowReply(allowReply);
         commentRepository.save(comment);
+        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("turned %s replies in this comment id:%d", message,comment.getId()));
         return CommentDTOMapper.mapToShortResponse(comment);
     }
 
     @Override
     public CommentDTO.ShortResponse deleteComment(Long id, boolean delete){
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
+        String message = delete ? "deleted" : "undeleted";
         comment.setDeleted(delete);
         commentRepository.save(comment);
+        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("%s this comment id:%d", message,comment.getId()));
         return CommentDTOMapper.mapToShortResponse(comment);
     }
 
     @Override
     public List <CommentDTO.ShortResponse> getReplies (Long id){
         Comment comment = commentRepository.findById(id).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", id)));
-        return getAllReplies(comment);
+        List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
+        if (comments != null)
+            return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
+        return null;
     }
 
     @Override
     public List <CommentDTO.ShortResponse> searchComments (String key){
         List<Comment> comments = commentRepository.searchComments(key);
         return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
-    }
-
-    private List<CommentDTO.ShortResponse> getAllReplies(Comment comment) {
-        List<Comment> comments = commentRepository.findAllCommentReplies(comment.getEntityType(), comment.getEntityId(), comment.getId());
-        if (comments != null)
-            return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
-        return null;
     }
 }

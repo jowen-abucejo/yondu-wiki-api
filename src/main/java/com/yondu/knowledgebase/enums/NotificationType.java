@@ -6,7 +6,8 @@ public enum NotificationType {
     COMMENT("COMMENT"),
     APPROVAL("APPROVAL"),
     MENTION("MENTION"),
-    RATE("RATE");
+    RATE("RATE"),
+    CREATION("CREATION");
 
     String code;
 
