@@ -296,8 +296,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
 
         var optionalPageVersions = pageVersionRepository
-                .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 1))
+                .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 100))
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
