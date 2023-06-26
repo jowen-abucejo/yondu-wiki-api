@@ -255,7 +255,7 @@ public class ReviewService {
     }
 
     private Set<User> getStepApprovers(WorkflowStep step) {
-        return step.getStepApprovers()
+        return step.getApprovers()
                 .stream()
                 .map(WorkflowStepApprover::getApprover)
                 .collect(Collectors.toSet());

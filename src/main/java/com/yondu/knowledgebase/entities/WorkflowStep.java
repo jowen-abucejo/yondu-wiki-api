@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -16,17 +17,9 @@ public class WorkflowStep {
     private Workflow workflow;
 
     @OneToMany(mappedBy = "workflowStep", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<WorkflowStepApprover> stepApprovers = new HashSet<>();
+    private Set<WorkflowStepApprover> approvers = new HashSet<>();
 
     public WorkflowStep() {}
-
-    public Set<WorkflowStepApprover> getStepApprovers() {
-        return stepApprovers;
-    }
-
-    public void setStepApprovers(Set<WorkflowStepApprover> stepApprovers) {
-        this.stepApprovers = stepApprovers;
-    }
 
     public WorkflowStep(Workflow workflow, String name, int step) {
         this.workflow = workflow;
@@ -64,6 +57,14 @@ public class WorkflowStep {
 
     public void setWorkflow(Workflow workflow) {
         this.workflow = workflow;
+    }
+
+    public Set<WorkflowStepApprover> getApprovers() {
+        return approvers;
+    }
+
+    public void setApprovers(Set<WorkflowStepApprover> approvers) {
+        this.approvers = approvers;
     }
 
     @Override
