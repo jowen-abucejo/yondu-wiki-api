@@ -24,6 +24,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -76,6 +77,7 @@ public class UserService implements UserDetailsService {
         newUser.setPassword(password);
         newUser.setStatus(Status.ACTIVE.getCode());
         newUser.setCreatedAt(LocalDate.now());
+        newUser.setPasswordExpiration(LocalDateTime.now());
 
         userRepository.save(newUser);
         User createdUser = userRepository.fetchUserByEmail(newUser.getEmail()).orElseThrow(() -> new UserException("Cannot find user."));
@@ -248,8 +250,10 @@ public class UserService implements UserDetailsService {
            throw new PasswordRepeatException();
         }
 
+        user.setPasswordExpiration(LocalDateTime.now().plusMonths(1));
         User updatedUser = userRepository.save(user);
         passwordChangesService.saveNewPassword(user, request.newPassword());
+
         return updatedUser;
     }
 

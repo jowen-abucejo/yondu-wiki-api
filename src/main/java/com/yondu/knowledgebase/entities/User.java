@@ -4,6 +4,7 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +30,7 @@ public class User implements UserDetails  {
     @Column(unique = true)
     private String email;
     private String password;
+    private LocalDateTime passwordExpiration;
     private String firstName;
     private String lastName;
     private String status;
@@ -239,6 +241,14 @@ public class User implements UserDetails  {
         User other = (User) obj;
         // Compare fields for equality
         return this.id.equals(other.id);
+    }
+
+    public LocalDateTime getPasswordExpiration() {
+        return passwordExpiration;
+    }
+
+    public void setPasswordExpiration(LocalDateTime passwordExpiration) {
+        this.passwordExpiration = passwordExpiration;
     }
 
     @Override

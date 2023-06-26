@@ -34,6 +34,6 @@ public class UserDTOMapper {
                 .map(RoleDTO::new)
                 .collect(Collectors.toSet());
 
-        return new UserDTO.WithRolesResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt(), roles);
+        return new UserDTO.WithRolesResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt(), roles, user.getPasswordExpiration());
     }
 }
