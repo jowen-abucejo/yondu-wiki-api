@@ -10,7 +10,7 @@ public class GroupDTO {
     public record GroupRequest(String name, String description) {}
     public record UserRequest(String email){}
     public record AddPermission(Long permissionId){}
-    public record AddRightsRequest(@JsonProperty("group_id") Long groupId){}
+    public record AddRightsRequest(@JsonProperty("id") Long groupId){}
     public record ShortResponse (Long id, String name, String description){}
 
 }
