@@ -238,10 +238,11 @@ public class UserService implements UserDetailsService {
         log.info("request : " + request);
 
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
+        User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new UserException("User not found."));;
         if(passwordEncoder.matches(request.oldPassword(), user.getPassword())){
             String newEncodedPassword = passwordEncoder.encode(request.newPassword());
-            user.setPassword(newEncodedPassword);
+            findUser.setPassword(newEncodedPassword);
+            findUser.setPasswordExpiration(LocalDateTime.now().plusMonths(1));
         }else{
             throw new InvalidCredentialsException();
         }
@@ -250,9 +251,8 @@ public class UserService implements UserDetailsService {
            throw new PasswordRepeatException();
         }
 
-        user.setPasswordExpiration(LocalDateTime.now().plusMonths(1));
-        User updatedUser = userRepository.save(user);
-        passwordChangesService.saveNewPassword(user, request.newPassword());
+        User updatedUser = userRepository.save(findUser);
+        passwordChangesService.saveNewPassword(findUser, request.newPassword());
 
         return updatedUser;
     }
