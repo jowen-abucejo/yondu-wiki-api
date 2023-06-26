@@ -36,9 +36,9 @@ public class DirectoryController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory found"));
     }
 
-    @PostMapping("/{parentId}")
-    public ResponseEntity<ApiResponse<?>> createDirectory(@PathVariable("parentId") Long parentId, @RequestBody DirectoryDTO.CreateRequest request) {
-        DirectoryDTO.GetResponse data = directoryService.createDirectory(parentId, request);
+    @PostMapping
+    public ResponseEntity<ApiResponse<?>> createDirectory(@RequestBody DirectoryDTO.CreateRequest request) {
+        DirectoryDTO.GetResponse data = directoryService.createDirectory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
     }
 

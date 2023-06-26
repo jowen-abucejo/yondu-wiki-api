@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.DTO.directory;
 
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Directory;
+import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.WorkflowStep;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -38,6 +40,22 @@ public class DirectoryDTOMapper {
         return new DirectoryDTO.ShortResponse(
                 directory.getId(),
                 directory.getName()
+        );
+    }
+
+    public static DirectoryDTO.Approver mapToApprover(User user) {
+        return new DirectoryDTO.Approver(user.getId(), user.getFirstName(), user.getLastName());
+    }
+
+    public static DirectoryDTO.WorkflowStep mapToWorkflowStep(WorkflowStep workflowStep) {
+        return new DirectoryDTO.WorkflowStep(
+                workflowStep.getId(),
+                workflowStep.getName(),
+                workflowStep.getStep(),
+                workflowStep.getApprovers()
+                        .stream()
+                        .map((u) -> DirectoryDTOMapper.mapToApprover(u.getApprover()))
+                        .toList()
         );
     }
 

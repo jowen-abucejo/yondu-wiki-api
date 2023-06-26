@@ -21,6 +21,9 @@ public class Directory {
     @ManyToOne(fetch = FetchType.EAGER)
     private User createdBy;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    private User modifiedBy;
+
     @Column(nullable = false)
     private LocalDate dateCreated;
 
@@ -45,7 +48,7 @@ public class Directory {
     public Directory() {}
 
     // creation of subdirectories
-    public Directory(String name, String description, Directory parent, User createdBy) {
+    public Directory(String name, String description, Directory parent, User createdBy, User modifiedBy) {
         this.name = name;
         this.description = description;
         this.createdBy = createdBy;
@@ -124,6 +127,14 @@ public class Directory {
 
     public User getCreatedBy() {
         return createdBy;
+    }
+
+    public User getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(User modifiedBy) {
+        this.modifiedBy = modifiedBy;
     }
 
     public void setCreatedBy(User createdBy) {
