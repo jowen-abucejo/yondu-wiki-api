@@ -44,14 +44,20 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse getDefaultDirectory() {
+        Permission permission = permissionRepository.findById(19L).orElseThrow(() -> new ResourceNotFoundException(String.format("Permission id '%d' not found", 19)));
+        Directory root = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", 1)));
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        if (!hasPermission(currentUser, null, null)) {
+        Directory defaultDirectory = traverseByLevel(root, permission, currentUser);
+
+        if (defaultDirectory == null) {
             throw new AccessDeniedException();
         }
 
-        Directory directory = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", 1)));
-        return DirectoryDTOMapper.mapToGetResponse(directory);
+        Set<Directory> subdirectories = defaultDirectory.getSubDirectories().stream().filter((dir) -> hasPermission(currentUser, dir, permission)).collect(Collectors.toSet());
+        defaultDirectory.setSubDirectories(subdirectories);
+
+        return DirectoryDTOMapper.mapToGetResponse(defaultDirectory);
     }
 
     public DirectoryDTO.GetResponse getDirectory(Long id) {
@@ -65,6 +71,9 @@ public class DirectoryService {
         if (!hasPermission(currentUser, directory, permission)) {
             throw new AccessDeniedException();
         }
+
+        Set<Directory> subdirectories = directory.getSubDirectories().stream().filter((dir) -> hasPermission(currentUser, dir, permission)).collect(Collectors.toSet());
+        directory.setSubDirectories(subdirectories);
 
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
@@ -231,13 +240,31 @@ public class DirectoryService {
         return false;
     }
 
+    private  Directory traverseByLevel(Directory directory, Permission permission, User user) {
+        if (hasPermission(user, directory, permission)) {
+            return directory;
+        }
+        for (Directory child : directory.getSubDirectories()) {
+            traverseByLevel(child, permission, user);
+        }
+        return null;
+    }
+
     public boolean isDirectoryExists(String name, Directory parent) {
         Directory existingDirectory = directoryRepository.findByNameAndParent(name, parent).orElse(null);
         return existingDirectory != null;
     }
 
     private boolean hasPermission(User user, Directory directory, Permission permission) {
-        return user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"));
+        if (user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
+            return true;
+        }
+
+        if (directory.getDirectoryUserAccesses().stream().anyMatch((dua) -> dua.getUser().equals(user) && dua.getPermission().equals(permission))) {
+            return true;
+        }
+
+        return false;
     }
 
     private boolean isDirectoryNameDuplicate(String directoryName, Set<Directory> subdirectories) {
