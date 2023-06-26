@@ -99,6 +99,8 @@ public class ReviewService {
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
 
+        if (isContentFullyApproved(pageVersion)) throw new RequestValidationException("Content is already approved and posted in public.");
+
         if (reviewRepository.existsByPageVersionAndStatus(pageVersion, ReviewStatus.PENDING.getCode())) {
             throw new RequestValidationException("A pending review already exists for this page version.");
         }
@@ -275,6 +277,18 @@ public class ReviewService {
 
         return data;
     }
+
+    private boolean isContentFullyApproved(PageVersion pageVersion) {
+        Map<WorkflowStep, Boolean> stepApprovalStatus = isStepDone(pageVersion);
+
+        for (boolean isStepDone : stepApprovalStatus.values()) {
+            if (!isStepDone) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private boolean isContentDisapproved(PageVersion pageVersion) {
         Set<WorkflowStep> steps = pageVersion.getPage().getDirectory().getWorkflow().getSteps();
 
