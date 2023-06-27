@@ -28,6 +28,7 @@ public class PostDTO {
     private Set<CategoryDTO> categories = new HashSet<>();
     private Set<TagDTO> tags = new HashSet<>();
     private Set<UserDTO.GeneralResponse> postMentions = new HashSet<>();
+    private String type;
     public PostDTO() {
     }
 
@@ -35,6 +36,7 @@ public class PostDTO {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
+        this.type = post.getType();
         this.content = post.getContent();
         this.dateCreated = post.getDateCreated();
         this.dateModified = post.getDateModified();
@@ -152,6 +154,14 @@ public class PostDTO {
         this.postMentions = postMentions;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
     @Override
     public String toString() {
         return "PostDTO{" +
@@ -167,6 +177,7 @@ public class PostDTO {
                 ", categories=" + categories +
                 ", tags=" + tags +
                 ", postMentions=" + postMentions +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

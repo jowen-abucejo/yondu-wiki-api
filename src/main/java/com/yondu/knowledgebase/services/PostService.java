@@ -82,7 +82,7 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
-        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
+        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions, ContentType.POST.getCode());
         postRepository.save(post);
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"created a post");
