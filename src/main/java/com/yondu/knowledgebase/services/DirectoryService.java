@@ -260,6 +260,7 @@ public class DirectoryService {
             return true;
         }
 
+        // directoryUserAccessRepo.findPermissionDirectoryUser() kung null walang permission
         if (directory.getDirectoryUserAccesses().stream().anyMatch((dua) -> dua.getUser().equals(user) && dua.getPermission().equals(permission))) {
             return true;
         }
