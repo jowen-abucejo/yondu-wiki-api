@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
+import com.yondu.knowledgebase.DTO.save.SaveEntityDTO;
 import com.yondu.knowledgebase.DTO.save.SaveStatusDTO;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.repositories.SaveRepository;
@@ -37,6 +38,13 @@ public class SaveController {
     public ResponseEntity<?> getSavesByAuthor(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size) {
         PaginatedResponse<SaveDTO.BaseResponse> saves = saveService.getAllSavesByAuthor(page,size);
 
+        ApiResponse apiResponse = ApiResponse.success(saves, "Retrieved your saved items successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/my-saves/{entityType}")
+    public ResponseEntity<?> getSavesByAuthorAndEntity(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "20") int size, @PathVariable String entityType ) {
+        PaginatedResponse<SaveEntityDTO> saves = saveService.getAllSaveIdsByAuthorAndEntity(page,size, entityType);
         ApiResponse apiResponse = ApiResponse.success(saves, "Retrieved your saved items successfully");
         return ResponseEntity.ok(apiResponse);
     }

@@ -3,6 +3,8 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveDTOMapper;
+import com.yondu.knowledgebase.DTO.save.SaveEntityDTO;
+import com.yondu.knowledgebase.DTO.save.SaveStatusDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
@@ -17,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -46,13 +49,13 @@ public class SaveService {
 public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
     User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    if (isEntitySaved(saves.entityType(), saves.entityId(), user)) {
+    if (isEntitySaved(saves.entityType().toUpperCase(), saves.entityId(), user)) {
         throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
     }
     Save save = new Save();
     save.setDateCreated(LocalDateTime.now());
     save.setAuthor(user);
-    save.setEntityType(saves.entityType());
+    save.setEntityType(saves.entityType().toUpperCase());
     save.setEntityId(saves.entityId());
 
     saveRepository.save(save);
@@ -88,6 +91,26 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
 
     return new PaginatedResponse<>(save,page,size, (long)save.size());
 }
+
+    public PaginatedResponse<SaveEntityDTO> getAllSaveIdsByAuthorAndEntity(int page, int size, String entityType) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (user == null) {
+            throw new ResourceNotFoundException("Login First");
+        }
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Save> save = saveRepository.findAllByAuthorAndEntityTypeOrderByDateCreatedDesc(user, entityType.toUpperCase(), pageRequest);
+        List<Long> saveIds = save.getContent().stream()
+                .map(Save::getEntityId)
+                .collect(Collectors.toList());
+
+        List<SaveEntityDTO> saveEntityDTOs = saveIds.stream()
+                .map(SaveEntityDTO::new)
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(saveEntityDTOs, page, size, save.getTotalElements());
+    }
 
 public boolean deleteSaved(Long id) {
 
