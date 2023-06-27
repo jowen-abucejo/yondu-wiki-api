@@ -15,7 +15,6 @@ public class WorkflowStep {
     private int step;
     @ManyToOne(fetch = FetchType.EAGER)
     private Workflow workflow;
-
     @OneToMany(mappedBy = "workflowStep", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<WorkflowStepApprover> approvers = new HashSet<>();
 

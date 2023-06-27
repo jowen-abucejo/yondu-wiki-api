@@ -42,6 +42,10 @@ public class GroupService {
         }
 
         Group savedGroup = groupRepository.save(new Group(request.name(), request.description()));
+        for (Long id: request.members()) {
+            savedGroup.getUsers().add(userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("User id '%d' not found", id))));
+        }
+        savedGroup = groupRepository.save(savedGroup);
         return GroupDTOMapper.mapToBaseResponse(savedGroup);
     }
 
