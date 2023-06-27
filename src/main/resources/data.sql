@@ -1,5 +1,5 @@
 -- INITIALIZE ADMIN
-INSERT IGNORE INTO USERS(id, email, password, username, first_name, last_name, status, created_at) VALUES(1, 'admin@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'ADM', 'Administrator', '', 'ACT', CURRENT_DATE);
+INSERT IGNORE INTO USERS(id, email, password, username, first_name, last_name, status, created_at, password_expiration) VALUES(1, 'admin@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'ADM', 'Administrator', 'X', 'ACT', CURRENT_DATE, DATE_ADD(CURRENT_DATE, INTERVAL 50 YEAR));
 
 -- INITIALIZE ROOT DIRECTORY
 INSERT IGNORE INTO DIRECTORY(id, name, description, date_created, date_modified, created_by_id) VALUES(1, 'YONDU Wiki', 'root', CURRENT_DATE, CURRENT_DATE, 1);
@@ -312,13 +312,13 @@ ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
 
 -- Populate Users to test Workflows pass: adm1n1strat0r
 
-INSERT IGNORE INTO USERS (id, email, password, username, first_name, last_name, status, created_at)
+INSERT IGNORE INTO USERS (id, email, password, username, first_name, last_name, status, created_at, password_expiration)
 VALUES
-    (2, 'john@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user1', 'John', 'Doe', 'ACT', CURRENT_DATE),
-    (3, 'jane@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user2', 'Jane', 'Smith', 'ACT', CURRENT_DATE),
-    (4, 'michael@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user3', 'Michael', 'Johnson', 'ACT', CURRENT_DATE),
-    (5, 'emily@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user4', 'Emily', 'Williams', 'ACT', CURRENT_DATE),
-    (6, 'david@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user5', 'David', 'Brown', 'ACT', CURRENT_DATE);
+    (2, 'john@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user1', 'John', 'Doe', 'ACT', CURRENT_DATE, CURRENT_DATE),
+    (3, 'jane@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user2', 'Jane', 'Smith', 'ACT', CURRENT_DATE, CURRENT_DATE),
+    (4, 'michael@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user3', 'Michael', 'Johnson', 'ACT', CURRENT_DATE, CURRENT_DATE),
+    (5, 'emily@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user4', 'Emily', 'Williams', 'ACT', CURRENT_DATE, CURRENT_DATE),
+    (6, 'david@yondu.com', '$2a$12$Rr07POwHbDDdbO4gMrbAEuCWOIPvNn/U6CQFDjnrGcLh.G.6T7nj.', 'user5', 'David', 'Brown', 'ACT', CURRENT_DATE, CURRENT_DATE);
 
 INSERT IGNORE INTO USER_ROLE (user_id, role_id)
 VALUES
