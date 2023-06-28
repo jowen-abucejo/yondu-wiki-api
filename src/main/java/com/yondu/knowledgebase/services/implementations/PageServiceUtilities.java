@@ -324,7 +324,8 @@ class PageServiceUtilities {
         pageDraft.setTitle(pageDTO.getTitle());
         String pageContent = pageDTO.getContent();
         if (Objects.nonNull(pageContent) && !pageContent.isBlank())
-            pageDraft.setContent(pageContent.replaceAll("<[^>]+>", ""));
+            pageDraft.setContent(
+                    pageContent.replaceAll("<[^>]+>", "") + " Tags| " + String.join(" | ", pageDTO.getTags()));
         pageDraft.setOriginalContent(pageDTO.getContent());
     }
 
