@@ -228,9 +228,10 @@ public class UserService implements UserDetailsService {
 
         User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        user.setProfilePhoto(path.path());
+        User updateUser = userRepository.findById(user.getId()).orElseThrow(() -> new UserException("Cannot find user."));
+        updateUser.setProfilePhoto(path.path());
 
-        return userRepository.save(user);
+        return userRepository.save(updateUser);
     }
 
     public User updatePassword(UserDTO.ChangePassRequest request) {
