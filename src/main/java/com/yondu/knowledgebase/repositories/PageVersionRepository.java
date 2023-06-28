@@ -74,8 +74,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 dr.name as directoryName,
                 w3.workflow_id as workflowId,
                 w3.totalRequiredApproval as workflowStepCount,
-                (SELECT GROUP_CONCAT(t.name SEPARATOR '|') FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id WHERE pt.page_id = p.id LIMIT 1) AS pageTags,
-                (SELECT GROUP_CONCAT(ct.name SEPARATOR '|') FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id WHERE pcat.page_id = p.id LIMIT 1) AS pageCategories
+                allTags.pTags AS pageTags,
+                allCats.pCats AS pageCategories
              FROM
                 page_version v JOIN
                 page p ON v.page_id = p.id LEFT JOIN
@@ -88,7 +88,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
                 (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
-                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id
+                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
+                (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
+                (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id
             WHERE
                 p.page_type = :pageTypeFilter
                 AND CASE
@@ -223,7 +225,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             )
                     ELSE TRUE
                     END
-                AND CASE
+                AND (
+                    CASE
                     WHEN :isExactMatch OR :searchKey=''
                     THEN
                         (a.first_name LIKE CONCAT('%', :searchKey, '%')
@@ -233,6 +236,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
                         OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
                     END
+                    OR a.email LIKE CONCAT('%', :searchKey, '%')
+                    OR allCats.pCats LIKE CONCAT('%', :searchKey, '%')
+                )
                 """, countQuery = """
             SELECT COUNT(*)
             FROM
@@ -247,7 +253,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
                 (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
                 (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
-                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id
+                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
+                (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
+                (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id
             WHERE
                 p.page_type = :pageTypeFilter
                 AND CASE
@@ -382,7 +390,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             )
                     ELSE TRUE
                     END
-                AND CASE
+                AND (
+                    CASE
                     WHEN :isExactMatch OR :searchKey=''
                     THEN
                         (a.first_name LIKE CONCAT('%', :searchKey, '%')
@@ -392,6 +401,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
                         OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
                     END
+                    OR a.email LIKE CONCAT('%', :searchKey, '%')
+                    OR allCats.pCats LIKE CONCAT('%', :searchKey, '%')
+                )
             """)
     Optional<Page<Map<String, Object>>> findByFullTextSearch(
             @Param("pageTypeFilter") String pageType,

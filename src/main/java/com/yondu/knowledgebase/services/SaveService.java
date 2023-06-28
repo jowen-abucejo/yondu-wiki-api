@@ -38,7 +38,8 @@ public class SaveService {
     @Autowired
     private final AuditLogService auditLogService;
 
-    public SaveService(SaveRepository saveRepository, PostRepository postRepository, CommentRepository commentRepository, PageRepository pageRepository, AuditLogService auditLogService) {
+    public SaveService(SaveRepository saveRepository, PostRepository postRepository,
+            CommentRepository commentRepository, PageRepository pageRepository, AuditLogService auditLogService) {
         this.saveRepository = saveRepository;
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
@@ -46,51 +47,52 @@ public class SaveService {
         this.auditLogService = auditLogService;
     }
 
-public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public SaveDTO.BaseResponse createSaved(SaveDTO.BaseRequest saves) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    if (isEntitySaved(saves.entityType().toUpperCase(), saves.entityId(), user)) {
-        throw new RequestValidationException("This " + saves.entityType() +" with id "+ saves.entityId()+" is already Saved");
+        if (isEntitySaved(saves.entityType().toUpperCase(), saves.entityId(), user)) {
+            throw new RequestValidationException(
+                    "This " + saves.entityType() + " with id " + saves.entityId() + " is already Saved");
+        }
+        Save save = new Save();
+        save.setDateCreated(LocalDateTime.now());
+        save.setAuthor(user);
+        save.setEntityType(saves.entityType().toUpperCase());
+        save.setEntityId(saves.entityId());
+
+        saveRepository.save(save);
+
+        // implement audit log for user's activities
+        Object entity = getEntity(saves.entityType(), saves.entityId(), Object.class);
+        String savedEntity = getEntityTypeAndAuthor(entity);
+        auditLogService.createAuditLog(user, save.getEntityType(), save.getEntityId(), "saved a " + savedEntity);
+
+        return SaveDTOMapper.mapToBaseResponse(save);
     }
-    Save save = new Save();
-    save.setDateCreated(LocalDateTime.now());
-    save.setAuthor(user);
-    save.setEntityType(saves.entityType().toUpperCase());
-    save.setEntityId(saves.entityId());
-
-    saveRepository.save(save);
-
-    // implement audit log for user's activities
-    Object entity = getEntity(saves.entityType(),saves.entityId(), Object.class);
-    String savedEntity = getEntityTypeAndAuthor(entity);
-    auditLogService.createAuditLog(user, save.getEntityType(), save.getEntityId(),"saved a "+savedEntity);
-
-    return SaveDTOMapper.mapToBaseResponse(save);
-}
 
     public boolean hasEntitySaved(String entityType, Long entityId, User user) {
-        validateEntityExistence(entityType,entityId);
+        validateEntityExistence(entityType, entityId);
         // Check if the entity is already saved
         return isEntitySaved(entityType, entityId, user);
     }
 
-public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int size) {
-    User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int size) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-    if (user == null) {
-        throw new ResourceNotFoundException("Login First");
+        if (user == null) {
+            throw new ResourceNotFoundException("Login First");
+        }
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Save> savePages = saveRepository.findAllByAuthor(user, pageRequest);
+        List<Save> saves = savePages.getContent();
+
+        List<SaveDTO.BaseResponse> save = saves.stream()
+                .map(s -> SaveDTOMapper.mapToBaseResponse(s))
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(save, page, size, (long) save.size());
     }
-
-    PageRequest pageRequest = PageRequest.of(page - 1, size);
-    Page<Save> savePages = saveRepository.findAllByAuthor(user,pageRequest);
-    List<Save> saves = savePages.getContent();
-
-    List<SaveDTO.BaseResponse> save = saves.stream()
-            .map(s -> SaveDTOMapper.mapToBaseResponse(s))
-            .collect(Collectors.toList());
-
-    return new PaginatedResponse<>(save,page,size, (long)save.size());
-}
 
     public PaginatedResponse<SaveEntityDTO> getAllSaveIdsByAuthorAndEntity(int page, int size, String entityType) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -100,7 +102,8 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
         }
 
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<Save> save = saveRepository.findAllByAuthorAndEntityTypeOrderByDateCreatedDesc(user, entityType.toUpperCase(), pageRequest);
+        Page<Save> save = saveRepository.findAllByAuthorAndEntityTypeOrderByDateCreatedDesc(user,
+                entityType.toUpperCase(), pageRequest);
         List<Long> saveIds = save.getContent().stream()
                 .map(Save::getEntityId)
                 .collect(Collectors.toList());
@@ -112,20 +115,20 @@ public PaginatedResponse<SaveDTO.BaseResponse> getAllSavesByAuthor(int page, int
         return new PaginatedResponse<>(saveEntityDTOs, page, size, save.getTotalElements());
     }
 
-public boolean deleteSaved(Long id) {
+    public boolean deleteSaved(Long id) {
 
-    Save save = saveRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Save " + id + " not found."));
+        Save save = saveRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Save " + id + " not found."));
 
-    Object entity = getEntity(save.getEntityType(), save.getEntityId(), Object.class);
-    String savedEntity = getEntityTypeAndAuthor(entity);
-    auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),
-            "removed a saved " + savedEntity + " in his/her collection.");
+        Object entity = getEntity(save.getEntityType(), save.getEntityId(), Object.class);
+        String savedEntity = getEntityTypeAndAuthor(entity);
+        auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),
+                "removed a saved " + savedEntity + " in his/her collection.");
 
-    saveRepository.delete(save);
+        saveRepository.delete(save);
 
-    return true;
-}
+        return true;
+    }
 
     public SaveDTO.BaseResponse getSave(String entityType, Long entityId) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -134,11 +137,12 @@ public boolean deleteSaved(Long id) {
         return SaveDTOMapper.mapToBaseResponse(save);
     }
 
-
     public boolean isEntitySaved(String entityType, Long entityId, User user) {
-        Optional<Save> savedEntity = Optional.ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user));
+        Optional<Save> savedEntity = Optional
+                .ofNullable(saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user));
         return savedEntity.isPresent();
     }
+
     public Long getSaveId(String entityType, Long entityId, User user) {
         Save savedEntity = saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType, entityId, user);
         return savedEntity != null ? savedEntity.getId() : null;
@@ -148,15 +152,18 @@ public boolean deleteSaved(Long id) {
         switch (entityType) {
             case "POST":
                 postRepository.findById(entityId)
-                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
                 break;
             case "COMMENT":
                 commentRepository.findById(entityId)
-                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                String.format("Comment ID not found: %d", entityId)));
                 break;
             case "PAGE":
                 pageRepository.findById(entityId)
-                        .orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
                 break;
             default:
                 throw new RequestValidationException("Invalid Entity Type");
@@ -166,11 +173,14 @@ public boolean deleteSaved(Long id) {
     public <T> T getEntity(String entityType, Long entityId, Class<T> entityClass) {
         switch (entityType) {
             case "POST":
-                return (T) postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+                return (T) postRepository.findById(entityId).orElseThrow(
+                        () -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
             case "COMMENT":
-                return (T) commentRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
+                return (T) commentRepository.findById(entityId).orElseThrow(
+                        () -> new ResourceNotFoundException(String.format("Comment ID not found: %d", entityId)));
             case "PAGE":
-                return (T) pageRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+                return (T) pageRepository.findById(entityId).orElseThrow(
+                        () -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
             default:
                 throw new RequestValidationException("Invalid Entity Type");
         }
@@ -178,13 +188,28 @@ public boolean deleteSaved(Long id) {
 
     private String getEntityTypeAndAuthor(Object entity) {
         if (entity instanceof Post post) {
-            return "post from " + post.getAuthor().getFirstName()+" "+post.getAuthor().getLastName();
+            return "post from " + post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
         } else if (entity instanceof Comment comment) {
-            return "comment from " + comment.getUser().getFirstName()+" "+comment.getUser().getLastName();
+            return "comment from " + comment.getUser().getFirstName() + " " + comment.getUser().getLastName();
         } else if (entity instanceof com.yondu.knowledgebase.entities.Page page) {
-            return "page created by " + page.getAuthor().getFirstName()+" "+page.getAuthor().getLastName();
+            return "page created by " + page.getAuthor().getFirstName() + " " + page.getAuthor().getLastName();
         } else {
             throw new RequestValidationException("Invalid Entity Type");
         }
+    }
+
+    public SaveDTO.BaseResponse deleteSaved(String entityType, Long id) {
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (user == null) {
+            throw new ResourceNotFoundException("Login First");
+        }
+
+        var save = saveRepository.findByEntityTypeAndEntityIdAndAuthor(entityType.toUpperCase(), id, user);
+
+        saveRepository.delete(save);
+
+        return SaveDTOMapper.mapToBaseResponse(save);
     }
 }
