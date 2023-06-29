@@ -8,6 +8,7 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.enums.ContentType;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -36,7 +37,7 @@ public class PostDTO {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
-        this.type = post.getType();
+        this.type = ContentType.POST.getCode();
         this.content = post.getContent();
         this.dateCreated = post.getDateCreated();
         this.dateModified = post.getDateModified();

@@ -58,12 +58,10 @@ public class Post {
     @JoinTable(name = "post_mentions", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> postMentions = new HashSet<>();
 
-    private String type;
-
     public Post() {
     }
 
-    public Post(Long id, User author, String title, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions, String type) {
+    public Post(Long id, User author, String title, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions) {
         this.id = id;
         this.author = author;
         this.title = title;
@@ -76,7 +74,6 @@ public class Post {
         this.categories = categories;
         this.tags = tags;
         this.postMentions = postMentions;
-        this.type = type;
     }
 
     public Long getId() {
@@ -175,14 +172,6 @@ public class Post {
         this.title = title;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public String toString() {
         return "Post{" +
@@ -198,7 +187,6 @@ public class Post {
                 ", categories=" + categories +
                 ", tags=" + tags +
                 ", postMentions=" + postMentions +
-                ", type='" + type + '\'' +
                 '}';
     }
 }
