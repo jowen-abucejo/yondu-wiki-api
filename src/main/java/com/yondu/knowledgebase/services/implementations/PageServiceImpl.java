@@ -1,14 +1,11 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.yondu.knowledgebase.DTO.page.UserDTO;
+import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +21,6 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.MultipleSort;
-import com.yondu.knowledgebase.entities.Directory;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
 import com.yondu.knowledgebase.enums.ReviewStatus;
@@ -408,18 +401,42 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                     .getContent()
                     .stream()
                     .map(p -> {
+                        PageVersion pv = p.getPageVersions()
+                                .stream()
+                                .sorted(Comparator.comparing(PageVersion::getDateModified))
+                                .findFirst().get();
+
                         PageDTO dto = new PageDTO.PageDTOBuilder()
                                 .id(p.getId())
                                 .dateCreated(p.getDateCreated())
-                                .author(new UserDTO.UserDTOBuilder()
+                                .lockedBy(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
+                                        .id(p.getLockedBy().getId())
+                                        .email(p.getLockedBy().getEmail())
+                                        .firstName(p.getLockedBy().getFirstName())
+                                        .lastName(p.getLockedBy().getLastName())
+                                        .position(p.getLockedBy().getPosition())
+                                        .build())
+                                .lockStart(p.getLockStart())
+                                .lockEnd(p.getLockEnd())
+                                .allowComment(p.getAllowComment())
+                                .author(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
                                         .id(p.getAuthor().getId())
                                         .email(p.getAuthor().getEmail())
                                         .firstName(p.getAuthor().getFirstName())
                                         .lastName(p.getAuthor().getLastName())
                                         .position(p.getAuthor().getPosition())
-                                        .build())
+                                        .build()
+                                )
                                 .active(p.getActive())
                                 .pageType(p.getType())
+                                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList()).toArray(new String[0]))
+                                .categories(p.getCategories().stream().map(Category::getName).collect(Collectors.toList()).toArray(new String[0]))
+                                .body(new PageVersionDTO.PageVersionDTOBuilder()
+                                        .id(pv.getId())
+                                        .content(pv.getOriginalContent())
+                                        .title(pv.getTitle())
+                                        .build()
+                                )
                                 .build();
 
                         return dto;
