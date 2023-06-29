@@ -39,7 +39,7 @@ public class Directory {
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<Page> pages;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     private Workflow workflow;
 
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
