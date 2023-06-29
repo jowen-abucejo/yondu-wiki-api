@@ -30,6 +30,18 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getAllPost(page, size, searchKey),"success"));
     }
 
+    @GetMapping("/posts/user")
+    public ResponseEntity<ApiResponse<PaginatedResponse<PostDTO>>> searchPostsByUser(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "true") Boolean active,
+            @RequestParam(defaultValue = "false") Boolean deleted
+            ) {
+            return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.searchPostsByUser(page, size, searchKey, active, deleted),"success"));
+    }
+
+
     @GetMapping("/posts/{id}")
     public ResponseEntity<ApiResponse<PostDTO>> getPostById(@PathVariable Long id){
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getPostById(id), "success"));

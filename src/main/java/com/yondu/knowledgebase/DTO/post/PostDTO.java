@@ -30,10 +30,12 @@ public class PostDTO {
     private Set<TagDTO> tags = new HashSet<>();
     private Set<UserDTO.GeneralResponse> postMentions = new HashSet<>();
     private String type;
+    private Long commentCount;
+    private Long upVoteCount;
     public PostDTO() {
     }
 
-    public PostDTO(Post post) {
+    public PostDTO(Post post, Long commentCount, Long upVoteCount) {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
@@ -57,6 +59,8 @@ public class PostDTO {
         this.postMentions = post.getPostMentions().stream()
                 .map(UserDTOMapper::mapToGeneralResponse)
                 .collect(Collectors.toSet());
+        this.commentCount = commentCount;
+        this.upVoteCount = upVoteCount;
     }
 
 
@@ -163,6 +167,22 @@ public class PostDTO {
         this.type = type;
     }
 
+    public Long getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(Long commentCount) {
+        this.commentCount = commentCount;
+    }
+
+    public Long getUpVoteCount() {
+        return upVoteCount;
+    }
+
+    public void setUpVoteCount(Long upVoteCount) {
+        this.upVoteCount = upVoteCount;
+    }
+
     @Override
     public String toString() {
         return "PostDTO{" +
@@ -179,6 +199,8 @@ public class PostDTO {
                 ", tags=" + tags +
                 ", postMentions=" + postMentions +
                 ", type='" + type + '\'' +
+                ", commentCount=" + commentCount +
+                ", upVoteCount=" + upVoteCount +
                 '}';
     }
 }

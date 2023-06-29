@@ -25,6 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,9 @@ public class PostService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
+    private final Logger log = LoggerFactory.getLogger(UserService.class);
+
+
     public PostService(PostRepository postRepository, CategoryRepository categoryRepository, TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService, AuditLogService auditLogService) {
         this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
@@ -49,20 +53,34 @@ public class PostService {
         this.auditLogService = auditLogService;
     }
 
-    public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey){
+    public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey) {
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Post> posts = postRepository.searchPosts(searchKey, pageable);
+        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, pageable);
 
-        List<PostDTO> postDTOs = posts.getContent().stream()
-                .map(PostDTO::new)
+        List<PostDTO> postDTOs = postResults.getContent().stream()
+                .map(result -> {
+                    Post post = (Post) result[0];
+                    Long commentCount = (Long) result[1];
+                    Long upVoteCount = (Long) result[2];
+                    return new PostDTO(post, commentCount, upVoteCount);
+                })
                 .collect(Collectors.toList());
 
-        return new PaginatedResponse<>(postDTOs, page, size, (long) posts.getTotalPages());
+        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalPages());
     }
 
     public PostDTO getPostById(Long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id +" not found!"));
-        return new PostDTO(post);
+        List<Object[]> results = postRepository.findPostWithCommentAndUpvoteCountsById(id);
+
+        if (results.isEmpty()) {
+            throw new ResourceNotFoundException("Post with id: " + id + " not found!");
+        }
+
+        Object[] result = results.get(0);
+        Post post = (Post) result[0];
+        Long commentCount = (Long) result[1];
+        Long upVoteCount = (Long) result[2];
+        return new PostDTO(post, commentCount, upVoteCount);
     }
 
     public PostDTO addPost(PostRequestDTO postDTO){
@@ -95,7 +113,7 @@ public class PostService {
             String fromUser = post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
             notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),post.getAuthor().getId(),String.format("%s mentioned you in their post", fromUser), NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
         }
-        return new PostDTO(post);
+        return new PostDTO(post, 0L, 0L);
     }
 
 
@@ -130,7 +148,7 @@ public class PostService {
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"edited a post");
 
 
-        return new PostDTO(post);
+        return new PostDTO(post, null, null);
     }
 
     public PostDTO deletePost(Long id) {
@@ -145,7 +163,7 @@ public class PostService {
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"deleted a post");
 
 
-        return new PostDTO(post);
+        return new PostDTO(post, null, null);
     }
 
     public PostDTO setActive(Long id) {
@@ -160,7 +178,7 @@ public class PostService {
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"archived a post");
 
 
-        return new PostDTO(post);
+        return new PostDTO(post, null, null);
 
     }
 
@@ -171,7 +189,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        return new PostDTO(post);
+        return new PostDTO(post, null, null);
 
     }
 
@@ -193,11 +211,33 @@ public class PostService {
 
     public List<PostDTO> findTop5MostPopularPosts() {
         Pageable pageable = PageRequest.of(0, 5);
-        List<Post> posts = postRepository.findMostPopularPosts(pageable);
+        List<Object[]> results = postRepository.findMostPopularPosts(pageable);
 
-        return posts.stream()
-                .map(PostDTO::new)
+        return results.stream()
+                .map(result -> {
+                    Post post = (Post) result[0];
+                    Long commentCount = (Long) result[1];
+                    Long upVoteCount = (Long) result[2];
+                    return new PostDTO(post, commentCount, upVoteCount);
+                })
                 .collect(Collectors.toList());
     }
 
+
+    public PaginatedResponse<PostDTO> searchPostsByUser(int page, int size, String searchKey, Boolean active, Boolean deleted) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Pageable pageable = PageRequest.of(page - 1, size);
+        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, active, deleted, user.getId(), pageable);
+
+        List<PostDTO> postDTOs = postResults.getContent().stream()
+                .map(result -> {
+                    Post post = (Post) result[0];
+                    Long commentCount = (Long) result[1];
+                    Long upVoteCount = (Long) result[2];
+                    return new PostDTO(post, commentCount, upVoteCount);
+                })
+                .collect(Collectors.toList());
+
+        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalPages());
+    }
 }
