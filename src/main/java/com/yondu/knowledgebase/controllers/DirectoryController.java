@@ -38,8 +38,8 @@ public class DirectoryController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createDirectory(@RequestBody DirectoryDTO.CreateRequest request) {
-        DirectoryDTO.GetResponse data = directoryService.createDirectory(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
+        directoryService.createDirectory(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Directory created successfully"));
     }
 
 //    @PutMapping("/move")
@@ -59,6 +59,12 @@ public class DirectoryController {
     public ResponseEntity<ApiResponse<?>> renameDirectory(@PathVariable("id") Long id, @RequestBody DirectoryDTO.RenameRequest request) {
         DirectoryDTO.GetResponse data = directoryService.renameDirectory(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory renamed successfully"));
+    }
+
+    @PutMapping("/{id}/edit")
+    public ResponseEntity<ApiResponse<?>> editDirectory(@PathVariable("id") Long id, @RequestBody DirectoryDTO.CreateRequest request) {
+        DirectoryDTO.GetResponse data = directoryService.editDirectory(id, request);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory edited successfully"));
     }
 
     @DeleteMapping("/{id}")
