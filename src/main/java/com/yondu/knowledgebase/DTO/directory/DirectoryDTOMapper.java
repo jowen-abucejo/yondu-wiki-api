@@ -3,12 +3,10 @@ package com.yondu.knowledgebase.DTO.directory;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.Workflow;
 import com.yondu.knowledgebase.entities.WorkflowStep;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DirectoryDTOMapper {
@@ -32,7 +30,8 @@ public class DirectoryDTOMapper {
                 directory.getDateCreated(),
                 directory.getDateModified(),
                 getPathFromParentToChild(directory),
-                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse).collect(Collectors.toSet())
+                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse).collect(Collectors.toSet()),
+                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep).collect(Collectors.toSet())
         );
     }
 
