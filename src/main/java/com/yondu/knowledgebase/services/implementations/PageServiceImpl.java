@@ -249,9 +249,19 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         if (!pageRepository.existsByIdAndTypeAndDeleted(id, pageType.getCode(), false))
             throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
 
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(new String[] { "dateModified,desc" },
+                new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(0, 100, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
+
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 100))
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
+                        paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -312,7 +322,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, PageRequest.of(0, 100))
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
+                        PageRequest.of(0, 100))
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
