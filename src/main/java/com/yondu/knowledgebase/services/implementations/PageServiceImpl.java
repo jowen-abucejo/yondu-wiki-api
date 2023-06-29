@@ -254,7 +254,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
                         null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
-                        paging)
+                        false, false, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -288,7 +288,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
                         isPublished, false, arrayToSqlStringList(categories),
                         arrayToSqlStringList(tags), userId,
-                        arrayToSqlStringList(primaryKeys), null, paging)
+                        arrayToSqlStringList(primaryKeys), null, false, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -315,7 +315,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, false, false,
                         PageRequest.of(0, 100))
                 .orElse(null);
 
@@ -365,7 +365,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
                         isPublished,
                         true, arrayToSqlStringList(categories),
-                        arrayToSqlStringList(tags), userId, null, directoryId, paging)
+                        arrayToSqlStringList(tags), userId, null, directoryId, false, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -425,18 +425,18 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                                         .firstName(p.getAuthor().getFirstName())
                                         .lastName(p.getAuthor().getLastName())
                                         .position(p.getAuthor().getPosition())
-                                        .build()
-                                )
+                                        .build())
                                 .active(p.getActive())
                                 .pageType(p.getType())
-                                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList()).toArray(new String[0]))
-                                .categories(p.getCategories().stream().map(Category::getName).collect(Collectors.toList()).toArray(new String[0]))
+                                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList())
+                                        .toArray(new String[0]))
+                                .categories(p.getCategories().stream().map(Category::getName)
+                                        .collect(Collectors.toList()).toArray(new String[0]))
                                 .body(new PageVersionDTO.PageVersionDTOBuilder()
                                         .id(pv.getId())
                                         .content(pv.getOriginalContent())
                                         .title(pv.getTitle())
-                                        .build()
-                                )
+                                        .build())
                                 .build();
 
                         return dto;
@@ -449,6 +449,83 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         } else {
             throw new NoContentException("No pages found");
         }
+    }
+
+    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
+            Integer pageNumber, Integer pageSize, String[] sortBy) {
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+        int retrievedPage = Math.max(1, pageNumber);
+        retrievedPage = Math.min(100, retrievedPage);
+
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(retrievedPage - 1, pageSize, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
+
+        // format search key words
+        searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
+                        false, false, arrayToSqlStringList(new String[] {}),
+                        arrayToSqlStringList(new String[] {}), userId,
+                        arrayToSqlStringList(new Long[] {}), null, true, false, paging)
+                .orElse(null);
+
+        var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
+            return convertMapToPageDTO(pageVersion);
+        }).collect(Collectors.toList());
+
+        var otherConfiguration = new HashMap<String, Object>();
+        otherConfiguration.put("available_sorting", validSortAliases);
+        otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
+        return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
+                optionalPageVersions.getTotalElements(), otherConfiguration);
+
+    }
+
+    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchive,
+            Integer pageNumber,
+            Integer pageSize, String[] sortBy) {
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+        int retrievedPage = Math.max(1, pageNumber);
+        retrievedPage = Math.min(100, retrievedPage);
+
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(retrievedPage - 1, pageSize, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
+
+        // format search key words
+        searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
+                        false, false, arrayToSqlStringList(new String[] {}),
+                        arrayToSqlStringList(new String[] {}), userId,
+                        arrayToSqlStringList(new Long[] {}), null, false, true, paging)
+                .orElse(null);
+
+        var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
+            return convertMapToPageDTO(pageVersion);
+        }).collect(Collectors.toList());
+
+        var otherConfiguration = new HashMap<String, Object>();
+        otherConfiguration.put("available_sorting", validSortAliases);
+        otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
+        return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
+                optionalPageVersions.getTotalElements(), otherConfiguration);
+
     }
 
 }

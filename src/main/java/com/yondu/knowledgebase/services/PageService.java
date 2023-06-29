@@ -40,4 +40,10 @@ public interface PageService {
             Integer pageSize, String[] sortBy);
 
     PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type);
+
+    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
+            Integer pageNumber, Integer pageSize, String[] sortBy);
+
+    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchive,
+            Integer pageNumber, Integer pageSize, String[] sortBy);
 }
