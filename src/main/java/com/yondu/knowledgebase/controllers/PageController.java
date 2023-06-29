@@ -138,4 +138,26 @@ public class PageController {
                 published, exactSearch, pageNumber, pageSize, sortBy);
     }
 
+    @GetMapping(path = "pages/pending")
+    public PaginatedResponse<PageDTO> getAllPendingVersions(
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "20", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+
+        return pageService.findAllPendingVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
+    }
+
+    @GetMapping(path = "pages/drafts")
+    public PaginatedResponse<PageDTO> getAllDraftVersions(
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "20", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+
+        return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
+    }
+
 }
