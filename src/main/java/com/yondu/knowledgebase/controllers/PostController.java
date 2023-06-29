@@ -64,4 +64,10 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDTO>> disallowComment(@PathVariable Long id){
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.allowComment(id, false), "Comments are turned off in this post"));
     }
+
+    @GetMapping("/posts/popular")
+    public ResponseEntity<ApiResponse<List<PostDTO>>> findTop5MostPopularPosts(){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.findTop5MostPopularPosts(),"success"));
+    }
+
 }

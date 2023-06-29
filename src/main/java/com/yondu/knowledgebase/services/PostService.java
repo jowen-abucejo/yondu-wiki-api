@@ -16,6 +16,8 @@ import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -82,7 +84,7 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
-        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions, ContentType.POST.getCode());
+        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
         postRepository.save(post);
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"created a post");
@@ -188,4 +190,14 @@ public class PostService {
         }
         return mentionedUsers;
     }
+
+    public List<PostDTO> findTop5MostPopularPosts() {
+        Pageable pageable = PageRequest.of(0, 5);
+        List<Post> posts = postRepository.findMostPopularPosts(pageable);
+
+        return posts.stream()
+                .map(PostDTO::new)
+                .collect(Collectors.toList());
+    }
+
 }
