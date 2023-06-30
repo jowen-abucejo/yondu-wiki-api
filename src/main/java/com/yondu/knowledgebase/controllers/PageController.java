@@ -139,17 +139,60 @@ public class PageController {
     }
 
     @GetMapping(path = "pages/pending")
+    /**
+     * Retrieves a paginated list of wikis that are submitted for approval
+     * and are accessible to the current user.
+     * 
+     * @param searchKey    The search key to filter the wikis.
+     * 
+     * @param archived     Flag indicating whether to retrieve only archived wikis
+     *                     if true or active wikis only if false. Default is false.
+     * 
+     * @param approverOnly Flag indicating whether to retrieve only wikis that the
+     *                     user can approve. Defaults is true.
+     * 
+     * @param pageNumber   The page number for pagination. Default is 1,
+     * 
+     * @param pageSize     The number of wikis to include per page. Default is 20.
+     * 
+     * @param sortBy       An array of fields to sort the wikis by. Default is an
+     *                     empty array.
+     * 
+     * @return A paginated response containing a list of pending wiki versions
+     *         accessible to the current user.
+     */
     public PaginatedResponse<PageDTO> getAllPendingVersions(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "1", name = "approverOnly") Boolean approverOnly,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAllPendingVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
+        return pageService.findAllPendingVersions(pageType, searchKey, archived, approverOnly, pageNumber, pageSize,
+                sortBy);
     }
 
     @GetMapping(path = "pages/drafts")
+    /**
+     * Retrieves a paginated list of drafts of wikis that are accessible to the
+     * current user.
+     * 
+     * @param searchKey  The search key to filter the wikis.
+     * 
+     * @param archived   Flag indicating whether to retrieve only archived wikis
+     *                   if true or active wikis only if false. Default is false.
+     * 
+     * @param pageNumber The page number for pagination. Default is 1,
+     * 
+     * @param pageSize   The number of wikis to include per page. Default is 20.
+     * 
+     * @param sortBy     An array of fields to sort the wikis by. Default is an
+     *                   empty array.
+     * 
+     * @return A paginated list of drafts of wikis that are accessible to the
+     *         current user.
+     */
     public PaginatedResponse<PageDTO> getAllDraftVersions(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
