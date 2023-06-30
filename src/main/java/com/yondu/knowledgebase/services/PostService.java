@@ -211,8 +211,8 @@ public class PostService {
         return mentionedUsers;
     }
 
-    public List<PostDTO> findTop5MostPopularPosts() {
-        Pageable pageable = PageRequest.of(0, 5);
+    public List<PostDTO> findTop5MostPopularPosts(int page, int size) {
+        PageRequest pageable = PageRequest.of(page - 1, size);
         List<Object[]> results = postRepository.findMostPopularPosts(pageable);
 
         return results.stream()

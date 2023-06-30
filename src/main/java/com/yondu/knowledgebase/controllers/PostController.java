@@ -78,8 +78,9 @@ public class PostController {
     }
 
     @GetMapping("/posts/popular")
-    public ResponseEntity<ApiResponse<List<PostDTO>>> findTop5MostPopularPosts(){
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.findTop5MostPopularPosts(),"success"));
+    public ResponseEntity<ApiResponse<List<PostDTO>>> findTop5MostPopularPosts(@RequestParam(defaultValue = "1") int page,
+                                                                                @RequestParam(defaultValue = "10") int size){
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.findTop5MostPopularPosts(page,size),"success"));
     }
 
 }
