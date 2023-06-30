@@ -23,7 +23,7 @@ public class Post {
 
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @CreatedDate
@@ -57,6 +57,9 @@ public class Post {
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "post_mentions", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> postMentions = new HashSet<>();
+
+    @Column(columnDefinition = "TEXT")
+    private String modifiedContent;
 
     public Post() {
     }
@@ -170,6 +173,14 @@ public class Post {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getModifiedContent() {
+        return modifiedContent;
+    }
+
+    public void setModifiedContent(String modifiedContent) {
+        this.modifiedContent = modifiedContent;
     }
 
     @Override
