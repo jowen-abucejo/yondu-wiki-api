@@ -199,7 +199,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                         AND u10.id = :userId)
                                     AND (
-                                        p.author = :userId
+                                        (NOT :approverOnly AND p.author = :userId)
                                         OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                             user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                             permission p10 ON upa10.permission_id = p10.id
@@ -387,7 +387,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                         AND u10.id = :userId)
                                     AND (
-                                        p.author = :userId
+                                        (NOT :approverOnly AND p.author = :userId)
                                         OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                             user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
                                             permission p10 ON upa10.permission_id = p10.id
@@ -465,6 +465,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("parentDirectory") Long directoryId,
             @Param("pendingOnly") Boolean pendingOnly,
             @Param("draftOnly") Boolean draftOnly,
+            @Param("approverOnly") Boolean approverOnly,
             Pageable pageable);
 
 }
