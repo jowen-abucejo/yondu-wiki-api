@@ -2,13 +2,19 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.group.GroupDTOMapper;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Group;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
+import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.GroupRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +22,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class GroupService {
+
+    private final Logger log = LoggerFactory.getLogger(GroupService.class);
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
@@ -31,6 +39,42 @@ public class GroupService {
                 .map(GroupDTOMapper::mapToBaseResponse)
                 .collect(Collectors.toList());
     }
+
+    public PaginatedResponse<GroupDTO.BaseResponse> getAllGroupsPaginated(String searchKey, String statusFilter, int page, int size) {
+        log.info("GroupService.getAllGroupsPaginated()");
+        log.info("searchKey: " + searchKey);
+        log.info("statusFilter: " + statusFilter);
+        log.info("page: " + page);
+        log.info("size: " + size);
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Group> groupPage;
+
+        if (!statusFilter.isEmpty() && !searchKey.isEmpty()) {
+            groupPage = groupRepository.findAllByNameAndStatus(searchKey, Boolean.parseBoolean(statusFilter), pageRequest);
+        } else if (!statusFilter.isEmpty()) {
+            groupPage = groupRepository.findAllByStatus(Boolean.parseBoolean(statusFilter), pageRequest);
+        } else if(!searchKey.isEmpty()){
+            groupPage = groupRepository.findAllByName(searchKey, pageRequest);
+        } else {
+            groupPage = groupRepository.findAll(pageRequest);
+        }
+
+        List<Group> groups = groupPage.getContent();
+
+        if (groups.isEmpty()) {
+            throw new NoContentException("No content found");
+        }
+
+        List<GroupDTO.BaseResponse> userDTOs = groups.stream()
+                .map(GroupDTOMapper::mapToBaseResponse)
+                .collect(Collectors.toList());
+
+        PaginatedResponse<GroupDTO.BaseResponse> paginatedResponse = new PaginatedResponse<>(userDTOs, page, size, (long) groupPage.getTotalPages());
+
+        return paginatedResponse;
+    }
+
 
     public GroupDTO.BaseResponse createGroup(GroupDTO.GroupRequest request) {
         if (request.name() == null || request.name().isEmpty() || request.description() == null || request.description().isEmpty()) {

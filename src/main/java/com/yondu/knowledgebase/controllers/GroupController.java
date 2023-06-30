@@ -2,7 +2,10 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.GroupService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +17,8 @@ import java.util.List;
 @RequestMapping("/groups")
 public class GroupController {
 
+    private final Logger log = LoggerFactory.getLogger(GroupController.class);
+
     private final GroupService groupService;
 
     public GroupController(GroupService groupService) {
@@ -24,6 +29,29 @@ public class GroupController {
     public ResponseEntity<ApiResponse<?>> getAllGroups() {
         List<GroupDTO.BaseResponse> data = groupService.getAllGroups();
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Data retrieved successfully"));
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<ApiResponse<PaginatedResponse<GroupDTO.BaseResponse>>> getAllGroupsPaginated(
+            @RequestParam(defaultValue = "") String searchKey,
+            @RequestParam(defaultValue = "") String statusFilter,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "30") int size
+    ) {
+        log.info("GroupController.getAllUsersPaginated()");
+        log.info("searchKey: " + searchKey);
+        log.info("statusFilter: " + statusFilter);
+        log.info("page: " + page);
+        log.info("size: " + size);
+
+        ResponseEntity<ApiResponse<PaginatedResponse<GroupDTO.BaseResponse>>> response;
+
+        PaginatedResponse<GroupDTO.BaseResponse> fetchedUsers = groupService.getAllGroupsPaginated(searchKey, statusFilter, page, size);
+
+        ApiResponse<PaginatedResponse<GroupDTO.BaseResponse>> apiResponse = ApiResponse.success(fetchedUsers, "success");
+        response = ResponseEntity.ok(apiResponse);
+
+        return response;
     }
 
     @PostMapping

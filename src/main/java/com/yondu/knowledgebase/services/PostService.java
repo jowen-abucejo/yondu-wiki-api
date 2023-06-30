@@ -103,6 +103,7 @@ public class PostService {
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
         Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
+        post.setModifiedContent(postDTO.getContent().replaceAll("<[^>]+>", ""));
         postRepository.save(post);
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"created a post");
@@ -139,6 +140,7 @@ public class PostService {
 
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
+        post.setModifiedContent(postDTO.getContent().replaceAll("<[^>]+>", ""));
         post.setCategories(categories);
         post.setTags(tags);
         post.setDateModified(LocalDateTime.now());
@@ -209,8 +211,8 @@ public class PostService {
         return mentionedUsers;
     }
 
-    public List<PostDTO> findTop5MostPopularPosts() {
-        Pageable pageable = PageRequest.of(0, 5);
+    public List<PostDTO> findTop5MostPopularPosts(int page, int size) {
+        PageRequest pageable = PageRequest.of(page - 1, size);
         List<Object[]> results = postRepository.findMostPopularPosts(pageable);
 
         return results.stream()
