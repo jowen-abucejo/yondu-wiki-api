@@ -323,9 +323,15 @@ class PageServiceUtilities {
     protected void setTitleAndContents(PageVersionDTO pageDTO, PageVersion pageDraft) {
         pageDraft.setTitle(pageDTO.getTitle());
         String pageContent = pageDTO.getContent();
-        if (Objects.nonNull(pageContent) && !pageContent.isBlank())
+        if (Objects.nonNull(pageContent) && !pageContent.isBlank()) {
+            String tags = "";
+
+            if (pageDTO.getTags() != null)
+                tags = " Tags| " + String.join(" | ", pageDTO.getTags());
+
             pageDraft.setContent(
-                    pageContent.replaceAll("<[^>]+>", "") + " Tags| " + String.join(" | ", pageDTO.getTags()));
+                    pageContent.replaceAll("<[^>]+>", "") + tags);
+        }
         pageDraft.setOriginalContent(pageDTO.getContent());
     }
 
