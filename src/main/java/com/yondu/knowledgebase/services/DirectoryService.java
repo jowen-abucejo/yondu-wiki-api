@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
 
-    public DirectoryDTO.GetResponse createDirectory(DirectoryDTO.CreateRequest request) {
+    public void createDirectory(DirectoryDTO.CreateRequest request) {
 
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
@@ -106,13 +107,11 @@ public class DirectoryService {
         Directory savedDirectory = directoryRepository.save(new Directory(request.name(), request.description(), parent, currentUser, currentUser));
         Workflow savedWorkflow = workflowRepository.save(new Workflow(savedDirectory));
         request.workflow().forEach((step) -> {
-            System.out.println(step.name());
             WorkflowStep savedWorkflowStep = workflowStepRepository.save(new WorkflowStep(savedWorkflow, step.name(), step.step()));
             step.approvers().forEach(user -> workflowStepApproverRepository.save(new WorkflowStepApprover(savedWorkflowStep, userRepository.findById(user.id()).orElseThrow(() -> new ResourceNotFoundException(String.format("User id %d not found", user.id()))))));
         });
         savedDirectory.setWorkflow(savedWorkflow);
         savedDirectory = directoryRepository.save(savedDirectory);
-        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
 //    public List<DirectoryDTO.GetResponse> moveDirectories(DirectoryDTO.MoveRequest request) {
@@ -208,6 +207,67 @@ public class DirectoryService {
 
         directory.setName(request.name());
         directory.setDateModified(LocalDate.now());
+        Directory savedDirectory = directoryRepository.save(directory);
+        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
+    }
+
+    public DirectoryDTO.GetResponse editDirectory(Long id, DirectoryDTO.CreateRequest request) {
+
+        if (request.parentId() == null ||
+                request.name() == null || request.description() == null ||
+                request.name().isEmpty() || request.description().isEmpty() ||
+                request.workflow() == null || request.workflow().isEmpty() ||
+                request.workflow().stream().anyMatch(obj -> obj == null || obj.approvers() == null || obj.approvers().isEmpty())) {
+            throw new RequestValidationException("Invalid request body");
+        }
+
+        Long permissionId = 17L;
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
+
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Directory directory = directoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory 'id' not found: %d", id)));
+        Directory parent = directory.getParent();
+
+        if (parent == null) {
+            throw new AccessDeniedException();
+        }
+
+        if (!hasPermission(currentUser, directory, permission)) {
+            throw new AccessDeniedException();
+        }
+
+        directory.setName(request.name());
+        directory.setDescription(request.description());
+        directory.setDateModified(LocalDate.now());
+        directory.setModifiedBy(currentUser);
+
+        Workflow workflow = directory.getWorkflow();
+
+        request.workflow().forEach(step->{
+            WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndStep(workflow,step.step()).orElse(null);
+
+            if (workflowStep == null) {
+                WorkflowStep newWorkflowStep = workflowStepRepository.save(new WorkflowStep(workflow,step.name(), step.step()));
+                List<WorkflowStepApprover> workflowStepApprovers = step.approvers().stream().map((approver)->new WorkflowStepApprover(newWorkflowStep, userRepository.findById(approver.id()).orElseThrow(()-> new ResourceNotFoundException("User not found")))).toList();
+                workflowStepApproverRepository.saveAll(workflowStepApprovers);
+            } else {
+                workflowStep.setName(step.name());
+
+                workflowStepApproverRepository.deleteAll(workflowStepApproverRepository.findAllByWorkflowStep(workflowStep));
+
+                step.approvers().forEach(approver->{
+                    User user = userRepository.findById(approver.id()).orElseThrow(()-> new ResourceNotFoundException("User not found"));
+                    WorkflowStepApprover workflowStepApprover = workflowStepApproverRepository.findByApproverAndWorkflowStep(user,workflowStep).orElse(null);
+                    if (workflowStepApprover == null) {
+                        workflowStepApproverRepository.save(new WorkflowStepApprover(workflowStep, user));
+                    }
+                });
+
+                workflowStepRepository.save(workflowStep);
+            }
+        });
+
         Directory savedDirectory = directoryRepository.save(directory);
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }

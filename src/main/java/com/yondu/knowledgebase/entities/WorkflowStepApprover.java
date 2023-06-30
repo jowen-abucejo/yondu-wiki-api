@@ -54,4 +54,9 @@ public class WorkflowStepApprover {
         WorkflowStepApprover other = (WorkflowStepApprover) obj;
         return this.id.equals(other.id);
     }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

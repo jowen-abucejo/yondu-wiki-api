@@ -1,8 +1,7 @@
 package com.yondu.knowledgebase.DTO.directory;
 
 import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.entities.User;
-import jakarta.persistence.Id;
+import com.yondu.knowledgebase.entities.Workflow;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +26,8 @@ public class DirectoryDTO {
                               LocalDate dateCreated,
                               LocalDate dateModified,
                               List<ShortResponse> fullPath,
-                              Set<GetResponse> subdirectories){}
+                              Set<GetResponse> subdirectories,
+                              Set<DirectoryDTO.WorkflowStep> workflow){}
 
     public record ShortResponse(Long id,
                                String name){}

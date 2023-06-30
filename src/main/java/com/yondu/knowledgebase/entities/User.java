@@ -305,4 +305,9 @@ public class User implements UserDetails  {
         return status.equals("ACT");
     }
 
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
 }
