@@ -37,8 +37,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
             "WHERE p.active = true AND p.deleted = false " +
             "GROUP BY p.id " +
-            "ORDER BY (COUNT(DISTINCT c.id) + COUNT(DISTINCT r.id)) DESC")
+            "ORDER BY COUNT(DISTINCT c.id) DESC")
     List<Object[]> findMostPopularPosts(Pageable pageable);
+
+    @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
+            "FROM Post p " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "WHERE p.active = true AND p.deleted = false " +
+            "GROUP BY p.id " +
+            "ORDER BY COUNT(DISTINCT r.id) DESC")
+    List<Object[]> findTopPosts(Pageable pageable);
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +

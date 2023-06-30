@@ -225,6 +225,20 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
+    public List<PostDTO> findTopPosts(int page, int size) {
+        PageRequest pageable = PageRequest.of(page - 1, size);
+        List<Object[]> results = postRepository.findTopPosts(pageable);
+
+        return results.stream()
+                .map(result -> {
+                    Post post = (Post) result[0];
+                    Long commentCount = (Long) result[1];
+                    Long upVoteCount = (Long) result[2];
+                    return new PostDTO(post, commentCount, upVoteCount);
+                })
+                .collect(Collectors.toList());
+    }
+
 
     public PaginatedResponse<PostDTO> searchPostsByUser(int page, int size, String searchKey, Boolean active, Boolean deleted) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
