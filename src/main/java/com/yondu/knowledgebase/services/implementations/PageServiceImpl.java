@@ -254,7 +254,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
                         null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
-                        false, false, paging)
+                        false, false, false, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -288,7 +288,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
                         isPublished, false, arrayToSqlStringList(categories),
                         arrayToSqlStringList(tags), userId,
-                        arrayToSqlStringList(primaryKeys), null, false, false, paging)
+                        arrayToSqlStringList(primaryKeys), null, false, false, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -315,7 +315,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null, false, false,
+                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
+                        false, false, false,
                         PageRequest.of(0, 100))
                 .orElse(null);
 
@@ -363,9 +364,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
-                        isPublished,
-                        true, arrayToSqlStringList(categories),
-                        arrayToSqlStringList(tags), userId, null, directoryId, false, false, paging)
+                        isPublished, true, arrayToSqlStringList(categories),
+                        arrayToSqlStringList(tags), userId, null, directoryId, false,
+                        false, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -403,7 +404,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                     .map(p -> {
                         PageVersion pv = p.getPageVersions()
                                 .stream()
-                                .sorted(Comparator.comparing(PageVersion::getDateModified))
+                                .sorted(Comparator.comparing(
+                                        PageVersion::getDateModified))
                                 .findFirst().get();
 
                         PageDTO dto = new PageDTO.PageDTOBuilder()
@@ -412,7 +414,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                                 .lockedBy(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
                                         .id(p.getLockedBy().getId())
                                         .email(p.getLockedBy().getEmail())
-                                        .firstName(p.getLockedBy().getFirstName())
+                                        .firstName(p.getLockedBy()
+                                                .getFirstName())
                                         .lastName(p.getLockedBy().getLastName())
                                         .position(p.getLockedBy().getPosition())
                                         .build())
@@ -428,10 +431,13 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                                         .build())
                                 .active(p.getActive())
                                 .pageType(p.getType())
-                                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList())
+                                .tags(p.getTags().stream().map(Tag::getName)
+                                        .collect(Collectors.toList())
                                         .toArray(new String[0]))
-                                .categories(p.getCategories().stream().map(Category::getName)
-                                        .collect(Collectors.toList()).toArray(new String[0]))
+                                .categories(p.getCategories().stream()
+                                        .map(Category::getName)
+                                        .collect(Collectors.toList())
+                                        .toArray(new String[0]))
                                 .body(new PageVersionDTO.PageVersionDTOBuilder()
                                         .id(pv.getId())
                                         .content(pv.getOriginalContent())
@@ -452,7 +458,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     }
 
     public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
-            Integer pageNumber, Integer pageSize, String[] sortBy) {
+            Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
         retrievedPage = Math.min(100, retrievedPage);
@@ -472,7 +478,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
                         false, false, arrayToSqlStringList(new String[] {}),
                         arrayToSqlStringList(new String[] {}), userId,
-                        arrayToSqlStringList(new Long[] {}), null, true, false, paging)
+                        arrayToSqlStringList(new Long[] {}), null, true,
+                        false, approverOnly, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -511,7 +518,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
                         false, false, arrayToSqlStringList(new String[] {}),
                         arrayToSqlStringList(new String[] {}), userId,
-                        arrayToSqlStringList(new Long[] {}), null, false, true, paging)
+                        arrayToSqlStringList(new Long[] {}), null, false, true, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
