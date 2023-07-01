@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.services.PasswordChangesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,8 +18,7 @@ public class PasswordChangesServiceImpl implements PasswordChangesService {
 
     @Autowired
     private PasswordChangesRepository repository;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     private Logger log = LoggerFactory.getLogger(PasswordChangesServiceImpl.class);
 

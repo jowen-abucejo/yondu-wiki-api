@@ -17,6 +17,15 @@ public class DirectoryUserAccess {
     @JoinColumn(name="user_id")
     private User user;
 
+    public DirectoryUserAccess() {
+    }
+
+    public DirectoryUserAccess(Directory directory, Permission permission, User user) {
+        this.directory = directory;
+        this.permission = permission;
+        this.user = user;
+    }
+
     public Directory getDirectory() {
         return directory;
     }

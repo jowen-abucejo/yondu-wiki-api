@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.enums.PageType;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -201,6 +202,23 @@ public class PageController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
         return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
+    }
+
+    @GetMapping(path="pages/{id}/lock")
+    /**
+     * Retrieves a page lock status.
+     * Gives the user choice to lock after
+     * checking or not
+     *
+     * @param id         ID of the page you want to
+     *                   check
+     *
+     * @param lockAfter  Locks the page after checking.
+     *                   Default false.
+     */
+    public ResponseEntity getLockStatus(@PathVariable Long id, @RequestParam(defaultValue = "0", name = "lockAfter") Boolean lockAfter) {
+        pageService.getLockStatus(id, lockAfter);
+        return ResponseEntity.ok().build();
     }
 
 }

@@ -2,11 +2,14 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
+import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.DirectoryService;
+import com.yondu.knowledgebase.services.DirectoryUserAccessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +22,9 @@ public class DirectoryController {
     private final DirectoryService directoryService;
 
     private Logger log = LoggerFactory.getLogger(DirectoryController.class);
+
+    @Autowired
+    private DirectoryUserAccessService directoryUserAccessService;
 
     public DirectoryController(DirectoryService directoryService) {
         this.directoryService = directoryService;
@@ -89,5 +95,33 @@ public class DirectoryController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(ApiResponse.success(pages, "success"));
+    }
+
+    /**
+     * Updates the directories user access. This is a two-way update.
+     * If the same access has been found, it will delete the access.
+     *
+     * @param directoryId  The directory that will be updated.
+     * @param userAccess   The added access for the directory.
+     *                     Requires the following:
+     *                     - email
+     *                     - permission id.
+     */
+    @PostMapping("/{id}/access")
+    public ResponseEntity<ApiResponse<DirectoryDTO>> updateUserAccess(@PathVariable("id") Long directoryId, @RequestBody DirectoryUserAccessDTO.UserAccess userAccess) {
+        log.info("DirectoryController.updateUserAccess()");
+        log.info("directoryId : " + directoryId);
+        log.info("userAccess  : " + userAccess);
+
+        DirectoryUserAccessDTO.UserAccessResult result = directoryUserAccessService.updateUserAccess(directoryId, userAccess);
+        ApiResponse apiResponse = null;
+        if(result.result().equals("CREATED")){
+            apiResponse = ApiResponse.success(userAccess, "CREATED");
+        }else{
+            // Removed
+            apiResponse = ApiResponse.success(userAccess, "REMOVED");
+        }
+
+        return ResponseEntity.ok(apiResponse);
     }
 }

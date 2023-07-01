@@ -15,10 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -304,9 +301,16 @@ public class DirectoryService {
         if (hasPermission(user, directory, permission)) {
             return directory;
         }
-        for (Directory child : directory.getSubDirectories()) {
-            traverseByLevel(child, permission, user);
+        Iterator<Directory> subdirectories = directory.getSubDirectories().stream().iterator();
+        while(subdirectories.hasNext()){
+            Directory child = traverseByLevel(subdirectories.next(), permission, user);
+            if(child != null){
+                return child;
+            }
         }
+//        for (Directory child : directory.getSubDirectories()) {
+//            traverseByLevel(child, permission, user);
+//        }
         return null;
     }
 
