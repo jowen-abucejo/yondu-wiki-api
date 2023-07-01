@@ -42,8 +42,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         NOT :isExactMatch OR NOT :searchKey=''
                     THEN
                         ROUND((
-                            (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.2) +
-                            (MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.8)),3)
+                            (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN BOOLEAN MODE) * 0.2) +
+                            (MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN BOOLEAN MODE) * 0.2) +
+                            (MATCH (v.title , v.content) AGAINST (:searchKey IN BOOLEAN MODE) * 0.8)),3)
                     ELSE 1.0
                 END AS relevance,
                 COALESCE(c.totalComments, 0) AS totalComments,
@@ -257,10 +258,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             OR v.title LIKE CONCAT('%', :searchKey, '%')
                             OR v.content LIKE CONCAT('%', :searchKey, '%'))
                     ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
+                        OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
                         OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
                     END
-                    OR a.email LIKE CONCAT('%', :searchKey, '%')
-                    OR allCats.pCats LIKE CONCAT('%', :searchKey, '%')
                 )
                 """, countQuery = """
             SELECT COUNT(*)
@@ -445,10 +445,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             OR v.title LIKE CONCAT('%', :searchKey, '%')
                             OR v.content LIKE CONCAT('%', :searchKey, '%'))
                     ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
+                        OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
                         OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
                     END
-                    OR a.email LIKE CONCAT('%', :searchKey, '%')
-                    OR allCats.pCats LIKE CONCAT('%', :searchKey, '%')
                 )
             """)
     Optional<Page<Map<String, Object>>> findByFullTextSearch(
