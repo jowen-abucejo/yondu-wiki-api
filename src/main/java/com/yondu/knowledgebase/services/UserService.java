@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -34,13 +35,10 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired PasswordChangesService passwordChangesService;
-
+    @Autowired private PasswordChangesService passwordChangesService;
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    EmailServiceImpl emailService;
+    private EmailServiceImpl emailService;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 

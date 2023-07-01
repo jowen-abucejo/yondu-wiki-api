@@ -384,77 +384,44 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     }
 
     @Override
-    public PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type) {
+    public PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type, String[] sortBy) {
         log.info("PageServiceImpl.findPagesByUser()");
         log.info("page : " + page);
         log.info("size : " + size);
         log.info("type : " + type);
 
         User user = auditorAware.getCurrentAuditor().get();
-        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Long userId = user.getId();
+        int retrievedPage = Math.max(1, page);
+        retrievedPage = Math.min(100, retrievedPage);
 
-        org.springframework.data.domain.Page<Page> fetchPages = pageRepository
-                .findByAuthorOrderByDateCreatedDesc(user,
-                        type, pageRequest);
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(retrievedPage - 1, size, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
 
-        if (fetchPages.hasContent()) {
-            List<PageDTO> listPages = fetchPages
-                    .getContent()
-                    .stream()
-                    .map(p -> {
-                        PageVersion pv = p.getPageVersions()
-                                .stream()
-                                .sorted(Comparator.comparing(
-                                        PageVersion::getDateModified))
-                                .findFirst().get();
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(type, "", false, false,
+                        false, false, arrayToSqlStringList(new String[] {}),
+                        arrayToSqlStringList(new String[] {}), userId,
+                        arrayToSqlStringList(new Long[] {}), null, false,
+                        false, false, paging)
+                .orElse(null);
 
-                        PageDTO dto = new PageDTO.PageDTOBuilder()
-                                .id(p.getId())
-                                .dateCreated(p.getDateCreated())
-                                .lockedBy(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
-                                        .id(p.getLockedBy().getId())
-                                        .email(p.getLockedBy().getEmail())
-                                        .firstName(p.getLockedBy()
-                                                .getFirstName())
-                                        .lastName(p.getLockedBy().getLastName())
-                                        .position(p.getLockedBy().getPosition())
-                                        .build())
-                                .lockStart(p.getLockStart())
-                                .lockEnd(p.getLockEnd())
-                                .allowComment(p.getAllowComment())
-                                .author(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
-                                        .id(p.getAuthor().getId())
-                                        .email(p.getAuthor().getEmail())
-                                        .firstName(p.getAuthor().getFirstName())
-                                        .lastName(p.getAuthor().getLastName())
-                                        .position(p.getAuthor().getPosition())
-                                        .build())
-                                .active(p.getActive())
-                                .pageType(p.getType())
-                                .tags(p.getTags().stream().map(Tag::getName)
-                                        .collect(Collectors.toList())
-                                        .toArray(new String[0]))
-                                .categories(p.getCategories().stream()
-                                        .map(Category::getName)
-                                        .collect(Collectors.toList())
-                                        .toArray(new String[0]))
-                                .body(new PageVersionDTO.PageVersionDTOBuilder()
-                                        .id(pv.getId())
-                                        .content(pv.getOriginalContent())
-                                        .title(pv.getTitle())
-                                        .build())
-                                .build();
+        var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
+            return convertMapToPageDTO(pageVersion);
+        }).collect(Collectors.toList());
 
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
-
-            PaginatedResponse<PageDTO> pages = new PaginatedResponse<>(listPages, page, size,
-                    (long) listPages.size());
-            return pages;
-        } else {
-            throw new NoContentException("No pages found");
-        }
+        var otherConfiguration = new HashMap<String, Object>();
+        otherConfiguration.put("available_sorting", validSortAliases);
+        otherConfiguration.put("applied_sorting", optionalPageVersions.getSort()
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
+        return new PaginatedResponse<PageDTO>(pageList, retrievedPage, size,
+                optionalPageVersions.getTotalElements(), otherConfiguration);
     }
 
     public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
@@ -533,6 +500,13 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         return new PaginatedResponse<PageDTO>(pageList, retrievedPage, pageSize,
                 optionalPageVersions.getTotalElements(), otherConfiguration);
 
+    }
+
+    public Boolean getLockStatus(Long pageId, Boolean lockAfter) {
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Cannot find the page."));
+        checkLock(page, lockAfter);
+
+        return true;
     }
 
 }

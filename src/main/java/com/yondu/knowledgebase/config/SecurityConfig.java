@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -29,12 +30,20 @@ public class SecurityConfig implements WebMvcConfigurer {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable();
 
-        http.authorizeHttpRequests().requestMatchers("/auth/login", "/auth/check", "/websocket", "/attachments", "/attachments/**").permitAll();
-        http.authorizeHttpRequests().anyRequest().authenticated();
+        http.authorizeRequests()
+                .requestMatchers(
+                        "/auth/login",
+                        "/auth/check",
+                        "/websocket",
+                        "/attachments",
+                        "/attachments/**"
+                ).permitAll()
+                .anyRequest().authenticated();
+
+        http.addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);
         http.exceptionHandling().authenticationEntryPoint(entryPoint);
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        http.addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

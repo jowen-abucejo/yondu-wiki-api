@@ -39,11 +39,13 @@ public interface PageService {
             Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
             Integer pageSize, String[] sortBy);
 
-    PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type);
+    public PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type, String[] sortBy);
 
     public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
             Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy);
 
     public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchive,
             Integer pageNumber, Integer pageSize, String[] sortBy);
+
+    public Boolean getLockStatus(Long pageId, Boolean lockAfter);
 }

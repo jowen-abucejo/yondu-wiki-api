@@ -200,13 +200,17 @@ public class UserController {
     }
 
     @GetMapping("/pages")
-    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> findPagesByUser(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "10") int size, @RequestParam(defaultValue = "WIKI") String type) {
+    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> findPagesByUser(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "WIKI") String type,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
         log.info("UserController.findPagesByUser()");
         log.info("page : " + page);
         log.info("size : " + size);
         log.info("type : " + type);
 
-        PaginatedResponse<PageDTO> pages = pageService.findPagesByUser(page, size, type);
+        PaginatedResponse<PageDTO> pages = pageService.findPagesByUser(page, size, type, sortBy);
 
         return ResponseEntity.ok(ApiResponse.success(pages, "Successfully retrieved pages."));
     }

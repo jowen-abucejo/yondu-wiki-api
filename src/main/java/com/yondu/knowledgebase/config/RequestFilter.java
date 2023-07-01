@@ -1,7 +1,9 @@
 package com.yondu.knowledgebase.config;
 
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import com.yondu.knowledgebase.services.UserService;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -30,6 +32,9 @@ public class RequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserService userService;
 
     private final Logger log = LoggerFactory.getLogger(RequestFilter.class);
 
@@ -62,7 +67,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
             User user = null;
             try{
-                user = userRepository.getUserByEmail(email);
+                user = userService.loadUserByUsername(email);
             }catch (Exception ex){
                 ex.printStackTrace();
             }
