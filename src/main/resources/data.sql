@@ -299,16 +299,16 @@ INSERT IGNORE INTO category(id, is_deleted, name) VALUES
 (3, 0, 'Career');
 
 ---- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
---ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
+ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
 --
 ---- Add FULLTEXT index to the `title` column in the `page_version` table
---ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title_content (title, content);
+ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title_content (title, content);
 --
 ---- Add FULLTEXT index to the `name` column in the `category` table
---ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
+ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
 --
 ---- Add FULLTEXT index to the `name` column in the `tag` table
---ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
+ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
 
 -- Populate Users to test Workflows pass: adm1n1strat0r
 
