@@ -210,6 +210,12 @@ public class SaveService {
 
         saveRepository.delete(save);
 
+        Object entity = getEntity(save.getEntityType(), save.getEntityId(), Object.class);
+        String savedEntity = getEntityTypeAndAuthor(entity);
+
+        auditLogService.createAuditLog(save.getAuthor(), save.getEntityType(), save.getEntityId(),
+                "removed a saved " + savedEntity + " in his/her collection.");
+
         return SaveDTOMapper.mapToBaseResponse(save);
     }
 }
