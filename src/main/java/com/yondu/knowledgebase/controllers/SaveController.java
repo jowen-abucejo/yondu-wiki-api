@@ -49,6 +49,13 @@ public class SaveController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @DeleteMapping("/my-saves/{entityType}/{entityId}")
+    public ResponseEntity<?> removeSaveByEntity(@PathVariable String entityType,@PathVariable Long entityId ) {
+        SaveDTO.BaseResponse saves = saveService.deleteSaved(entityType,entityId);
+        ApiResponse apiResponse = ApiResponse.success(saves, "Deleted your saved items successfully");
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<?>> removeSave(@PathVariable Long id) {
         boolean removed = saveService.deleteSaved(id);
