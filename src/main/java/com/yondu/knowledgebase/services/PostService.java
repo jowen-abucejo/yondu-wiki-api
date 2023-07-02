@@ -43,8 +43,9 @@ public class PostService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-
-    public PostService(PostRepository postRepository, CategoryRepository categoryRepository, TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService, AuditLogService auditLogService) {
+    public PostService(PostRepository postRepository, CategoryRepository categoryRepository,
+            TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService,
+            AuditLogService auditLogService) {
         this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
@@ -66,7 +67,7 @@ public class PostService {
                 })
                 .collect(Collectors.toList());
 
-        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalPages());
+        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalElements());
     }
 
     public PostDTO getPostById(Long id) {
@@ -83,18 +84,17 @@ public class PostService {
         return new PostDTO(post, commentCount, upVoteCount);
     }
 
-    public PostDTO addPost(PostRequestDTO postDTO){
+    public PostDTO addPost(PostRequestDTO postDTO) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Set<Category> categories = postDTO.getCategories().stream().map(category -> {
             return categoryRepository.findById(category.getId()).get();
         }).collect(Collectors.toSet());
 
-        Set<Tag> tags= postDTO.getTags().stream().map(tag -> {
-            if(tagRepository.existsByName(tag.getName())){
+        Set<Tag> tags = postDTO.getTags().stream().map(tag -> {
+            if (tagRepository.existsByName(tag.getName())) {
                 return tagRepository.findByName(tag.getName()).get();
-            }
-            else{
+            } else {
                 Tag newTag = new Tag();
                 newTag.setName(tag.getName());
                 return newTag;
@@ -102,36 +102,38 @@ public class PostService {
         }).collect(Collectors.toSet());
 
         Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
-        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(), postDTO.getDateModified(), true, false, true, categories, tags, mentions);
+        Post post = new Post(postDTO.getId(), user, postDTO.getTitle(), postDTO.getContent(), LocalDateTime.now(),
+                postDTO.getDateModified(), true, false, true, categories, tags, mentions);
         post.setModifiedContent(postDTO.getContent().replaceAll("<[^>]+>", ""));
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"created a post");
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "created a post");
 
-        //Notify mentioned Users in a POST
-        for (User mentionedUser:mentions){
-            //Notify all mentioned users in the created comment
+        // Notify mentioned Users in a POST
+        for (User mentionedUser : mentions) {
+            // Notify all mentioned users in the created comment
             String fromUser = post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
-            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),post.getAuthor().getId(),String.format("%s mentioned you in their post", fromUser), NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
+            notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),
+                    post.getAuthor().getId(), String.format("%s mentioned you in their post", fromUser),
+                    NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
         }
         return new PostDTO(post, 0L, 0L);
     }
 
-
     public PostDTO editPost(PostDTO postDTO, Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         Set<Category> categories = postDTO.getCategories().stream().map(category -> {
             return categoryRepository.findById(category.getId()).get();
         }).collect(Collectors.toSet());
 
-        Set<Tag> tags= postDTO.getTags().stream().map(tag -> {
-            if(tagRepository.existsByName(tag.getName())){
+        Set<Tag> tags = postDTO.getTags().stream().map(tag -> {
+            if (tagRepository.existsByName(tag.getName())) {
                 return tagRepository.findByName(tag.getName()).get();
-            }
-            else{
+            } else {
                 Tag newTag = new Tag();
                 newTag.setName(tag.getName());
                 return newTag;
@@ -147,8 +149,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"edited a post");
-
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "edited a post");
 
         return new PostDTO(post, null, null);
     }
@@ -156,14 +157,14 @@ public class PostService {
     public PostDTO deletePost(Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         post.setDeleted(true);
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"deleted a post");
-
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "deleted a post");
 
         return new PostDTO(post, null, null);
     }
@@ -171,21 +172,22 @@ public class PostService {
     public PostDTO setActive(Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         post.setActive(!post.getActive());
 
         postRepository.save(post);
 
-        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(),"archived a post");
-
+        auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "archived a post");
 
         return new PostDTO(post, null, null);
 
     }
 
     public PostDTO allowComment(Long id, boolean allowComment) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
 
         post.setAllowComment(allowComment);
 
@@ -195,15 +197,17 @@ public class PostService {
 
     }
 
-    public Post getPost(Long id){
-        return postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
+    public Post getPost(Long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " not found!"));
     }
 
     private Set<User> getMentionedUsers(Long[] userIds) {
         Set<User> mentionedUsers = new HashSet<>();
         for (Long userId : userIds) {
             System.out.println(userId);
-            User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException(String.format("User ID not found: %d", userId)));
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException(String.format("User ID not found: %d", userId)));
             if (user != null) {
                 mentionedUsers.add(user);
             }
@@ -239,11 +243,12 @@ public class PostService {
                 .collect(Collectors.toList());
     }
 
-
-    public PaginatedResponse<PostDTO> searchPostsByUser(int page, int size, String searchKey, Boolean active, Boolean deleted) {
+    public PaginatedResponse<PostDTO> searchPostsByUser(int page, int size, String searchKey, Boolean active,
+            Boolean deleted) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, active, deleted, user.getId(), pageable);
+        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, active, deleted,
+                user.getId(), pageable);
 
         List<PostDTO> postDTOs = postResults.getContent().stream()
                 .map(result -> {
@@ -254,6 +259,6 @@ public class PostService {
                 })
                 .collect(Collectors.toList());
 
-        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalPages());
+        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalElements());
     }
 }
