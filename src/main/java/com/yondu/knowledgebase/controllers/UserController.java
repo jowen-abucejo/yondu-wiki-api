@@ -266,6 +266,17 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(pageDTO, "success"));
     }
 
+    /**
+     * Fetch pending(default) review requests
+     * based on the authenticated user.
+     * The status can be changed.
+     *
+     * @param page   page number
+     * @param size   size per page
+     * @param status (default = PENDING)
+     *
+     * @return PaginatedResponse<ReviewDTO.BaseResponse>
+     */
     @GetMapping("/reviews")
     public ResponseEntity<ApiResponse<PaginatedResponse<ReviewDTO.BaseResponse>>> getReviewRequestsForUser(@RequestParam(defaultValue = "1") int page,
                                                                                                            @RequestParam(defaultValue = "10") int size,
