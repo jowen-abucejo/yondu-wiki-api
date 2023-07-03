@@ -45,6 +45,31 @@ public class GroupService {
                 .collect(Collectors.toList());
     }
 
+    public PaginatedResponse<GroupDTO.ShortResponse> getAllGroups(Long permissionId, String searchKey, int page, int size) {
+        log.info("GroupService.getAllGroups()");
+        log.info("permissionId : " + permissionId);
+        log.info("searchKey : " + searchKey);
+        log.info("page : " + page);
+        log.info("size : " + size);
+
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException("No permission found."));
+        searchKey = "%" + searchKey;
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Group> groups = groupRepository.findAllByNameAndPermission(searchKey, permission, pageRequest);
+
+        if(groups.hasContent()){
+            List<GroupDTO.ShortResponse> groupDTOs = groups.stream()
+                            .map(GroupDTOMapper::mapToShortResponse)
+                            .collect(Collectors.toList());
+
+            PaginatedResponse<GroupDTO.ShortResponse> paginatedResponse = new PaginatedResponse<>(groupDTOs, page, size, (long) groups.getTotalPages());
+            return paginatedResponse;
+        }else{
+            throw new NoContentException("No Contents found");
+        }
+    }
+
     public PaginatedResponse<GroupDTO.BaseResponse> getAllGroupsPaginated(String searchKey, String statusFilter, int page, int size) {
         log.info("GroupService.getAllGroupsPaginated()");
         log.info("searchKey: " + searchKey);
