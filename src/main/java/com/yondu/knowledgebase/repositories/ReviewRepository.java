@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.entities.Review;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.ReviewStatus;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -41,4 +42,17 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "AND r.user = :user " +
             "AND r.status = 'DISAPPROVED'")
     boolean hasUserReviewedContentAsDisapprovedInPageVersion(PageVersion pageVersion, User user);
+
+    @Query("""
+            SELECT r FROM Review r
+            JOIN r.pageVersion pv
+            JOIN pv.page p
+            JOIN p.directory d
+            JOIN d.workflow w
+            JOIN w.steps s
+            JOIN s.approvers a
+            WHERE a.approver = ?1
+            AND r.status = ?2
+            """)
+    Page<Review> findAllByUser(User currentUser, String status, PageRequest pageRequest);
 }
