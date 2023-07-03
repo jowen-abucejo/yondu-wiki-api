@@ -31,14 +31,17 @@ public class DirectoryService {
 
     @Autowired
     private PageRepository pageRepository;
+    private final DirectoryUserAccessRepository directoryUserAccessRepository;
 
-    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository, WorkflowRepository workflowRepository, WorkflowStepRepository workflowStepRepository, WorkflowStepApproverRepository workflowStepApproverRepository) {
+    public DirectoryService(DirectoryRepository directoryRepository, UserRepository userRepository, PermissionRepository permissionRepository, WorkflowRepository workflowRepository, WorkflowStepRepository workflowStepRepository, WorkflowStepApproverRepository workflowStepApproverRepository,
+                            DirectoryUserAccessRepository directoryUserAccessRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
         this.workflowRepository = workflowRepository;
         this.workflowStepRepository = workflowStepRepository;
         this.workflowStepApproverRepository = workflowStepApproverRepository;
+        this.directoryUserAccessRepository = directoryUserAccessRepository;
     }
 
     public DirectoryDTO.GetResponse getDefaultDirectory() {
@@ -93,7 +96,7 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToGetResponse(directory);
     }
 
-    public void createDirectory(DirectoryDTO.CreateRequest request) {
+    public DirectoryDTO.GetResponse createDirectory(DirectoryDTO.CreateRequest request) {
 
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
@@ -126,6 +129,12 @@ public class DirectoryService {
         });
         savedDirectory.setWorkflow(savedWorkflow);
         savedDirectory = directoryRepository.save(savedDirectory);
+
+        Directory finalSavedDirectory = savedDirectory;
+        List<DirectoryUserAccess> newAccess = request.userAccess().stream().map((access) -> new DirectoryUserAccess(finalSavedDirectory, permissionRepository.findById(access.permissionId()).orElseThrow(() -> new ResourceNotFoundException("Permission not found")), userRepository.findById(access.userId()).orElseThrow(() -> new ResourceNotFoundException("User not found")))).toList();
+        directoryUserAccessRepository.saveAll(newAccess);
+
+        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
 
 //    public List<DirectoryDTO.GetResponse> moveDirectories(DirectoryDTO.MoveRequest request) {

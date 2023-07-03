@@ -8,9 +8,10 @@ import java.util.List;
 import java.util.Set;
 
 public class DirectoryDTO {
+    public record UserAccess(Long userId, Long permissionId){}
     public record Approver(Long id, String firstName, String lastName){}
     public record WorkflowStep(Long id, String name, int step, List<DirectoryDTO.Approver> approvers){}
-    public record CreateRequest(String name, String description, Long parentId, List<DirectoryDTO.WorkflowStep> workflow){}
+    public record CreateRequest(String name, String description, Long parentId, List<DirectoryDTO.WorkflowStep> workflow, List<UserAccess> userAccess){}
     public record RenameRequest(String name) {}
     public record MoveRequest(Long parentId, Long newParentId){}
     public record BaseResponse(Long id,
@@ -27,7 +28,8 @@ public class DirectoryDTO {
                               LocalDate dateModified,
                               List<ShortResponse> fullPath,
                               Set<GetResponse> subdirectories,
-                              Set<DirectoryDTO.WorkflowStep> workflow){}
+                              Set<DirectoryDTO.WorkflowStep> workflow,
+                              Set<UserAccess> userAccess){}
 
     public record ShortResponse(Long id,
                                String name){}

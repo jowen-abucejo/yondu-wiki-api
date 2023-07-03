@@ -44,8 +44,8 @@ public class DirectoryController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createDirectory(@RequestBody DirectoryDTO.CreateRequest request) {
-        directoryService.createDirectory(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(null, "Directory created successfully"));
+        DirectoryDTO.GetResponse data = directoryService.createDirectory(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Directory created successfully"));
     }
 
 //    @PutMapping("/move")
