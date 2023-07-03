@@ -280,13 +280,15 @@ public class UserController {
     @GetMapping("/reviews")
     public ResponseEntity<ApiResponse<PaginatedResponse<ReviewDTO.BaseResponse>>> getReviewRequestsForUser(@RequestParam(defaultValue = "1") int page,
                                                                                                            @RequestParam(defaultValue = "10") int size,
+                                                                                                           @RequestParam(defaultValue = "") String searchKey,
                                                                                                            @RequestParam(defaultValue = "PENDING") String status) {
         log.info("UserController.getReviewsByUser()");
         log.info("page : " + page);
         log.info("size : " + size);
         log.info("status : " + status);
+        log.info("searchKey : " + searchKey);
 
-        PaginatedResponse<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUser(page, size, status);
+        PaginatedResponse<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUser(page, size, searchKey, status);
         return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully retrieved reviews"));
     }
 }
