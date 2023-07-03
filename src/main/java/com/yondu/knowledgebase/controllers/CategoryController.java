@@ -69,6 +69,10 @@ public class CategoryController {
     @PutMapping("/categories/{id}/edit")
     public ResponseEntity<ApiResponse<CategoryDTO>> editCategory(@RequestBody CategoryDTO categoryDto,
             @PathVariable Long id) {
+
+        if (categoryDto.getName() == null || categoryDto.getName().isEmpty()) {
+            throw new RequestValidationException("Category name is required");
+        }
         if (categoryService.isCategoryNameTaken(categoryDto.getName())) {
             throw new RequestValidationException("Category name is already taken");
         }
@@ -102,6 +106,17 @@ public class CategoryController {
 
     @GetMapping("/categories")
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        List<CategoryDTO> categoryDTOs = categories.stream()
+            .filter(category -> !category.getDeleted()) 
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success(categoryDTOs, "Success retrieving all categories"));
+    }
+
+    @GetMapping("/categories/include-deleted")
+    public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategoriesIncludeDeleted() {
         List<Category> categories = categoryService.getAllCategories();
         List<CategoryDTO> categoryDTOs = categories.stream()
                 .map(categoryMapper::toDto)
