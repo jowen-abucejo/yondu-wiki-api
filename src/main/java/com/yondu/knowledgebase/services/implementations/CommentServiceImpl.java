@@ -48,18 +48,23 @@ public class CommentServiceImpl implements CommentService {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (entityType.equals(ContentType.PAGE.getCode())){
             PageDTO page = pageService.findById(entityId);
+            System.out.println(page);
             if (page!=null && !page.getAllowComment())
                 throw new CommentIsNotAllowed("Comments are turned off in this page");
             else{
                 Page selectedPage = pageRepository.findById(page.getId()).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", page.getId())));
-                data.put("contentType","PAGE");
+                if (selectedPage.getType().equals(ContentType.WIKI.getCode())){
+                    data.put("contentType",ContentType.WIKI.getCode());
+                }else if(selectedPage.getType().equals(ContentType.ANNOUNCEMENT.getCode())){
+                    data.put("contentType",ContentType.ANNOUNCEMENT.getCode());
+                }
                 data.put("authorId",selectedPage.getAuthor().getId());
                 data.put("contentId",page.getId());
             }
         }else if (entityType.equals(ContentType.POST.getCode())){
             Post post = postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
             if (post.getActive() && post.getAllowComment()){
-                data.put("contentType","POST");
+                data.put("contentType",ContentType.POST.getCode());
                 data.put("authorId",post.getAuthor().getId());
                 data.put("contentId",post.getId());
             }else {
