@@ -4,12 +4,14 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.PageService;
+import com.yondu.knowledgebase.services.ReviewService;
 import com.yondu.knowledgebase.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +37,8 @@ public class UserController {
     private UserRepository userRepository;
     @Autowired
     private PageService pageService;
+    @Autowired
+    private ReviewService reviewService;
 
     @GetMapping("")
     public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> getAllUser(
@@ -260,5 +264,29 @@ public class UserController {
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(pageDTO, "success"));
+    }
+
+    /**
+     * Fetch pending(default) review requests
+     * based on the authenticated user.
+     * The status can be changed.
+     *
+     * @param page   page number
+     * @param size   size per page
+     * @param status (default = PENDING)
+     *
+     * @return PaginatedResponse<ReviewDTO.BaseResponse>
+     */
+    @GetMapping("/reviews")
+    public ResponseEntity<ApiResponse<PaginatedResponse<ReviewDTO.BaseResponse>>> getReviewRequestsForUser(@RequestParam(defaultValue = "1") int page,
+                                                                                                           @RequestParam(defaultValue = "10") int size,
+                                                                                                           @RequestParam(defaultValue = "PENDING") String status) {
+        log.info("UserController.getReviewsByUser()");
+        log.info("page : " + page);
+        log.info("size : " + size);
+        log.info("status : " + status);
+
+        PaginatedResponse<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUser(page, size, status);
+        return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully retrieved reviews"));
     }
 }

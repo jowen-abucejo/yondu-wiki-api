@@ -7,6 +7,7 @@ import com.yondu.knowledgebase.DTO.review.ReviewDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.*;
 import com.yondu.knowledgebase.enums.Permission;
+import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.*;
@@ -19,8 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -335,4 +334,20 @@ public class ReviewService {
     }
 
 
+    public PaginatedResponse<ReviewDTO.BaseResponse> getReviewRequestForUser(int page, int size, String status) {
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Review> reviewForUser = reviewRepository.findAllByUser(currentUser, status, pageRequest);
+
+        if(reviewForUser.hasContent()){
+            List<ReviewDTO.BaseResponse> reviewDTOS = reviewForUser
+                    .stream().map(ReviewDTOMapper::mapToBaseResponse).collect(Collectors.toList());
+
+            PaginatedResponse<ReviewDTO.BaseResponse> result = new PaginatedResponse<>(reviewDTOS, page, size, reviewForUser.getTotalElements());
+            return result;
+        }else{
+            throw new NoContentException("No reviews retrieve for this user.");
+        }
+    }
 }
