@@ -4,12 +4,14 @@ import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.group.GroupDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Group;
+import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.GroupRepository;
+import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,10 +30,12 @@ public class GroupService {
 
     private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final PermissionRepository permissionRepository;
 
-    public GroupService(GroupRepository groupRepository, UserRepository userRepository) {
+    public GroupService(GroupRepository groupRepository, UserRepository userRepository, PermissionRepository permissionRepository) {
         this.groupRepository = groupRepository;
         this.userRepository = userRepository;
+        this.permissionRepository = permissionRepository;
     }
 
     public List<GroupDTO.BaseResponse> getAllGroups() {
@@ -89,7 +94,11 @@ public class GroupService {
         for (Long id: request.members()) {
             savedGroup.getUsers().add(userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("User id '%d' not found", id))));
         }
+
+        Set<Permission> groupPermissions = request.permissions().stream().map(id -> permissionRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Permission not found"))).collect(Collectors.toSet());
+        savedGroup.getPermissions().addAll(groupPermissions);
         savedGroup = groupRepository.save(savedGroup);
+
         return GroupDTOMapper.mapToBaseResponse(savedGroup);
     }
 
