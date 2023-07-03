@@ -58,6 +58,23 @@ public class DirectoryService {
         return DirectoryDTOMapper.mapToGetResponse(defaultDirectory);
     }
 
+    public DirectoryDTO.GetResponse getDefaultDirectory(Long permissionId) {
+        Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Permission id '%d' not found", 19)));
+        Directory root = directoryRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory id '%d' not found", 1)));
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Directory defaultDirectory = traverseByLevel(root, permission, currentUser);
+
+        if(defaultDirectory == null) {
+            throw new AccessDeniedException();
+        }
+
+        Set<Directory> subdirectories = defaultDirectory.getSubDirectories().stream().filter((dir) -> hasPermission(currentUser,dir, permission)).collect(Collectors.toSet());
+        defaultDirectory.setSubDirectories(subdirectories);
+
+        return DirectoryDTOMapper.mapToGetResponse(defaultDirectory);
+    }
+
     public DirectoryDTO.GetResponse getDirectory(Long id) {
         Long permissionId = 19L;
         Permission permission = permissionRepository.findById(permissionId).orElseThrow(() -> new ResourceNotFoundException(String.format("Directory permission 'id' not found: %d", permissionId)));
