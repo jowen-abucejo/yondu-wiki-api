@@ -29,7 +29,8 @@ public class DirectoryDTO {
                               LocalDate dateModified,
                               List<ShortResponse> fullPath,
                               Set<GetResponse> subdirectories,
-                              Set<DirectoryDTO.WorkflowStep> workflow){}
+                              Set<DirectoryDTO.WorkflowStep> workflow,
+                              Set<UserAccess> userAccess) {}
 
     public record ShortResponse(Long id,
                                String name){}
