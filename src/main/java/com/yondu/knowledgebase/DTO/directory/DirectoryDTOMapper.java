@@ -1,10 +1,7 @@
 package com.yondu.knowledgebase.DTO.directory;
 
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
-import com.yondu.knowledgebase.entities.Directory;
-import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.entities.Workflow;
-import com.yondu.knowledgebase.entities.WorkflowStep;
+import com.yondu.knowledgebase.entities.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +28,8 @@ public class DirectoryDTOMapper {
                 directory.getDateModified(),
                 getPathFromParentToChild(directory),
                 directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse).collect(Collectors.toSet()),
-                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep).collect(Collectors.toSet())
+                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep).collect(Collectors.toSet()),
+                directory.getDirectoryUserAccesses().stream().map(DirectoryDTOMapper::mapToUserAccess).collect(Collectors.toSet())
         );
     }
 
@@ -40,6 +38,10 @@ public class DirectoryDTOMapper {
                 directory.getId(),
                 directory.getName()
         );
+    }
+
+    public static DirectoryDTO.UserAccess mapToUserAccess(DirectoryUserAccess directoryUserAccess){
+        return new DirectoryDTO.UserAccess(directoryUserAccess.getUser().getId(), directoryUserAccess.getPermission().getId());
     }
 
     public static DirectoryDTO.Approver mapToApprover(User user) {

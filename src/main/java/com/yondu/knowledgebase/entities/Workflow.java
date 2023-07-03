@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -18,6 +19,7 @@ public class Workflow {
 
     public Workflow(Directory directory) {
         this.directory = directory;
+        this.steps = new HashSet<>();
     }
 
     public Long getId() {
