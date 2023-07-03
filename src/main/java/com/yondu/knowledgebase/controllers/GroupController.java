@@ -106,4 +106,23 @@ public class GroupController {
         GroupDTO.BaseResponse data = groupService.removeUserGroupPermissionToPage(userGroupId, pageId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "Removed Page Permission to User Group"));
     }
+
+    /**
+     * Get all active groups based on
+     * permission given.
+     *
+     * @param permissionId
+     * @param searchKey
+     * @param page
+     * @param size
+     *
+     */
+    @GetMapping("/permissions/{permission_id}")
+    public ResponseEntity<ApiResponse<PaginatedResponse<GroupDTO.ShortResponse>>> getGroupsBasedOnPermission(@PathVariable(name="permission_id") Long permissionId,
+                                                                                               @RequestParam(defaultValue = "") String searchKey,
+                                                                                               @RequestParam(defaultValue = "1") int page,
+                                                                                               @RequestParam(defaultValue = "5") int size) {
+        PaginatedResponse<GroupDTO.ShortResponse> data = groupService.getAllGroups(permissionId, searchKey, page, size);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Data retrieved successfully"));
+    }
 }
