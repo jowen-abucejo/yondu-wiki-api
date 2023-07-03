@@ -334,11 +334,13 @@ public class ReviewService {
     }
 
 
-    public PaginatedResponse<ReviewDTO.BaseResponse> getReviewRequestForUser(int page, int size, String status) {
+    public PaginatedResponse<ReviewDTO.BaseResponse> getReviewRequestForUser(int page, int size, String searchKey, String status) {
         User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        searchKey = "%" + searchKey + "%";
+
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<Review> reviewForUser = reviewRepository.findAllByUser(currentUser, status, pageRequest);
+        Page<Review> reviewForUser = reviewRepository.findAllByUser(currentUser, status, searchKey, pageRequest);
 
         if(reviewForUser.hasContent()){
             List<ReviewDTO.BaseResponse> reviewDTOS = reviewForUser
@@ -347,7 +349,7 @@ public class ReviewService {
             PaginatedResponse<ReviewDTO.BaseResponse> result = new PaginatedResponse<>(reviewDTOS, page, size, reviewForUser.getTotalElements());
             return result;
         }else{
-            throw new NoContentException("No reviews retrieve for this user.");
+            throw new NoContentException("No reviews retrieved for this user.");
         }
     }
 }
