@@ -271,9 +271,12 @@ public class UserController {
      * based on the authenticated user.
      * The status can be changed.
      *
-     * @param page   page number
-     * @param size   size per page
-     * @param status (default = PENDING)
+     * @param page       Page number
+     * @param size       Size per page
+     * @param status     Filters based on
+     *                   the status
+     * @param searchKey  filters the result
+     *                   based on title
      *
      * @return PaginatedResponse<ReviewDTO.BaseResponse>
      */
