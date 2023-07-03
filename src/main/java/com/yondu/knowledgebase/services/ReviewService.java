@@ -230,6 +230,19 @@ public class ReviewService {
         // Handle the case when no review is updated
         if (updatedReview == null) {
             throw new RequestValidationException("No review was updated.");
+        } else {
+            if (!isContentFullyApproved(review.getPageVersion())) {
+
+                Review newReview = new Review();
+                newReview.setPageVersion(review.getPageVersion());
+                newReview.setUser(null);
+                newReview.setWorkflowStep(null);
+                newReview.setComment("");
+                newReview.setReviewDate(LocalDate.now());
+                newReview.setStatus(ReviewStatus.PENDING.getCode());
+
+                reviewRepository.save(newReview);
+            }
         }
 
         for (Map.Entry<String, Long> entry : test.entrySet()) {
