@@ -124,4 +124,18 @@ public class DirectoryController {
 
         return ResponseEntity.ok(apiResponse);
     }
+
+    /**
+     * Fetches the highest directory depending
+     * on the the permissions
+     *
+     * @param permissionId ID of the permission
+     *                     you need the user to have
+     *                     based on the directory.
+     */
+    @GetMapping("/permissions/{permission_id}")
+    public ResponseEntity<ApiResponse<DirectoryDTO.GetResponse>> getDefaultDirectory(@PathVariable(name = "permission_id") Long permissionId){
+        DirectoryDTO.GetResponse data = directoryService.getDefaultDirectory(permissionId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Directory found"));
+    }
 }
