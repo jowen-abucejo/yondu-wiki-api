@@ -2,6 +2,8 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,12 +13,16 @@ public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String name;
-
     private String description;
-
     private Boolean isActive;
+    private LocalDateTime dateCreated;
+    private LocalDateTime dateModified;
+    @ManyToOne(fetch = FetchType.EAGER)
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    private User modifiedBy;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
@@ -36,14 +42,18 @@ public class Group {
     public Group() {
     }
 
-    public Group(String name, String description) {
+    public Group(String name, String description, User createdBy) {
         this.name = name;
         this.description = description;
         this.isActive = true;
+        this.createdBy = createdBy;
+        this.modifiedBy = createdBy;
         this.users = new HashSet<>();
         this.rights = new HashSet<>();
         this.groupPageAccess = new HashSet<>();
         this.permissions = new HashSet<>();
+        this.dateCreated = LocalDateTime.now();
+        this.dateModified = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -76,6 +86,38 @@ public class Group {
 
     public void setActive(Boolean active) {
         isActive = active;
+    }
+
+    public LocalDateTime getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(LocalDateTime dateCreated) {
+        this.dateCreated = dateCreated;
+    }
+
+    public LocalDateTime getDateModified() {
+        return dateModified;
+    }
+
+    public void setDateModified(LocalDateTime dateModified) {
+        this.dateModified = dateModified;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(User createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public User getModifiedBy() {
+        return modifiedBy;
+    }
+
+    public void setModifiedBy(User modifiedBy) {
+        this.modifiedBy = modifiedBy;
     }
 
     public Set<User> getUsers() {
