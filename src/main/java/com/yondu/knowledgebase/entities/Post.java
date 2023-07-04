@@ -47,11 +47,7 @@ public class Post {
     private Set<Category> categories = new HashSet<>();
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "post_tag",
-            joinColumns = @JoinColumn(name = "post_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @JoinTable(name = "post_tag", joinColumns = @JoinColumn(name = "post_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -64,7 +60,9 @@ public class Post {
     public Post() {
     }
 
-    public Post(Long id, User author, String title, String content, LocalDateTime dateCreated, LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories, Set<Tag> tags, Set<User> postMentions) {
+    public Post(Long id, User author, String title, String content, LocalDateTime dateCreated,
+            LocalDateTime dateModified, Boolean active, Boolean deleted, Boolean allowComment, Set<Category> categories,
+            Set<Tag> tags, Set<User> postMentions) {
         this.id = id;
         this.author = author;
         this.title = title;

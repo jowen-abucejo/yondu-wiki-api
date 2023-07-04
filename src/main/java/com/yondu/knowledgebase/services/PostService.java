@@ -4,6 +4,9 @@ import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
+import com.yondu.knowledgebase.DTO.post.PostSearchResult;
+import com.yondu.knowledgebase.Utils.MultipleSort;
+import com.yondu.knowledgebase.Utils.NativeQueryUtils;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Tag;
@@ -21,13 +24,17 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -260,5 +267,69 @@ public class PostService {
                 .collect(Collectors.toList());
 
         return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalElements());
+    }
+
+    public PaginatedResponse<PostSearchResult> findAllByFullTextSearch(
+            String searchKey, String[] categories, String[] tags,
+            Boolean isArchive, Boolean exactSearch, Integer pageNumber,
+            Integer pageSize, String[] sortBy) {
+        int retrievedPage = Math.max(1, pageNumber);
+
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(retrievedPage - 1, pageSize, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
+
+        // format search key words
+        searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+
+        /***********************
+         * TODO: Refactor to simplify implementations
+         ********************************/
+        // Fetch ids and relevance scores, will use to display sorted and filtered posts
+        var postResults = postRepository.findByFullTextSearch(
+                searchKey, exactSearch, isArchive, NativeQueryUtils.arrayToSqlStringList(categories),
+                NativeQueryUtils.arrayToSqlStringList(tags), paging)
+                .orElse(null);
+
+        // create a list of ids of posts to fetch
+        List<Long> postResults2 = postResults.getContent().stream().map(result -> (Long) result.get("postId"))
+                .collect(Collectors.toList());
+
+        // fetch all post entities
+        var postEntitiesList = postRepository.findAllById(postResults2);
+
+        // create a post map required to achieved a O(1) complexity when mapping the
+        // results
+        Map<Long, Post> postEntitiesMap = new HashMap<>();
+        postEntitiesList.forEach(post -> {
+            postEntitiesMap.put(post.getId(), post);
+        });
+
+        // return a sorted post dtos with additional field of relevance
+        var postList = postResults.getContent().stream().map(result -> {
+            var post = postEntitiesMap.get((Long) result.get("postId"));
+            return new PostSearchResult(
+                    post,
+                    BigDecimal.valueOf((Double) result.get("relevance")),
+                    (Long) result.get("totalComments"),
+                    (Long) result.get("totalRatings"));
+        }).collect(Collectors.toList());
+
+        /***********************
+         * TODO: END
+         ********************************/
+
+        var otherConfiguration = new HashMap<String, Object>();
+        otherConfiguration.put("available_sorting", validSortAliases);
+        otherConfiguration.put("applied_sorting", postResults.getSort()
+                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
+                .toList());
+
+        return new PaginatedResponse<>(postList, retrievedPage, pageSize, postResults.getTotalElements(),
+                otherConfiguration);
     }
 }

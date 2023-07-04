@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity(name = "users")
-public class User implements UserDetails  {
+public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,8 +38,9 @@ public class User implements UserDetails  {
     private String position;
     private LocalDate createdAt;
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private Set<PageRights> pageRights = new HashSet<>();
+    // @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
+    // private Set<PageRights> pageRights = new HashSet<>();
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts = new ArrayList<>();
@@ -54,18 +55,20 @@ public class User implements UserDetails  {
     @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Directory> createdDirectories;
 
-    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
 
-//    @ManyToMany(fetch = FetchType.EAGER)
-//    @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "group_id"))
-//    private Set<Group> group = new HashSet<>();
+    // @ManyToMany(fetch = FetchType.EAGER)
+    // @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "user_id"),
+    // inverseJoinColumns = @JoinColumn(name = "group_id"))
+    // private Set<Group> group = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "user_rights", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
-    private Set<Rights> rights; // To Delete
+    // @ManyToMany(fetch = FetchType.EAGER)
+    // @JoinTable(name = "user_rights", joinColumns = @JoinColumn(name = "user_id"),
+    // inverseJoinColumns = @JoinColumn(name = "rights_id"))
+    // private Set<Rights> rights; // To Delete
 
-    @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
     public User(long id) {
@@ -81,7 +84,7 @@ public class User implements UserDetails  {
         this.lastName = user.lastName();
         this.status = user.status();
         this.createdAt = user.createdAt();
-        this.rights = new HashSet<>();
+        // this.rights = new HashSet<>();
     }
 
     public User(UserDTO.WithRolesRequest user) {
@@ -95,7 +98,7 @@ public class User implements UserDetails  {
         this.position = user.position();
         this.status = user.status();
         this.createdAt = user.createdAt();
-        this.rights = new HashSet<>();
+        // this.rights = new HashSet<>();
 
         Set<Role> roles = user.roles()
                 .stream()
@@ -115,7 +118,7 @@ public class User implements UserDetails  {
         this.status = status;
         this.createdAt = createdAt;
         this.role = role;
-        this.rights = new HashSet<>(); // To delete
+        // this.rights = new HashSet<>(); // To delete
         this.userPageAccess = new HashSet<>();
     }
 
@@ -214,13 +217,13 @@ public class User implements UserDetails  {
         return notifications;
     }
 
-    public Set<Rights> getRights() {
-        return rights;
-    } // to delete
+    // public Set<Rights> getRights() {
+    // return rights;
+    // } // to delete
 
-    public void setRights(Set<Rights> rights) {
-        this.rights = rights;
-    } // To delete
+    // public void setRights(Set<Rights> rights) {
+    // this.rights = rights;
+    // } // To delete
 
     public Set<UserPageAccess> getUserPageAccess() {
         return userPageAccess;
@@ -273,12 +276,11 @@ public class User implements UserDetails  {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
         Set<Role> roles = getRole();
         roles.stream()
-                        .forEach(role ->
-                                role.getUserPermissions()
-                                        .forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getName())))
-                        );
+                .forEach(role -> role.getUserPermissions()
+                        .forEach(permission -> authorities.add(new SimpleGrantedAuthority(permission.getName()))));
         return authorities;
-//        throw new UnsupportedOperationException("Unimplemented method 'getAuthorities'");
+        // throw new UnsupportedOperationException("Unimplemented method
+        // 'getAuthorities'");
     }
 
     @JsonIgnore

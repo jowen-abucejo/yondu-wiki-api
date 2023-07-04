@@ -52,13 +52,13 @@ public class MultipleSort {
     }
 
     private static Sort.Direction getSortDirection(String direction) {
-        if (direction.equals("asc")) {
+        if (direction.toLowerCase().equals("asc")) {
             return Sort.Direction.ASC;
-        } else if (direction.equals("desc")) {
+        } else if (direction.toLowerCase().equals("desc")) {
             return Sort.Direction.DESC;
         }
 
-        return Sort.Direction.ASC;
+        return Sort.Direction.DESC;
     }
 
     private static void populateSortOrders(List<Order> orders, String[] sort) {
