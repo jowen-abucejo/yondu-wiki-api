@@ -11,6 +11,9 @@ public class GroupDTOMapper {
                 group.getId(),
                 group.getName(),
                 group.getDescription(),
+                group.getDateCreated(),
+                group.getDateModified(),
+                UserDTOMapper.mapToGeneralResponse(group.getCreatedBy()),
                 group.getActive(),
                 group.getUsers().stream().map(UserDTOMapper::mapToGeneralResponse).collect(Collectors.toSet()));
     }
