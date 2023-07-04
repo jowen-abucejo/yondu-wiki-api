@@ -80,8 +80,8 @@ public class ReviewController {
      * @param pageVersion ID of the page version.
      */
     @GetMapping("pages/{page_id}/versions/{page_version}/reviews")
-    public ResponseEntity<ApiResponse<List<ReviewDTO.BaseResponse>>> getReviewsByPage(@PathVariable(name = "page_id") Long pageId, @PathVariable(name = "page_version") Long pageVersion) {
-        List<ReviewDTO.BaseResponse> reviews = reviewService.getReviewsByPage(pageId, pageVersion);
+    public ResponseEntity<ApiResponse<List<ReviewDTO.ApproverResponse>>> getReviewsByPage(@PathVariable(name = "page_id") Long pageId, @PathVariable(name = "page_version") Long pageVersion) {
+        List<ReviewDTO.ApproverResponse> reviews = reviewService.getReviewsByPage(pageId, pageVersion);
         return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully fetched reviews"));
     }
 }

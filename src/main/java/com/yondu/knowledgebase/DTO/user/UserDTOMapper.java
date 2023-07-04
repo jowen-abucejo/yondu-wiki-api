@@ -39,4 +39,8 @@ public class UserDTOMapper {
 
         return new UserDTO.WithRolesResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt(), roles, user.getPasswordExpiration());
     }
+
+    public static UserDTO.ApproverResponse mapToApproverResponse(User user) {
+        return new UserDTO.ApproverResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName());
+    }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Review {
@@ -25,14 +26,14 @@ public class Review {
     private WorkflowStep workflowStep;
 
     private String comment;
-    private LocalDate reviewDate;
+    private LocalDateTime reviewDate;
 
     private String status;
 
     public Review() {
     }
 
-    public Review(PageVersion pageVersion, User user,WorkflowStep workflowStep, String comment, LocalDate reviewDate, String status) {
+    public Review(PageVersion pageVersion, User user,WorkflowStep workflowStep, String comment, LocalDateTime reviewDate, String status) {
         this.pageVersion = pageVersion;
         this.user = user;
         this.workflowStep = workflowStep;
@@ -64,7 +65,7 @@ public class Review {
         return comment;
     }
 
-    public LocalDate getReviewDate() {
+    public LocalDateTime getReviewDate() {
         return reviewDate;
     }
 
@@ -100,7 +101,7 @@ public class Review {
         this.comment = comment;
     }
 
-    public void setReviewDate(LocalDate reviewDate) {
+    public void setReviewDate(LocalDateTime reviewDate) {
         this.reviewDate = reviewDate;
     }
 

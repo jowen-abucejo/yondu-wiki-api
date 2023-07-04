@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -123,7 +124,7 @@ public class ReviewService {
             review.setUser(null);
             review.setWorkflowStep(null);
             review.setComment("");
-            review.setReviewDate(LocalDate.now());
+            review.setReviewDate(LocalDateTime.now());
             review.setStatus(ReviewStatus.PENDING.getCode());
 
             reviewRepository.save(review);
@@ -193,7 +194,7 @@ public class ReviewService {
                         review.setPageVersion(review.getPageVersion());
                         review.setUser(currentUser);
                         review.setComment(request.comment());
-                        review.setReviewDate(LocalDate.now());
+                        review.setReviewDate(LocalDateTime.now());
                         review.setStatus(request.status());
                         updatedReviewRef.set(reviewRepository.save(review));
 
@@ -238,7 +239,7 @@ public class ReviewService {
                     newReview.setUser(null);
                     newReview.setWorkflowStep(null);
                     newReview.setComment("");
-                    newReview.setReviewDate(LocalDate.now());
+                    newReview.setReviewDate(LocalDateTime.now());
                     newReview.setStatus(ReviewStatus.PENDING.getCode());
 
                     reviewRepository.save(newReview);
@@ -355,11 +356,11 @@ public class ReviewService {
         }
     }
 
-    public List<ReviewDTO.BaseResponse> getReviewsByPage(Long pageId, Long pageVersion) {
+    public List<ReviewDTO.ApproverResponse> getReviewsByPage(Long pageId, Long pageVersion) {
         List<Review> reviews = reviewRepository.findAllApprovedByPageIdAndPageVersionId(pageVersion, pageId);
         if(!reviews.isEmpty()){
-            List<ReviewDTO.BaseResponse> reviewDTOs = reviews.stream()
-                    .map(ReviewDTOMapper::mapToBaseResponse)
+            List<ReviewDTO.ApproverResponse> reviewDTOs = reviews.stream()
+                    .map(ReviewDTOMapper::mapToApproverResponse)
                     .collect(Collectors.toList());
 
             return reviewDTOs;

@@ -26,5 +26,14 @@ public class ReviewDTOMapper {
                 review.getStatus());
     }
 
+    public static ReviewDTO.ApproverResponse mapToApproverResponse(Review review) {
+        return new ReviewDTO.ApproverResponse(
+                review.getId(),
+                PageVerDTOMapper.mapToBaseResponse(review.getPageVersion()),
+                review.getComment(),
+                review.getReviewDate(),
+                UserDTOMapper.mapToApproverResponse(review.getUser()),
+                review.getStatus());
 
+    }
 }

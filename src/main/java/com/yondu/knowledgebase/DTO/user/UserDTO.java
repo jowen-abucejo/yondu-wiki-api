@@ -26,4 +26,6 @@ public class UserDTO {
 
     public record ChangePhotoRequest(String path) {}
 
+    public record ApproverResponse (Long id, String email, String username,@JsonProperty("profile_photo") String profilePhoto, String position, @JsonProperty("first_name") String firstName, @JsonProperty("last_name") String lastName) {}
+
 }
