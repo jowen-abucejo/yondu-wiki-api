@@ -17,6 +17,8 @@ public class UserDTO {
     public record ShortRequest(String email){}
 
     public record WithRolesRequest(Long id, String email, String password, @JsonProperty("profile_photo") String profilePhoto, String position, String username, @JsonProperty("first_name") String firstName, @JsonProperty("last_name") String lastName, String status, @JsonProperty("created_at") LocalDate createdAt, Set<RoleDTO> roles) {}
+    public record CreateUserRequest(Long id, String email, @JsonProperty("profile_photo") String profilePhoto, String position, String username, @JsonProperty("first_name") String firstName, @JsonProperty("last_name") String lastName, String status, @JsonProperty("created_at") LocalDate createdAt, Set<RoleDTO> roles) {}
+
     public record WithRolesResponse(Long id, String email , String username, String profilePhoto, String position, String firstName, String lastName, String status, LocalDate createdAt, Set<RoleDTO> roles, LocalDateTime passwordExpiration) {}
 
 

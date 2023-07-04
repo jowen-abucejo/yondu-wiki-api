@@ -68,6 +68,9 @@ public class User implements UserDetails  {
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryUserAccess> directoryUserAccesses;
+
     public User(long id) {
         this.id = id;
     }
@@ -82,6 +85,25 @@ public class User implements UserDetails  {
         this.status = user.status();
         this.createdAt = user.createdAt();
         this.rights = new HashSet<>();
+    }
+
+    public User(UserDTO.CreateUserRequest user) {
+        this.id = user.id();
+        this.username = user.username();
+        this.email = user.email();
+        this.firstName = user.firstName();
+        this.lastName = user.lastName();
+        this.profilePhoto = user.profilePhoto();
+        this.position = user.position();
+        this.status = user.status();
+        this.createdAt = user.createdAt();
+        this.rights = new HashSet<>();
+
+        Set<Role> roles = user.roles()
+                .stream()
+                .map(role -> new Role(role.getId()))
+                .collect(Collectors.toSet());
+        this.role = roles;
     }
 
     public User(UserDTO.WithRolesRequest user) {

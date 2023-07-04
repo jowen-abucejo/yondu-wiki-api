@@ -97,7 +97,6 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse createDirectory(DirectoryDTO.CreateRequest request) {
-
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
                 request.name().isEmpty() || request.description().isEmpty() ||
@@ -131,7 +130,7 @@ public class DirectoryService {
         savedDirectory = directoryRepository.save(savedDirectory);
 
         Directory finalSavedDirectory = savedDirectory;
-        List<DirectoryUserAccess> newAccess = request.userAccess().stream().map((access) -> new DirectoryUserAccess(finalSavedDirectory, permissionRepository.findById(access.permissionId()).orElseThrow(() -> new ResourceNotFoundException("Permission not found")), userRepository.findById(access.userId()).orElseThrow(() -> new ResourceNotFoundException("User not found")))).toList();
+        List<DirectoryUserAccess> newAccess = request.userAccess().stream().map((access) -> new DirectoryUserAccess(finalSavedDirectory, permissionRepository.findById(access.permissionId()).orElseThrow(() -> new ResourceNotFoundException("Permission not found")), userRepository.findById(access.user().id()).orElseThrow(() -> new ResourceNotFoundException("User not found")))).toList();
         directoryUserAccessRepository.saveAll(newAccess);
 
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
@@ -291,6 +290,29 @@ public class DirectoryService {
             }
         });
 
+        List<DirectoryUserAccess> newAccesses = request.userAccess().stream().map(userAccess -> {
+            Permission permission1 = permissionRepository.findById(userAccess.permissionId()).orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+            User user1 = userRepository.findById(userAccess.user().id()).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository.findByDirectoryAndPermissionAndUser(directory, permission1, user1).orElse(null);
+            if (directoryUserAccess == null) {
+                return new DirectoryUserAccess(directory, permission1, user1);
+            }
+            return directoryUserAccess;
+        }).toList();
+
+        directoryUserAccessRepository.saveAll(newAccesses);
+
+        List<DirectoryUserAccess> toRemoveAccesses = directory.getDirectoryUserAccesses()
+                .stream()
+                .filter(userAccess -> request.userAccess()
+                        .stream()
+                        .noneMatch(obj -> obj.permissionId().equals(userAccess.getPermission().getId()) && obj.user().id().equals(userAccess.getUser().getId())))
+                .toList();
+
+        toRemoveAccesses.forEach(directory.getDirectoryUserAccesses()::remove);
+        directoryUserAccessRepository.deleteAll(toRemoveAccesses);
+
         Directory savedDirectory = directoryRepository.save(directory);
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
@@ -334,9 +356,6 @@ public class DirectoryService {
                 return child;
             }
         }
-//        for (Directory child : directory.getSubDirectories()) {
-//            traverseByLevel(child, permission, user);
-//        }
         return null;
     }
 

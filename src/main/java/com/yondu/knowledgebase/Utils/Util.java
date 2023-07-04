@@ -5,10 +5,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.net.URL;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 public class Util {
@@ -55,5 +57,20 @@ public class Util {
         }
 
         return null;
+    }
+
+    public static String passwordGenerator () {
+        final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_-+=~";
+        final int DEFAULT_LENGTH = 10;
+
+
+            StringBuilder password = new StringBuilder();
+            Random random = new SecureRandom();
+
+            for (int i = 0; i < DEFAULT_LENGTH; i++) {
+                int randomIndex = random.nextInt(CHARACTERS.length());
+                password.append(CHARACTERS.charAt(randomIndex));
+            }
+            return password.toString();
     }
 }

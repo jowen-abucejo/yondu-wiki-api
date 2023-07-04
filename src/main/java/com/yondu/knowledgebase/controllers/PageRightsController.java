@@ -59,7 +59,7 @@ public class PageRightsController {
     /**
      * Remove User to Page Right
      * **/
-    @DeleteMapping("/{pageId}/rights/{rightsId}/remove-usergroup")
+    @PostMapping("/{pageId}/rights/{rightsId}/remove-usergroup")
     public ResponseEntity<ApiResponse<PageRightsDTO.UserGroupBaseResponse>> removeUserGroupToPageRights(@PathVariable Long pageId, @PathVariable Long rightsId,@RequestBody GroupDTO.AddRightsRequest groupId ){
         PageRightsDTO.UserGroupBaseResponse data = pageRightsService.removeUserGroupToPageRights(pageId, rightsId, groupId);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(data, "User Group has been modified to this Page successfully"));
