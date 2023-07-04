@@ -41,7 +41,7 @@ public class DirectoryDTOMapper {
     }
 
     public static DirectoryDTO.UserAccess mapToUserAccess(DirectoryUserAccess directoryUserAccess){
-        return new DirectoryDTO.UserAccess(directoryUserAccess.getUser().getId(), directoryUserAccess.getPermission().getId());
+        return new DirectoryDTO.UserAccess(UserDTOMapper.mapToGeneralResponse(directoryUserAccess.getUser()), directoryUserAccess.getPermission().getId());
     }
 
     public static DirectoryDTO.Approver mapToApprover(User user) {
