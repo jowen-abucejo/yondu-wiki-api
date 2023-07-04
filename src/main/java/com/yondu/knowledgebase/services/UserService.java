@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+
 @Service
 public class UserService implements UserDetailsService {
 
@@ -42,7 +43,7 @@ public class UserService implements UserDetailsService {
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
-    public User createNewUser(UserDTO.WithRolesRequest user) {
+    public User createNewUser(UserDTO.CreateUserRequest user) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("UserService.createNewUser()");
         log.info("user : " + user.toString());
@@ -52,8 +53,6 @@ public class UserService implements UserDetailsService {
             throw new MissingFieldException("email");
         else if (Util.isNullOrWhiteSpace(user.username()))
             throw new MissingFieldException("username");
-        else if (Util.isNullOrWhiteSpace(user.password()))
-            throw new MissingFieldException("password");
         else if (Util.isNullOrWhiteSpace(user.firstName()))
             throw new MissingFieldException("first name");
         else if (Util.isNullOrWhiteSpace(user.lastName()))
@@ -71,7 +70,8 @@ public class UserService implements UserDetailsService {
         User newUser = new User(user);
 
         // Encrypt password
-        String password = passwordEncoder.encode(user.password());
+        String temporaryPassword = Util.passwordGenerator();
+        String password = passwordEncoder.encode(temporaryPassword);
         newUser.setPassword(password);
         newUser.setStatus(Status.ACTIVE.getCode());
         newUser.setCreatedAt(LocalDate.now());
@@ -80,7 +80,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(newUser);
         User createdUser = userRepository.fetchUserByEmail(newUser.getEmail()).orElseThrow(() -> new UserException("Cannot find user."));
 
-        emailService.createUserEmailNotification(new EmailDTO.NewUserRequest(createdUser.getEmail(), currentUser.getEmail(), user.password(), NotificationType.CREATION.getCode()));
+        emailService.createUserEmailNotification(new EmailDTO.NewUserRequest(createdUser.getEmail(), currentUser.getEmail(), temporaryPassword, NotificationType.CREATION.getCode()));
         return createdUser;
     }
 

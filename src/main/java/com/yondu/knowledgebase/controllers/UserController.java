@@ -99,7 +99,7 @@ public class UserController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_USERS')")
-    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> createNewUser(@RequestBody UserDTO.WithRolesRequest user) {
+    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> createNewUser(@RequestBody UserDTO.CreateUserRequest user) {
         log.info("UserController.createNewUser()");
         log.info("user : " + user.toString());
 
