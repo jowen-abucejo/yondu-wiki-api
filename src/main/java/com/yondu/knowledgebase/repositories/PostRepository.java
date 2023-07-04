@@ -41,7 +41,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
             "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
             "WHERE p.active = true AND p.deleted = false " +
-            "AND p.dateCreated >= :startDate " +
+            "AND (:startDate IS NULL OR p.dateCreated >= :startDate) " +
             "GROUP BY p.id " +
             "ORDER BY COUNT(DISTINCT c.id) DESC")
     List<Object[]> findMostPopularPosts(@Param("startDate") LocalDateTime startDate, Pageable pageable);
