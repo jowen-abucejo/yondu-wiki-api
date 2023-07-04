@@ -352,4 +352,17 @@ public class ReviewService {
             throw new NoContentException("No reviews retrieved for this user.");
         }
     }
+
+    public List<ReviewDTO.BaseResponse> getReviewsByPage(Long pageId, Long pageVersion) {
+        List<Review> reviews = reviewRepository.findAllApprovedByPageIdAndPageVersionId(pageVersion, pageId);
+        if(!reviews.isEmpty()){
+            List<ReviewDTO.BaseResponse> reviewDTOs = reviews.stream()
+                    .map(ReviewDTOMapper::mapToBaseResponse)
+                    .collect(Collectors.toList());
+
+            return reviewDTOs;
+        }else{
+            throw new NoContentException("No reviews retrieved for this user.");
+        }
+    }
 }

@@ -11,6 +11,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
+
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
@@ -26,6 +29,13 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "AND r.pageVersion.page.id = :pageId " +
             "AND r.status = 'PENDING'")
     Review getByPageVersionIdAndPageVersionPageId(Long pageVersionId, Long pageId);
+
+    @Query("""
+            SELECT r FROM Review r WHERE r.pageVersion.id = ?1
+            AND r.pageVersion.page.id = ?2
+            AND r.status != 'PENDING'
+            """)
+    List<Review> findAllApprovedByPageIdAndPageVersionId(Long pageVersionId, Long pageId);
 
     boolean existsByPageVersionAndStatus(PageVersion pageVersion, String status);
 
