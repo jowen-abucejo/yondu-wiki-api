@@ -156,7 +156,7 @@ public class DirectoryService {
                 .map((access) -> new DirectoryUserAccess(finalSavedDirectory,
                         permissionRepository.findById(access.permissionId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Permission not found")),
-                        userRepository.findById(access.userId())
+                        userRepository.findById(access.user().id())
                                 .orElseThrow(() -> new ResourceNotFoundException("User not found"))))
                 .toList();
         directoryUserAccessRepository.saveAll(newAccess);
