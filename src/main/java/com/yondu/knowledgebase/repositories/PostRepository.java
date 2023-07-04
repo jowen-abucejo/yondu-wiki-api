@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.yondu.knowledgebase.entities.Post;
+import java.time.LocalDateTime;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -40,9 +41,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
             "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
             "WHERE p.active = true AND p.deleted = false " +
+            "AND p.dateCreated >= :startDate " +
             "GROUP BY p.id " +
             "ORDER BY COUNT(DISTINCT c.id) DESC")
-    List<Object[]> findMostPopularPosts(Pageable pageable);
+    List<Object[]> findMostPopularPosts(@Param("startDate") LocalDateTime startDate, Pageable pageable);
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +

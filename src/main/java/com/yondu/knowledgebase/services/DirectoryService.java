@@ -111,7 +111,6 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse createDirectory(DirectoryDTO.CreateRequest request) {
-
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
                 request.name().isEmpty() || request.description().isEmpty() ||
@@ -356,6 +355,32 @@ public class DirectoryService {
                 workflowStepRepository.save(workflowStep);
             }
         });
+
+        List<DirectoryUserAccess> newAccesses = request.userAccess().stream().map(userAccess -> {
+            Permission permission1 = permissionRepository.findById(userAccess.permissionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+            User user1 = userRepository.findById(userAccess.user().id())
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+            DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository
+                    .findByDirectoryAndPermissionAndUser(directory, permission1, user1).orElse(null);
+            if (directoryUserAccess == null) {
+                return new DirectoryUserAccess(directory, permission1, user1);
+            }
+            return directoryUserAccess;
+        }).toList();
+
+        directoryUserAccessRepository.saveAll(newAccesses);
+
+        List<DirectoryUserAccess> toRemoveAccesses = directory.getDirectoryUserAccesses()
+                .stream()
+                .filter(userAccess -> request.userAccess()
+                        .stream()
+                        .noneMatch(obj -> obj.permissionId().equals(userAccess.getPermission().getId())
+                                && obj.user().id().equals(userAccess.getUser().getId())))
+                .toList();
+
+        directoryUserAccessRepository.deleteAll(toRemoveAccesses);
 
         Directory savedDirectory = directoryRepository.save(directory);
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
