@@ -97,6 +97,19 @@ public class UserController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @GetMapping ("/email")
+    public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> getUserByEmail(@RequestParam UserDTO.ShortRequest email){
+        log.info("UserController.getUserById()");
+        log.info("email : " + email);
+
+        User user = userService.getUserByEmail(email);
+
+        UserDTO.WithRolesResponse userDTO = UserDTOMapper.mapToWithRolesResponse(user);
+
+        ApiResponse apiResponse = ApiResponse.success(userDTO, "success");
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('CREATE_USERS')")
     public ResponseEntity<ApiResponse<UserDTO.WithRolesResponse>> createNewUser(@RequestBody UserDTO.CreateUserRequest user) {
