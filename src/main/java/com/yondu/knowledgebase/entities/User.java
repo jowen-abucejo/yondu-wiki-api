@@ -68,6 +68,9 @@ public class User implements UserDetails  {
     @OneToMany(mappedBy="user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryUserAccess> directoryUserAccesses;
+
     public User(long id) {
         this.id = id;
     }

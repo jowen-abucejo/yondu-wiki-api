@@ -310,6 +310,7 @@ public class DirectoryService {
                         .noneMatch(obj -> obj.permissionId().equals(userAccess.getPermission().getId()) && obj.user().id().equals(userAccess.getUser().getId())))
                 .toList();
 
+        toRemoveAccesses.forEach(directory.getDirectoryUserAccesses()::remove);
         directoryUserAccessRepository.deleteAll(toRemoveAccesses);
 
         Directory savedDirectory = directoryRepository.save(directory);
