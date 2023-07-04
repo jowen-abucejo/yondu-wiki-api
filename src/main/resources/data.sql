@@ -128,8 +128,8 @@ INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(2, 2);
 --INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 2);
 
 -- INITIALIZE DIRECTORY RIGHTS FOR ROOT
-INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3), (4);
-INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25), (4, 1, 5);
+-- INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3), (4);
+-- INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25), (4, 1, 5);
 INSERT IGNORE INTO directory_user_access VALUES
 (1,1,5,1),
 (2,1,6,1),
@@ -138,7 +138,7 @@ INSERT IGNORE INTO directory_user_access VALUES
 (5,1,9,1);
 
 -- INITIALIZE USER RIGHTS
-INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
+-- INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
 
 INSERT IGNORE INTO CLUSTER(id, name, description, is_active) VALUES (1, "HI", "HELLO", true);
 
@@ -149,10 +149,10 @@ INSERT IGNORE INTO category(id, is_deleted, name) VALUES
 (3, 0, 'Career');
 
 ---- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
---ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
+ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
 --
 ---- Add FULLTEXT index to the `title` column in the `page_version` table
---ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title_content (title, content);
+ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title_content (title, content);
 --
 ---- Add FULLTEXT index to the `name` column in the `category` table
 --ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
@@ -199,3 +199,6 @@ VALUES
     (5, 3, 6);
 
 UPDATE directory SET workflow_id = 1 WHERE id = 1;
+---- Add FULLTEXT index to the `title` column in the `page_version` table
+ALTER TABLE post ADD FULLTEXT INDEX idx_post_title_content (title, modified_content);
+

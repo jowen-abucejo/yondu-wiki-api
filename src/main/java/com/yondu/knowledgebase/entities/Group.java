@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-@Entity(name="cluster")
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name"}))
+@Entity(name = "cluster")
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = { "name" }))
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,15 +28,16 @@ public class Group {
     @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "group_rights", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
-    private Set<Rights> rights;
+    // @ManyToMany(fetch = FetchType.LAZY)
+    // @JoinTable(name = "group_rights", joinColumns = @JoinColumn(name =
+    // "group_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
+    // private Set<Rights> rights;
 
     @ManyToMany
     @JoinTable(name = "group_permissions", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions;
 
-    @OneToMany(mappedBy="group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<GroupPageAccess> groupPageAccess = new HashSet<>();
 
     public Group() {
@@ -49,7 +50,7 @@ public class Group {
         this.createdBy = createdBy;
         this.modifiedBy = createdBy;
         this.users = new HashSet<>();
-        this.rights = new HashSet<>();
+        // this.rights = new HashSet<>();
         this.groupPageAccess = new HashSet<>();
         this.permissions = new HashSet<>();
         this.dateCreated = LocalDateTime.now();
@@ -128,13 +129,13 @@ public class Group {
         this.users = users;
     }
 
-    public Set<Rights> getRights() {
-        return rights;
-    }
+    // public Set<Rights> getRights() {
+    // return rights;
+    // }
 
-    public void setRights(Set<Rights> rights) {
-        this.rights = rights;
-    }
+    // public void setRights(Set<Rights> rights) {
+    // this.rights = rights;
+    // }
 
     public Set<GroupPageAccess> getGroupPageAccess() {
         return groupPageAccess;
@@ -161,7 +162,7 @@ public class Group {
             return false;
         }
         Group other = (Group) obj;
-        //Compare fields for equality
+        // Compare fields for equality
         return this.id.equals(other.id);
     }
 }

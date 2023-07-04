@@ -1,12 +1,11 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.stream.Collectors;
 
-import com.yondu.knowledgebase.DTO.page.UserDTO;
-import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.exceptions.NoContentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.AuditorAware;
@@ -21,6 +20,11 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.MultipleSort;
+import com.yondu.knowledgebase.Utils.NativeQueryUtils;
+import com.yondu.knowledgebase.entities.Directory;
+import com.yondu.knowledgebase.entities.Page;
+import com.yondu.knowledgebase.entities.PageVersion;
+import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
 import com.yondu.knowledgebase.enums.ReviewStatus;
@@ -253,8 +257,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
-                        false, false, false, paging)
+                        null, null, userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] { id }), null,
+                        true, true, false, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -271,7 +276,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
-        retrievedPage = Math.min(100, retrievedPage);
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -286,9 +290,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
-                        isPublished, false, arrayToSqlStringList(categories),
-                        arrayToSqlStringList(tags), userId,
-                        arrayToSqlStringList(primaryKeys), null, false, false, false, paging)
+                        isPublished, false, NativeQueryUtils.arrayToSqlStringList(categories),
+                        NativeQueryUtils.arrayToSqlStringList(tags), userId,
+                        NativeQueryUtils.arrayToSqlStringList(primaryKeys), null, true, true,
+                        false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -315,7 +320,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
-                        null, null, userId, arrayToSqlStringList(new Long[] { id }), null,
+                        null, null, userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] { id }), null,
                         false, false, false,
                         PageRequest.of(0, 100))
                 .orElse(null);
@@ -349,7 +355,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             Boolean exactSearch, Integer pageNumber, Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
-        retrievedPage = Math.min(100, retrievedPage);
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -364,9 +369,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
-                        isPublished, true, arrayToSqlStringList(categories),
-                        arrayToSqlStringList(tags), userId, null, directoryId, false,
-                        false, false, paging)
+                        isPublished, true, NativeQueryUtils.arrayToSqlStringList(categories),
+                        NativeQueryUtils.arrayToSqlStringList(tags), userId, null, directoryId,
+                        true,
+                        true, false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -393,7 +399,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         User user = auditorAware.getCurrentAuditor().get();
         Long userId = user.getId();
         int retrievedPage = Math.max(1, page);
-        retrievedPage = Math.min(100, retrievedPage);
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -405,9 +410,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(type, "", false, false,
-                        false, false, arrayToSqlStringList(new String[] {}),
-                        arrayToSqlStringList(new String[] {}), userId,
-                        arrayToSqlStringList(new Long[] {}), null, false,
+                        false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
+                        NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, false,
                         false, false, paging)
                 .orElse(null);
 
@@ -428,7 +433,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
-        retrievedPage = Math.min(100, retrievedPage);
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -443,9 +447,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
-                        false, false, arrayToSqlStringList(new String[] {}),
-                        arrayToSqlStringList(new String[] {}), userId,
-                        arrayToSqlStringList(new Long[] {}), null, true,
+                        false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
+                        NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, true,
                         false, approverOnly, paging)
                 .orElse(null);
 
@@ -468,7 +472,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             Integer pageSize, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
         int retrievedPage = Math.max(1, pageNumber);
-        retrievedPage = Math.min(100, retrievedPage);
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -483,9 +486,10 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, false, isArchive,
-                        false, false, arrayToSqlStringList(new String[] {}),
-                        arrayToSqlStringList(new String[] {}), userId,
-                        arrayToSqlStringList(new Long[] {}), null, false, true, false, paging)
+                        false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
+                        NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, false, true,
+                        false, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -503,7 +507,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     }
 
     public Boolean getLockStatus(Long pageId, Boolean lockAfter) {
-        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Cannot find the page."));
+        Page page = pageRepository.findById(pageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cannot find the page."));
         checkLock(page, lockAfter);
 
         return true;

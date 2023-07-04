@@ -15,9 +15,6 @@ public class Permission {
     private String category;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<PageRights> pageRights; // To delete
-
-    @OneToMany(fetch = FetchType.LAZY)
     private Set<UserPageAccess> userPageAccess;
 
     @OneToMany(fetch = FetchType.LAZY)
@@ -61,10 +58,6 @@ public class Permission {
     public String getCategory() {
         return category;
     }
-
-    public Set<PageRights> getPageRights() {
-        return pageRights;
-    } // To delete
 
     public Set<UserPageAccess> getUserPageAccess() {
         return userPageAccess;
