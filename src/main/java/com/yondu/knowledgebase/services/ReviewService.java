@@ -232,15 +232,17 @@ public class ReviewService {
         } else {
             if (!isContentFullyApproved(review.getPageVersion())) {
 
-                Review newReview = new Review();
-                newReview.setPageVersion(review.getPageVersion());
-                newReview.setUser(null);
-                newReview.setWorkflowStep(null);
-                newReview.setComment("");
-                newReview.setReviewDate(LocalDate.now());
-                newReview.setStatus(ReviewStatus.PENDING.getCode());
+                if (!isContentDisapproved(review.getPageVersion())) {
+                    Review newReview = new Review();
+                    newReview.setPageVersion(review.getPageVersion());
+                    newReview.setUser(null);
+                    newReview.setWorkflowStep(null);
+                    newReview.setComment("");
+                    newReview.setReviewDate(LocalDate.now());
+                    newReview.setStatus(ReviewStatus.PENDING.getCode());
 
-                reviewRepository.save(newReview);
+                    reviewRepository.save(newReview);
+                }
             }
         }
 
