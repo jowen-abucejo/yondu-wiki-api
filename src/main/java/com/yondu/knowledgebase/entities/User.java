@@ -100,7 +100,7 @@ public class User implements UserDetails {
         this.position = user.position();
         this.status = user.status();
         this.createdAt = user.createdAt();
-        this.rights = new HashSet<>();
+        // this.rights = new HashSet<>();
 
         Set<Role> roles = user.roles()
                 .stream()

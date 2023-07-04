@@ -204,21 +204,27 @@ public class PageController {
         return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
     }
 
-    @GetMapping(path="pages/{id}/lock")
+    @GetMapping(path = "pages/{id}/lock")
     /**
      * Retrieves a page lock status.
      * Gives the user choice to lock after
      * checking or not
      *
-     * @param id         ID of the page you want to
-     *                   check
+     * @param id        ID of the page you want to
+     *                  check
      *
-     * @param lockAfter  Locks the page after checking.
-     *                   Default false.
+     * @param lockAfter Locks the page after checking.
+     *                  Default false.
      */
-    public ResponseEntity getLockStatus(@PathVariable Long id, @RequestParam(defaultValue = "0", name = "lockAfter") Boolean lockAfter) {
+    public ResponseEntity getLockStatus(@PathVariable Long id,
+            @RequestParam(defaultValue = "0", name = "lockAfter") Boolean lockAfter) {
         pageService.getLockStatus(id, lockAfter);
         return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping(path = "pages/{id}/change-directory")
+    public PageDTO movePageToDirectory(@PathVariable Long id, @RequestParam("directoryId") Long directoryId) {
+        return pageService.movePageToDirectory(pageType, directoryId, id);
     }
 
 }

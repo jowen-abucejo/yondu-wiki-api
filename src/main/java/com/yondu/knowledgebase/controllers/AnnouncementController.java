@@ -205,4 +205,9 @@ public class AnnouncementController {
 
         return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
     }
+
+    @PatchMapping(path = "announcements/{id}/change-directory")
+    public PageDTO movePageToDirectory(@PathVariable Long id, @RequestParam("directoryId") Long directoryId) {
+        return pageService.movePageToDirectory(pageType, directoryId, id);
+    }
 }

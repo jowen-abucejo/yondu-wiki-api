@@ -48,4 +48,6 @@ public interface PageService {
             Integer pageNumber, Integer pageSize, String[] sortBy);
 
     public Boolean getLockStatus(Long pageId, Boolean lockAfter);
+
+    public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId);
 }
