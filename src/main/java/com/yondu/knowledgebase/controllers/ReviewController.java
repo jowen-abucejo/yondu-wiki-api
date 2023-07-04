@@ -69,4 +69,19 @@ public class ReviewController {
         ApiResponse apiResponse = ApiResponse.success(review, "Retrieved reviews successfully");
         return ResponseEntity.ok(apiResponse);
     }
+
+    /**
+     * Fetches past reviews based
+     * on the page version being
+     * reviewed.
+     *
+     *
+     * @param pageId      ID of the page.
+     * @param pageVersion ID of the page version.
+     */
+    @GetMapping("pages/{page_id}/versions/{page_version}/reviews")
+    public ResponseEntity<ApiResponse<List<ReviewDTO.BaseResponse>>> getReviewsByPage(@PathVariable(name = "page_id") Long pageId, @PathVariable(name = "page_version") Long pageVersion) {
+        List<ReviewDTO.BaseResponse> reviews = reviewService.getReviewsByPage(pageId, pageVersion);
+        return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully fetched reviews"));
+    }
 }
