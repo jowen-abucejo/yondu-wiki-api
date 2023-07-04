@@ -282,4 +282,8 @@ public class UserService implements UserDetailsService {
                 .collect(Collectors.toList());
         return new PaginatedResponse<>(userDTOs, page, size, users.getTotalElements());
     }
+
+    public User getUserByEmail(UserDTO.ShortRequest email) {
+        return userRepository.getUserByEmail(email.email());
+    }
 }
