@@ -286,7 +286,7 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse editDirectory(Long id, DirectoryDTO.CreateRequest request) {
-
+        System.out.print("yaya"+request);
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
                 request.name().isEmpty() || request.description().isEmpty() ||
@@ -323,7 +323,7 @@ public class DirectoryService {
         Workflow workflow = directory.getWorkflow();
 
         request.workflow().forEach(step -> {
-            WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndStep(workflow, step.step())
+            WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndId(workflow, step.id())
                     .orElse(null);
 
             if (workflowStep == null) {
@@ -338,7 +338,7 @@ public class DirectoryService {
                 workflowStepApproverRepository.saveAll(workflowStepApprovers);
             } else {
                 workflowStep.setName(step.name());
-
+                workflowStep.setStep(step.step());
                 workflowStepApproverRepository
                         .deleteAll(workflowStepApproverRepository.findAllByWorkflowStep(workflowStep));
 
@@ -355,6 +355,16 @@ public class DirectoryService {
                 workflowStepRepository.save(workflowStep);
             }
         });
+
+        List<WorkflowStep> toRemoveSteps = workflow.getSteps()
+                .stream()
+                .filter(existingStep-> request.workflow()
+                        .stream()
+                        .noneMatch(step->step.id().equals(existingStep.getId())))
+                .toList();
+
+        toRemoveSteps.forEach(removeSteps->workflow.getSteps().remove(removeSteps));
+        workflowStepRepository.deleteAll(toRemoveSteps);
 
         List<DirectoryUserAccess> newAccesses = request.userAccess().stream().map(userAccess -> {
             Permission permission1 = permissionRepository.findById(userAccess.permissionId())
