@@ -308,6 +308,16 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully retrieved reviews"));
     }
 
+    /**
+     * Change password for first-time logged-in users.
+     * Only users whose password expiration is the same
+     * as the date of account creation can access this endpoint.
+     *
+     * @RequestBody  newPassword: string
+     *
+     * @return ApiResponse<UserDTO.BaseResponse>
+     */
+
     @PostMapping("/update/change-password")
     public ResponseEntity<ApiResponse<UserDTO.BaseResponse>> changePassword(@RequestBody UserDTO.ChangePassRequestV2 request) {
         log.info("UserController.updatePassword");

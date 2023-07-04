@@ -294,6 +294,10 @@ public class UserService implements UserDetailsService {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new UserException("User not found."));
 
+            // only first time logged-in users can access this service
+            if (!findUser.getPasswordExpiration().toLocalDate().isEqual(findUser.getCreatedAt())) {
+                throw new AccessDeniedException();
+            }
 
             String newEncodedPassword = passwordEncoder.encode(request.newPassword());
             findUser.setPassword(newEncodedPassword);
