@@ -186,7 +186,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
-        String requiredPermission = Permission.UPDATE_CONTENT.getCode();
+        String requiredPermission = Permission.MANAGE_PAGE_PERMISSIONS.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
 
@@ -208,7 +208,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                         pageType.getCode(), false)
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
-        String requiredPermission = Permission.UPDATE_CONTENT.getCode();
+        String requiredPermission = Permission.COMMENT_AVAILABILITY.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
 
@@ -512,6 +512,35 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         checkLock(page, lockAfter);
 
         return true;
+    }
+
+    @Override
+    public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId) {
+
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+
+        if (userId == null)
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
+        if (!pageRepository.existsByIdAndTypeAndDeleted(pageId, pageType.getCode(), false))
+            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType));
+
+        if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode()))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required directory permission");
+
+        var page = pageRepository.findByIdAndTypeAndDeleted(pageId, pageType.getCode(), false).orElse(null);
+
+        if (!page.getAuthor().getId().equals(userId))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Only page author is allowed to moved content to different directory");
+
+        Directory newParentDirectory = new Directory();
+        newParentDirectory.setId(directoryId);
+        page.setDirectory(newParentDirectory);
+
+        page = pageRepository.save(page);
+
+        return findByIdWithVersions(pageType, pageId);
     }
 
 }
