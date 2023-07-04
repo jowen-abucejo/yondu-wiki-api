@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -115,7 +116,9 @@ public class GroupService {
             throw new DuplicateResourceException(String.format("Group name '%s' already exists", request.name()));
         }
 
-        Group savedGroup = groupRepository.save(new Group(request.name(), request.description()));
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Group savedGroup = groupRepository.save(new Group(request.name(), request.description(), currentUser));
         for (Long id: request.members()) {
             savedGroup.getUsers().add(userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(String.format("User id '%d' not found", id))));
         }

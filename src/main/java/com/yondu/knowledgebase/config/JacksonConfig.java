@@ -15,7 +15,6 @@ public class JacksonConfig {
         Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
         builder.propertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         builder.featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-//        builder.serializationInclusion(JsonInclude.Include.NON_NULL);
         return builder;
     }
 }

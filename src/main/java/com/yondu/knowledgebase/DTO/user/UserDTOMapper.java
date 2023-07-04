@@ -21,6 +21,9 @@ public class UserDTOMapper {
     }
 
     public static UserDTO.GeneralResponse mapToGeneralResponse(User user) {
+        if (user == null) {
+            return new UserDTO.GeneralResponse(null, null, null, null, null, null, null, null, null);
+        }
         return new UserDTO.GeneralResponse(user.getId(), user.getEmail(), user.getUsername(), user.getProfilePhoto(), user.getPosition(), user.getFirstName(), user.getLastName(), user.getStatus(), user.getCreatedAt());
     }
 
