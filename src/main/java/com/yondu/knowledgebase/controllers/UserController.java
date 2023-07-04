@@ -307,4 +307,16 @@ public class UserController {
         PaginatedResponse<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUser(page, size, searchKey, status);
         return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully retrieved reviews"));
     }
+
+    @PostMapping("/update/change-password")
+    public ResponseEntity<ApiResponse<UserDTO.BaseResponse>> changePassword(@RequestBody UserDTO.ChangePassRequestV2 request) {
+        log.info("UserController.updatePassword");
+        log.info("request : " + request);
+
+        User user = userService.updatePassV2(request);
+        UserDTO.BaseResponse userResponse = UserDTOMapper.mapToBaseResponse(user);
+
+        ApiResponse apiResponse = ApiResponse.success(userResponse, "Successfully changed password");
+        return ResponseEntity.ok(apiResponse);
+    }
 }

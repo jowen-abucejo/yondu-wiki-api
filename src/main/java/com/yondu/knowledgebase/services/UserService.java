@@ -286,4 +286,28 @@ public class UserService implements UserDetailsService {
     public User getUserByEmail(UserDTO.ShortRequest email) {
         return userRepository.getUserByEmail(email.email());
     }
+
+    public User updatePassV2(UserDTO.ChangePassRequestV2 request) {
+        log.info("UserService.updatePassword()");
+        log.info("request : " + request);
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        User findUser = userRepository.findById(user.getId()).orElseThrow(() -> new UserException("User not found."));
+
+
+            String newEncodedPassword = passwordEncoder.encode(request.newPassword());
+            findUser.setPassword(newEncodedPassword);
+            findUser.setPasswordExpiration(LocalDateTime.now().plusMonths(1));
+
+
+        if(passwordChangesService.isPasswordExist(user, request.newPassword())){
+            throw new PasswordRepeatException();
+        }
+
+        User updatedUser = userRepository.save(findUser);
+        passwordChangesService.saveNewPassword(findUser, request.newPassword());
+
+        return updatedUser;
+    }
+
 }
