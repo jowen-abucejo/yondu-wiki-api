@@ -47,7 +47,7 @@ public class MultipleSort {
         } else {
             // sort=[column, direction]
             if (validAliases.contains(sort[0]))
-                orders.add(new Order(getSortDirection(""), sort[0]));
+                orders.add(new Order(getSortDirection(sort[1]), sort[0]));
         }
     }
 
@@ -73,7 +73,7 @@ public class MultipleSort {
             }
         } else {
             // sort=[column, direction]
-            orders.add(new Order(getSortDirection(""), sort[0]));
+            orders.add(new Order(getSortDirection(sort[1]), sort[0]));
         }
     }
 
