@@ -215,9 +215,10 @@ public class PostService {
         return mentionedUsers;
     }
 
-    public List<PostDTO> findTop5MostPopularPosts(int page, int size) {
+    public List<PostDTO> findTop5MostPopularPosts(int page, int size, int days) {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
         PageRequest pageable = PageRequest.of(page - 1, size);
-        List<Object[]> results = postRepository.findMostPopularPosts(pageable);
+        List<Object[]> results = postRepository.findMostPopularPosts(startDate, pageable);
 
         return results.stream()
                 .map(result -> {
