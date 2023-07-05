@@ -26,4 +26,11 @@ public class ReviewDTO {
                                String comment,
                                LocalDateTime reviewDate,UserDTO.ApproverResponse user,
                                String status){}
+
+    public record CanApproveResponse (Long id,
+                                      Long pageId,
+                                      Long versionId,
+                                      UserDTO.ApproverResponse user,
+                                      boolean canApprove){}
+
 }

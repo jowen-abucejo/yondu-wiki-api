@@ -84,4 +84,10 @@ public class ReviewController {
         List<ReviewDTO.ApproverResponse> reviews = reviewService.getReviewsByPage(pageId, pageVersion);
         return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully fetched reviews"));
     }
+
+    @GetMapping("pages/{page_id}/versions/{page_version}/reviews/approver")
+    public ResponseEntity<ApiResponse<ReviewDTO.CanApproveResponse>> getApproverCanApprove(@PathVariable(name = "page_id") Long pageId, @PathVariable(name = "page_version") Long pageVersion) {
+        ReviewDTO.CanApproveResponse review = reviewService.CanApproverApproveContent(pageId,pageVersion);
+        return ResponseEntity.ok(ApiResponse.success(review, "Successfully fetched review approver"));
+    }
 }
