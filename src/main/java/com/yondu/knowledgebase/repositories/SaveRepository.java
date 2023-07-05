@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface SaveRepository extends JpaRepository<Save,Long> {
 
-    Page<Save> findAllByAuthor(User author, Pageable pageable);
+    Page<Save> findAllByAuthorOrderByDateCreatedDesc(User author, Pageable pageable);
 
     Page<Save> findAllByAuthorAndEntityTypeOrderByDateCreatedDesc(User author, String entityType, Pageable pageable);
 

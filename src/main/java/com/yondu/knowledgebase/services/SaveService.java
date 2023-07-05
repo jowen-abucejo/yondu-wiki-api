@@ -84,7 +84,7 @@ public class SaveService {
         }
 
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<Save> savePages = saveRepository.findAllByAuthor(user, pageRequest);
+        Page<Save> savePages = saveRepository.findAllByAuthorOrderByDateCreatedDesc(user, pageRequest);
         List<Save> saves = savePages.getContent();
 
         List<SaveDTO.BaseResponse> save = saves.stream()
