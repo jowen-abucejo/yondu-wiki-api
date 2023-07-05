@@ -369,32 +369,27 @@ public class ReviewService {
         }
     }
 
-    private WorkflowStep getIncompleteStep(PageVersion pageVersion) {
-        Map<WorkflowStep, Boolean> stepStatusMap = isStepDone(pageVersion);
-
-        for (Map.Entry<WorkflowStep, Boolean> entry : stepStatusMap.entrySet()) {
-            WorkflowStep step = entry.getKey();
-            boolean isDone = entry.getValue();
-
-            if (!isDone) {
-                return step;
-            }
-        }
-
-        return null;
-    }
-
     public ReviewDTO.CanApproveResponse CanApproverApproveContent(Long pageId, Long versionId, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
-        Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
-        PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
+        Review review = reviewRepository.getLastReviewByPageVersion(versionId, pageId);
+        PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId, versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
-        if (!hasContentApprovalPermission(user)) throw new RequestValidationException("You are not permitted to review this content.");
+        if (!hasContentApprovalPermission(user)) {
+            throw new RequestValidationException("You are not permitted to review this content.");
+        }
 
-        WorkflowStep step = getIncompleteStep(pageVersion);
-
-        Set<User> approvers = getStepApprovers(step);
-        boolean canApprove = approvers.contains(user);
+        Map<WorkflowStep, Boolean> currentStep = isStepDone(pageVersion);
+        List<WorkflowStep> sortedSteps = sortSteps(currentStep.keySet());
+        boolean isPending = Objects.equals(review.getStatus(), ReviewStatus.PENDING.getCode());
+        boolean canApprove = sortedSteps.stream()
+                .filter(step -> !currentStep.get(step))
+                .anyMatch(step -> {
+                    Set<User> approvers = getStepApprovers(step);
+                    return containsUser(approvers, user) && !reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), user) && isPending;
+                });
+        if (isContentFullyApproved(pageVersion)) {
+            canApprove = false;
+        }
 
         return ReviewDTOMapper.mapToCanApproveResponse(review, user, canApprove);
     }
