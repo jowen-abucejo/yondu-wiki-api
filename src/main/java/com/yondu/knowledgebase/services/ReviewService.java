@@ -381,18 +381,18 @@ public class ReviewService {
         return null;
     }
 
-    public ReviewDTO.CanApproveResponse CanApproverApproveContent(Long pageId, Long versionId) {
-        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    public ReviewDTO.CanApproveResponse CanApproverApproveContent(Long pageId, Long versionId, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
         Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
-        if (!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
+        if (!hasContentApprovalPermission(user)) throw new RequestValidationException("You are not permitted to review this content.");
 
         WorkflowStep step = getIncompleteStep(pageVersion);
 
         Set<User> approvers = getStepApprovers(step);
-        boolean canApprove = approvers.contains(currentUser);
+        boolean canApprove = approvers.contains(user);
 
-        return ReviewDTOMapper.mapToCanApproveResponse(review, currentUser, canApprove);
+        return ReviewDTOMapper.mapToCanApproveResponse(review, user, canApprove);
     }
 }
