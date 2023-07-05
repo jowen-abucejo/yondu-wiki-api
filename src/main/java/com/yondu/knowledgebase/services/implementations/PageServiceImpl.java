@@ -186,7 +186,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
         var page = pageVersion.getPage();
 
-        String requiredPermission = Permission.MANAGE_PAGE_PERMISSIONS.getCode();
+        String requiredPermission = Permission.DELETE_CONTENT.getCode();
         if (pagePermissionGranted(pageId, requiredPermission)
                 || directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
 
@@ -526,7 +526,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType));
 
         if (!directoryPermissionGranted(directoryId, Permission.CREATE_CONTENT.getCode()))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required directory permission");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Missing required directory permission");
 
         var page = pageRepository.findByIdAndTypeAndDeleted(pageId, pageType.getCode(), false).orElse(null);
 
@@ -541,6 +542,47 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         page = pageRepository.save(page);
 
         return findByIdWithVersions(pageType, pageId);
+    }
+
+    @Override
+    public PageDTO findVersion(PageType pageType, Long pageId, Long versionId) {
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+
+        if (!pageRepository.existsByIdAndTypeAndDeleted(pageId, pageType.getCode(), false))
+            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType));
+
+        // configure pageable size and orders
+        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
+                "totalRatings");
+        var nativeSort = MultipleSort.sortWithOrders(new String[] { "dateModified,desc" },
+                new String[] { "dateModified,desc" },
+                new HashSet<>(validSortAliases));
+        Pageable paging = PageRequest.of(0, 100, Sort.by(nativeSort));
+        paging = MultipleSort.sortByAliases(paging);
+
+        var optionalPageVersions = pageVersionRepository
+                .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
+                        null, null, userId,
+                        NativeQueryUtils.arrayToSqlStringList(new Long[] { pageId }), null,
+                        true, true, false, paging)
+                .orElse(null);
+
+        if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+
+        var pageList = optionalPageVersions.getContent();
+        var versionAsPageBody = pageList.stream().filter(version -> {
+            Long streamId = (Long) (version.get("versionId"));
+            if (streamId == null)
+                return false;
+            return streamId.equals(versionId);
+        })
+                .collect(Collectors.toList());
+
+        if (versionAsPageBody.size() == 0)
+            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, versionId, pageType));
+
+        return convertMapToPageDTO(versionAsPageBody.get(0), pageList);
     }
 
 }

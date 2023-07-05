@@ -1,6 +1,5 @@
 package com.yondu.knowledgebase.repositories;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -147,11 +146,6 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR (:pendingOnly AND EXISTS(SELECT u10.id FROM users u10
-                                            LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
-                                            workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
-                                            workflow w10 ON ws10.workflow_id = w10.id
-                                            WHERE u10.id = :userId AND w10.directory_id = p.directory_id))
                                         )
                                     )
                                 )
@@ -334,11 +328,6 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR (:pendingOnly AND EXISTS(SELECT u10.id FROM users u10
-                                            LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
-                                            workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
-                                            workflow w10 ON ws10.workflow_id = w10.id
-                                            WHERE u10.id = :userId AND w10.directory_id = p.directory_id))
                                         )
                                     )
                                 )

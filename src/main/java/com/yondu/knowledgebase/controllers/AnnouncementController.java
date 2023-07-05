@@ -207,7 +207,15 @@ public class AnnouncementController {
     }
 
     @PatchMapping(path = "announcements/{id}/change-directory")
-    public PageDTO movePageToDirectory(@PathVariable Long id, @RequestParam("directoryId") Long directoryId) {
-        return pageService.movePageToDirectory(pageType, directoryId, id);
+    public ApiResponse<PageDTO> movePageToDirectory(@PathVariable Long id,
+            @RequestParam("directoryId") Long directoryId) {
+        var page = pageService.movePageToDirectory(pageType, directoryId, id);
+        return new ApiResponse<PageDTO>("success", page, "Page moved to the new directory");
+    }
+
+    @GetMapping(path = "announcements/{pageId}/versions/{versionId}")
+    public ApiResponse<PageDTO> getPageVersion(@PathVariable Long pageId, @PathVariable Long versionId) {
+        var page = pageService.findVersion(pageType, pageId, versionId);
+        return new ApiResponse<PageDTO>("success", page, "Page version retrieved");
     }
 }
