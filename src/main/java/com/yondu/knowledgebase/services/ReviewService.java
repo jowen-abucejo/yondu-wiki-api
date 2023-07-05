@@ -373,8 +373,11 @@ public class ReviewService {
         Map<WorkflowStep, Boolean> stepStatusMap = isStepDone(pageVersion);
 
         for (Map.Entry<WorkflowStep, Boolean> entry : stepStatusMap.entrySet()) {
-            if (!entry.getValue()) {
-                return entry.getKey();
+            WorkflowStep step = entry.getKey();
+            boolean isDone = entry.getValue();
+
+            if (!isDone) {
+                return step;
             }
         }
 
