@@ -50,4 +50,6 @@ public interface PageService {
     public Boolean getLockStatus(Long pageId, Boolean lockAfter);
 
     public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId);
+
+    public PageDTO findVersion(PageType pageType, Long pageId, Long versionId);
 }
