@@ -20,6 +20,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -135,19 +137,36 @@ public class GroupService {
         return GroupDTOMapper.mapToBaseResponse(group);
     }
 
-    public GroupDTO.BaseResponse editGroupById(Long id, GroupDTO.GroupRequest request) {
+    public GroupDTO.BaseResponse editGroupById(Long id, GroupDTO.UpdateGroupRequest request) {
         Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
 
-        if (request.name() != null && !request.name().isEmpty()) {
-            if (groupRepository.existsByName(request.name())) {
-                throw new DuplicateResourceException(String.format("Group name '%s' already exists", request.name()));
-            }
-            group.setName(request.name());
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        group.setName(request.name());
+        group.setDescription(request.description());
+        group.setModifiedBy(currentUser);
+        group.setDateModified(LocalDateTime.now());
+        group.setActive(request.isActive());
+
+        if (request.name() == null || request.name().isEmpty() || request.description() == null || request.description().isEmpty()) {
+            throw new RequestValidationException("name must not be empty");
         }
 
-        if (request.description() != null && !request.description().isEmpty()){
-            group.setDescription(request.description());
+        Set<User> members = new HashSet<>();
+        for (Long memberId : request.members()) {
+            User member = userRepository.findById(memberId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+            members.add(member);
         }
+        group.setUsers(members);
+
+        Set<Permission> permissions = new HashSet<>();
+        for (Long permissionId : request.permissions()) {
+            Permission permission = permissionRepository.findById(permissionId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+            permissions.add(permission);
+        }
+        group.setPermissions(permissions);
 
         Group savedGroup = groupRepository.save(group);
         return GroupDTOMapper.mapToBaseResponse(savedGroup);
