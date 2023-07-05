@@ -30,6 +30,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "AND r.status = 'PENDING'")
     Review getByPageVersionIdAndPageVersionPageId(Long pageVersionId, Long pageId);
 
+    @Query("SELECT r FROM Review r WHERE r.pageVersion.id = :pageVersionId " +
+            "AND r.pageVersion.page.id = :pageId " +
+            "AND r.id = (SELECT MAX(r2.id) FROM Review r2 WHERE r2.pageVersion.id = :pageVersionId " +
+            "AND r2.pageVersion.page.id = :pageId)")
+    Review getLastReviewByPageVersion(Long pageVersionId, Long pageId);
+
     @Query("""
             SELECT r FROM Review r WHERE r.pageVersion.id = ?1
             AND r.pageVersion.page.id = ?2
