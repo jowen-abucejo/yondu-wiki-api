@@ -386,17 +386,12 @@ public class ReviewService {
         Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
-        boolean canApprove;
         if (!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
 
         WorkflowStep step = getIncompleteStep(pageVersion);
 
         Set<User> approvers = getStepApprovers(step);
-        if (containsUser(approvers,currentUser)) {
-            canApprove = true;
-        } else {
-            canApprove = false;
-        }
+        boolean canApprove = approvers.contains(currentUser);
 
         return ReviewDTOMapper.mapToCanApproveResponse(review, currentUser, canApprove);
     }
