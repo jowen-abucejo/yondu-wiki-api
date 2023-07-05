@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class CommentDTO {
     public record BaseRequest (String comment, @JsonProperty("comment_mentions") Long[] commentMentions) {}
-    public record ShortResponse (Long id, LocalDateTime dataCreated, String comment, UserDTO.GeneralResponse user, Long parentCommentId, Long entityId, String entityType, boolean allowReply, Set<UserDTO.GeneralResponse> commentMentions, Long totalReplies){}
+    public record ShortResponse (Long id, LocalDateTime dataCreated, String comment, UserDTO.GeneralResponse user, Long parentCommentId, Long entityId, String entityType, boolean allowReply, Set<UserDTO.GeneralResponse> commentMentions, Long totalReplies, boolean deleted){}
     public record BaseResponse (ShortResponse comment, List<ShortResponse> replies){}
     public record CountResponse (Long entityId, String entityType, Long totalComment){}
 }

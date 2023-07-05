@@ -40,7 +40,8 @@ public class CommentDTOMapper {
                 comment.getEntityType(),
                 comment.isAllowReply(),
                 commentMentions,
-                (long) comment.getCommentReplies().size()
+                (long) comment.getCommentReplies().size(),
+                comment.isDeleted()
         );
     }
 

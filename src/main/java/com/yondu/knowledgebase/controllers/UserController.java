@@ -279,6 +279,53 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(pageDTO, "success"));
     }
 
+    @GetMapping("/announcements/{id}")
+    public ResponseEntity<ApiResponse<PageDTO>> findAnnouncement(@PathVariable Long id){
+        log.info("UserController.findPage()");
+        log.info("id : " + id);
+
+        Page p = pageService.getPage(PageType.ANNOUNCEMENT, id);
+
+        PageVersion pv = p.getPageVersions()
+                .stream()
+                .sorted(Comparator.comparing(PageVersion::getDateModified))
+                .findFirst().get();
+        PageDTO pageDTO = new PageDTO.PageDTOBuilder()
+                .id(p.getId())
+                .dateCreated(p.getDateCreated())
+                .lockedBy(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
+                        .id(p.getLockedBy().getId())
+                        .email(p.getLockedBy().getEmail())
+                        .firstName(p.getLockedBy().getFirstName())
+                        .lastName(p.getLockedBy().getLastName())
+                        .position(p.getLockedBy().getPosition())
+                        .build())
+                .lockStart(p.getLockStart())
+                .lockEnd(p.getLockEnd())
+                .allowComment(p.getAllowComment())
+                .author(new com.yondu.knowledgebase.DTO.page.UserDTO.UserDTOBuilder()
+                        .id(p.getAuthor().getId())
+                        .email(p.getAuthor().getEmail())
+                        .firstName(p.getAuthor().getFirstName())
+                        .lastName(p.getAuthor().getLastName())
+                        .position(p.getAuthor().getPosition())
+                        .build()
+                )
+                .active(p.getActive())
+                .pageType(p.getType())
+                .tags(p.getTags().stream().map(Tag::getName).collect(Collectors.toList()).toArray(new String[0]))
+                .categories(p.getCategories().stream().map(Category::getName).collect(Collectors.toList()).toArray(new String[0]))
+                .body(new PageVersionDTO.PageVersionDTOBuilder()
+                        .id(pv.getId())
+                        .content(pv.getOriginalContent())
+                        .title(pv.getTitle())
+                        .build()
+                )
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(pageDTO, "success"));
+    }
+
     /**
      * Fetch pending(default) review requests
      * based on the authenticated user.
