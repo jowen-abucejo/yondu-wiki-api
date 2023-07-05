@@ -6,5 +6,5 @@ import java.time.LocalDateTime;
 
 public class PageDTOr {
 
-    public record BaseResponse(Long id, LocalDateTime dateCreated, UserDTO.BaseResponse author, Boolean active){}
+    public record BaseResponse(Long id, LocalDateTime dateCreated, UserDTO.BaseResponse author, Boolean active, String type){}
 }

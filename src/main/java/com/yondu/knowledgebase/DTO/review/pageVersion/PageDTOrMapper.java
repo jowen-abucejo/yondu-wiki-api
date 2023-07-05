@@ -7,6 +7,6 @@ public class PageDTOrMapper {
 
     public static PageDTOr.BaseResponse mapToBaseResponse(Page page) {
         return new PageDTOr.BaseResponse(page.getId(), page.getDateCreated(),
-                UserDTOMapper.mapToBaseResponse(page.getAuthor()),page.getActive());
+                UserDTOMapper.mapToBaseResponse(page.getAuthor()),page.getActive(), page.getType());
     }
 }
