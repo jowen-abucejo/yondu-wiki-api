@@ -368,4 +368,36 @@ public class ReviewService {
             throw new NoContentException("No reviews retrieved for this user.");
         }
     }
+
+    private WorkflowStep getIncompleteStep(PageVersion pageVersion) {
+        Map<WorkflowStep, Boolean> stepStatusMap = isStepDone(pageVersion);
+
+        for (Map.Entry<WorkflowStep, Boolean> entry : stepStatusMap.entrySet()) {
+            if (!entry.getValue()) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
+    }
+
+    public ReviewDTO.CanApproveResponse CanApproverApproveContent(Long pageId, Long versionId) {
+        User currentUser = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Review review = reviewRepository.getByPageVersionIdAndPageVersionPageId(versionId,pageId);
+        PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId,versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
+        boolean canApprove;
+        if (!hasContentApprovalPermission(currentUser)) throw new RequestValidationException("You are not permitted to review this content.");
+
+        WorkflowStep step = getIncompleteStep(pageVersion);
+
+        Set<User> approvers = getStepApprovers(step);
+        if (containsUser(approvers,currentUser)) {
+            canApprove = true;
+        } else {
+            canApprove = false;
+        }
+
+        return ReviewDTOMapper.mapToCanApproveResponse(review, currentUser, canApprove);
+    }
 }
