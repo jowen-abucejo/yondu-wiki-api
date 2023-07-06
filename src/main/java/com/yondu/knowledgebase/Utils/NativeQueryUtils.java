@@ -8,6 +8,6 @@ public class NativeQueryUtils {
                 .map(String::valueOf)
                 .toArray(String[]::new);
 
-        return String.join(", ", stringArray);
+        return String.join(",", stringArray);
     }
 }

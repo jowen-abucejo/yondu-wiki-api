@@ -102,7 +102,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 AND CASE
                     WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
                     THEN
-                        v.page_id IN (:pagePrimaryKeys)
+                        FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
                     ELSE TRUE
                     END
                 AND p.is_deleted = 0
@@ -231,7 +231,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (v.page_id IN
                             (SELECT pcat2.page_id FROM page_category pcat2
                                 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id
-                                WHERE cat2.name IN (:categories))
+                                WHERE FIND_IN_SET(cat2.name, :categories)>0)
                             )
                     ELSE TRUE
                     END
@@ -241,7 +241,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (v.page_id IN (SELECT ptag.page_id FROM
                             page_tag ptag LEFT JOIN
                             tag tag2 ON ptag.tag_id = tag2.id
-                            WHERE tag2.name IN (:tags))
+                            WHERE FIND_IN_SET(tag2.name, :tags)>0)
                             )
                     ELSE TRUE
                     END
@@ -286,7 +286,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 AND CASE
                     WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
                     THEN
-                        v.page_id IN (:pagePrimaryKeys)
+                        FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
                     ELSE TRUE
                     END
                 AND p.is_deleted = 0
@@ -415,7 +415,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (v.page_id IN
                             (SELECT pcat2.page_id FROM page_category pcat2
                                 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id
-                                WHERE cat2.name IN (:categories))
+                                WHERE FIND_IN_SET(cat2.name, :categories)>0)
                             )
                     ELSE TRUE
                     END
@@ -425,7 +425,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (v.page_id IN (SELECT ptag.page_id FROM
                             page_tag ptag LEFT JOIN
                             tag tag2 ON ptag.tag_id = tag2.id
-                            WHERE tag2.name IN (:tags))
+                            WHERE FIND_IN_SET(tag2.name, :tags)>0)
                             )
                     ELSE TRUE
                     END
