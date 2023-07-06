@@ -81,7 +81,7 @@ public class PostService {
         List<Object[]> results = postRepository.findPostWithCommentAndUpvoteCountsById(id);
 
         if (results.isEmpty()) {
-            throw new ResourceNotFoundException("Post with id: " + id + " not found!");
+            return null;
         }
 
         Object[] result = results.get(0);

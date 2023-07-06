@@ -34,6 +34,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                 .requestMatchers(
                         "/auth/login",
                         "/auth/check",
+                        "/auth/forgot-password",
                         "/websocket",
                         "/attachments",
                         "/attachments/**"

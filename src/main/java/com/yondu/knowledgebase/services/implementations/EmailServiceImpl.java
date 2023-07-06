@@ -96,6 +96,36 @@ public class EmailServiceImpl implements EmailService {
         return EmailDTOMapper.newUserRequestToBaseResponse(request, toUser, fromUser);
     }
 
+    @Override
+    public EmailDTO.BaseResponse forgotPasswordEmail(EmailDTO.NewUserRequest request) {
+        User toUser = userRepository.getUserByEmail(request.to());
+        User fromUser = userRepository.getUserByEmail(request.to());
+
+        CompletableFuture.runAsync(() -> {
+
+            MimeMessage email = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(email, "UTF-8");
+
+            Context context = new Context();
+            context.setVariable("toUser", toUser.getFirstName().toUpperCase());
+            context.setVariable("temporaryPassword", request.temporaryPassword());
+
+            Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
+
+            try {
+                String htmlContent = templateEngine.process(templateDetails.get("templateName"), context);
+                helper.setTo(request.to());
+                helper.setSubject(templateDetails.get("subjectText"));
+                helper.setText(htmlContent, true);
+                mailSender.send(email);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+        }, executor);
+
+        return EmailDTOMapper.newUserRequestToBaseResponse(request, toUser, fromUser);
+    }
+
     private Map<String, String> getEmailTemplateDetails(String notificationType) {
         Map<String, String> templateDetails = new HashMap<>();
 
@@ -114,6 +144,9 @@ public class EmailServiceImpl implements EmailService {
         } else if (notificationType.equals("CREATION")) {
             templateDetails.put("templateName", "NewUser");
             templateDetails.put("subjectText", "[CREATED] Account Created");
+        }else if(notificationType.equals("FORGOT-PASSWORD")){
+            templateDetails.put("templateName", "ForgotPassword");
+            templateDetails.put("subjectText", "[FORGOT PASSWORD] You forgot password!");
         }else {
             throw new InvalidNotificationTypeException("Invalid Notification Type");
         }
