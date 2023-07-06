@@ -1,15 +1,18 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
+import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.entities.Group;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.enums.Status;
 import com.yondu.knowledgebase.exceptions.*;
+import com.yondu.knowledgebase.repositories.GroupRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.implementations.EmailServiceImpl;
 import org.slf4j.Logger;
@@ -42,6 +45,11 @@ public class UserService implements UserDetailsService {
     private EmailServiceImpl emailService;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
+    @Autowired
+    private GroupService groupService;
+
+    @Autowired
+    private GroupRepository groupRepository;
 
     public User createNewUser(UserDTO.CreateUserRequest user) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -77,8 +85,10 @@ public class UserService implements UserDetailsService {
         newUser.setCreatedAt(LocalDate.now());
         newUser.setPasswordExpiration(LocalDateTime.now());
 
-        userRepository.save(newUser);
-        User createdUser = userRepository.fetchUserByEmail(newUser.getEmail()).orElseThrow(() -> new UserException("Cannot find user."));
+        User createdUser = userRepository.save(newUser);
+        Group group = groupRepository.findById(1L).orElseThrow(() -> new ResourceNotFoundException("Group not found!"));
+        group.getUsers().add(createdUser);
+        groupRepository.save(group);
 
         emailService.createUserEmailNotification(new EmailDTO.NewUserRequest(createdUser.getEmail(), currentUser.getEmail(), temporaryPassword, NotificationType.CREATION.getCode()));
         return createdUser;
