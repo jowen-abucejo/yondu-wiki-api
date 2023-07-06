@@ -53,4 +53,24 @@ public class AuthController {
         boolean isUserExist = authService.checkEmail(request); // Automatically throws an exception if user is not found.
         return ResponseEntity.ok(ApiResponse.success(request, "user exists."));
     }
+
+    /**
+     * Let the user create and send a
+     * temporary password for the user's
+     * email.
+     *
+     *
+     * @param request ({"email":"email@yondu.com"})
+     *                User's email. Forgot password.
+     * @return
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse> forgotPassword(@RequestBody UserDTO.ShortRequest request) {
+        log.info("AuthController.forgotPassword()");
+        log.info("request : " + request);
+
+        authService.forgotPassword(request);
+
+        return ResponseEntity.ok(ApiResponse.success(null, "An email with the temporary password has been sent to your email."));
+    }
 }
