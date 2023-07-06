@@ -40,14 +40,24 @@ public class MultipleSort {
             // will sort more than 2 columns
             for (String sortOrder : sort) {
                 String[] _sort = sortOrder.split(",");
+
                 // sortOrder="column, direction"
                 if (validAliases.contains(_sort[0]))
-                    orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+                    orders.add(addColumnSortDirection(_sort));
+
+                // sort "column, column"
+                if (_sort.length > 1 && validAliases.contains(_sort[1]))
+                    orders.add(addColumnSortDirection(new String[] { _sort[1] }));
             }
         } else {
             // sort=[column, direction]
-            if (validAliases.contains(sort[0]))
-                orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+            if (validAliases.contains(sort[0])) {
+                orders.add(addColumnSortDirection(sort));
+            }
+
+            // sort "column, column"
+            if (sort.length > 1 && validAliases.contains(sort[1]))
+                orders.add(addColumnSortDirection(new String[] { sort[1] }));
         }
     }
 
@@ -69,12 +79,18 @@ public class MultipleSort {
             for (String sortOrder : sort) {
                 // sortOrder="column, direction"
                 String[] _sort = sortOrder.split(",");
-                orders.add(new Order(getSortDirection(_sort[1]), _sort[0]));
+                orders.add(addColumnSortDirection(_sort));
             }
         } else {
-            // sort=[column, direction]
-            orders.add(new Order(getSortDirection(sort[1]), sort[0]));
+            orders.add(addColumnSortDirection(sort));
         }
+    }
+
+    private static Order addColumnSortDirection(String[] sortFieldAndDirection) {
+        if (sortFieldAndDirection.length > 1)// check if sort order exists
+            return new Order(getSortDirection(sortFieldAndDirection[1]), sortFieldAndDirection[0]);
+        else// use fallback sort order if not exists
+            return new Order(getSortDirection(""), sortFieldAndDirection[0]);
     }
 
     public static Pageable sortByAliases(Pageable pageable) {
@@ -90,4 +106,5 @@ public class MultipleSort {
         return PageRequest
                 .of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
+
 }
