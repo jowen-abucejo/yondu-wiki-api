@@ -3,8 +3,8 @@ package com.yondu.knowledgebase.entities;
 import jakarta.persistence.*;
 
 @Entity
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"directory_id", "permission_id", "user_id"})})
-public class DirectoryUserAccess {
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"directory_id", "permission_id", "group_id"})})
+public class DirectoryGroupAccess {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,16 +15,16 @@ public class DirectoryUserAccess {
     @JoinColumn(name="permission_id")
     private Permission permission;
     @ManyToOne
-    @JoinColumn(name="user_id")
-    private User user;
+    @JoinColumn(name="group_id")
+    private Group group;
 
-    public DirectoryUserAccess() {
+    public DirectoryGroupAccess() {
     }
 
-    public DirectoryUserAccess(Directory directory, Permission permission, User user) {
+    public DirectoryGroupAccess(Directory directory, Permission permission, Group group) {
         this.directory = directory;
         this.permission = permission;
-        this.user = user;
+        this.group = group;
     }
 
     public Long getId() {
@@ -51,11 +51,11 @@ public class DirectoryUserAccess {
         this.permission = permission;
     }
 
-    public User getUser() {
-        return user;
+    public Group getGroup() {
+        return group;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setGroup(Group group) {
+        this.group = group;
     }
 }

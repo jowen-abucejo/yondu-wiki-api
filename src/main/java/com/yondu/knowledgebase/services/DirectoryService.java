@@ -27,6 +27,8 @@ public class DirectoryService {
     private final WorkflowStepRepository workflowStepRepository;
     private final WorkflowStepApproverRepository workflowStepApproverRepository;
     private final PermissionRepository permissionRepository;
+    private final GroupRepository groupRepository;
+    private final DirectoryGroupAccessRepository directoryGroupAccessRepository;
 
     private Logger log = LoggerFactory.getLogger(DirectoryService.class);
 
@@ -38,7 +40,9 @@ public class DirectoryService {
             PermissionRepository permissionRepository, WorkflowRepository workflowRepository,
             WorkflowStepRepository workflowStepRepository,
             WorkflowStepApproverRepository workflowStepApproverRepository,
-            DirectoryUserAccessRepository directoryUserAccessRepository) {
+            DirectoryUserAccessRepository directoryUserAccessRepository,
+                            GroupRepository groupRepository,
+                            DirectoryGroupAccessRepository directoryGroupAccessRepository) {
         this.directoryRepository = directoryRepository;
         this.userRepository = userRepository;
         this.permissionRepository = permissionRepository;
@@ -46,6 +50,8 @@ public class DirectoryService {
         this.workflowStepRepository = workflowStepRepository;
         this.workflowStepApproverRepository = workflowStepApproverRepository;
         this.directoryUserAccessRepository = directoryUserAccessRepository;
+        this.groupRepository = groupRepository;
+        this.directoryGroupAccessRepository = directoryGroupAccessRepository;
     }
 
     public DirectoryDTO.GetResponse getDefaultDirectory() {
@@ -149,17 +155,25 @@ public class DirectoryService {
                             () -> new ResourceNotFoundException(String.format("User id %d not found", user.id()))))));
         });
         savedDirectory.setWorkflow(savedWorkflow);
-        savedDirectory = directoryRepository.save(savedDirectory);
+        directoryRepository.save(savedDirectory);
 
-        Directory finalSavedDirectory = savedDirectory;
-        List<DirectoryUserAccess> newAccess = request.userAccess().stream()
-                .map((access) -> new DirectoryUserAccess(finalSavedDirectory,
+        List<DirectoryUserAccess> newUserAccess = request.userAccess().stream()
+                .map((access) -> new DirectoryUserAccess(savedDirectory,
                         permissionRepository.findById(access.permissionId())
                                 .orElseThrow(() -> new ResourceNotFoundException("Permission not found")),
                         userRepository.findById(access.user().id())
                                 .orElseThrow(() -> new ResourceNotFoundException("User not found"))))
                 .toList();
-        directoryUserAccessRepository.saveAll(newAccess);
+        directoryUserAccessRepository.saveAll(newUserAccess);
+
+        List<DirectoryGroupAccess> newGroupAccess = request.groupAccess().stream()
+                .map((access) -> new DirectoryGroupAccess(savedDirectory,
+                        permissionRepository.findById(access.permissionId())
+                            .orElseThrow(() -> new ResourceNotFoundException("Permission not found")),
+                        groupRepository.findById(access.group().id())
+                                .orElseThrow(() -> new ResourceNotFoundException("Group not found"))))
+                .toList();
+        directoryGroupAccessRepository.saveAll(newGroupAccess);
 
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
     }
@@ -366,32 +380,55 @@ public class DirectoryService {
         toRemoveSteps.forEach(removeSteps->workflow.getSteps().remove(removeSteps));
         workflowStepRepository.deleteAll(toRemoveSteps);
 
-        List<DirectoryUserAccess> newAccesses = request.userAccess().stream().map(userAccess -> {
+        List<DirectoryUserAccess> newUserAccesses = request.userAccess().stream().map(userAccess -> {
             Permission permission1 = permissionRepository.findById(userAccess.permissionId())
                     .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
-            User user1 = userRepository.findById(userAccess.user().id())
+            User user = userRepository.findById(userAccess.user().id())
                     .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
             DirectoryUserAccess directoryUserAccess = directoryUserAccessRepository
-                    .findByDirectoryAndPermissionAndUser(directory, permission1, user1).orElse(null);
+                    .findByDirectoryAndPermissionAndUser(directory, permission1, user).orElse(null);
             if (directoryUserAccess == null) {
-                return new DirectoryUserAccess(directory, permission1, user1);
+                return new DirectoryUserAccess(directory, permission1, user);
             }
             return directoryUserAccess;
         }).toList();
+        directoryUserAccessRepository.saveAll(newUserAccesses);
 
-        directoryUserAccessRepository.saveAll(newAccesses);
+        List<DirectoryGroupAccess> newGroupAccesses = request.groupAccess().stream().map(groupAccess -> {
+            Permission permission1 = permissionRepository.findById(groupAccess.permissionId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Permission not found"));
+            Group group = groupRepository.findById(groupAccess.group().id())
+                    .orElseThrow(() -> new ResourceNotFoundException("Group not found"));
 
-        List<DirectoryUserAccess> toRemoveAccesses = directory.getDirectoryUserAccesses()
+            DirectoryGroupAccess directoryGroupAccess = directoryGroupAccessRepository
+                    .findByDirectoryAndPermissionAndGroup(directory, permission1, group).orElse(null);
+            if (directoryGroupAccess == null) {
+                return new DirectoryGroupAccess(directory, permission1, group);
+            }
+            return directoryGroupAccess;
+        }).toList();
+        directoryGroupAccessRepository.saveAll(newGroupAccesses);
+
+        List<DirectoryUserAccess> toRemoveUserAccesses = directory.getDirectoryUserAccesses()
                 .stream()
                 .filter(userAccess -> request.userAccess()
                         .stream()
                         .noneMatch(obj -> obj.permissionId().equals(userAccess.getPermission().getId())
                                 && obj.user().id().equals(userAccess.getUser().getId())))
                 .toList();
+        toRemoveUserAccesses.forEach(directory.getDirectoryUserAccesses()::remove);
+        directoryUserAccessRepository.deleteAll(toRemoveUserAccesses);
 
-        toRemoveAccesses.forEach(directory.getDirectoryUserAccesses()::remove);
-        directoryUserAccessRepository.deleteAll(toRemoveAccesses);
+        List<DirectoryGroupAccess> toRemoveGroupAccesses = directory.getDirectoryGroupAccesses()
+                .stream()
+                .filter(groupAccess -> request.groupAccess()
+                        .stream()
+                        .noneMatch(obj -> obj.permissionId().equals(groupAccess.getPermission().getId())
+                                && obj.group().id().equals(groupAccess.getGroup().getId())))
+                .toList();
+        toRemoveGroupAccesses.forEach(directory.getDirectoryGroupAccesses()::remove);
+        directoryGroupAccessRepository.deleteAll(toRemoveGroupAccesses);
 
         Directory savedDirectory = directoryRepository.save(directory);
         return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
