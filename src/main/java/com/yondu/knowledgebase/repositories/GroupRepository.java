@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.repositories;
 
 import com.yondu.knowledgebase.entities.Group;
 import com.yondu.knowledgebase.entities.Permission;
+import com.yondu.knowledgebase.entities.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -34,4 +36,11 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
             AND g.isActive = '1'
             """)
     Page<Group> findAllByNameAndPermission(String searchKey, Permission permission, Pageable pageable);
+
+    @Query("""
+            SELECT g FROM cluster g
+            JOIN g.users u
+            WHERE u = ?1
+            """)
+    List<Group> findAllGroupsByUser(User user);
 }
