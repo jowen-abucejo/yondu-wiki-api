@@ -78,7 +78,7 @@ public class GroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<?>> editGroupById(@PathVariable Long id, @RequestBody GroupDTO.GroupRequest request) {
+    public ResponseEntity<ApiResponse<?>> editGroupById(@PathVariable Long id, @RequestBody GroupDTO.UpdateGroupRequest request) {
         GroupDTO.BaseResponse data = groupService.editGroupById(id, request);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data, "Group updated successfully"));
     }
