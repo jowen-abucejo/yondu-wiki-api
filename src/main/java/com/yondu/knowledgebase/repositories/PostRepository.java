@@ -103,7 +103,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         (p.id IN
                             (SELECT pcat2.post_id FROM post_category pcat2
                                 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id
-                                WHERE cat2.name IN (:categories))
+                                WHERE FIND_IN_SET(cat2.name, :categories)>0)
                             )
                     ELSE TRUE
                     END
@@ -113,7 +113,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         (p.id IN (SELECT ptag.post_id FROM
                             post_tag ptag LEFT JOIN
                             tag tag2 ON ptag.tag_id = tag2.id
-                            WHERE tag2.name IN (:tags))
+                            WHERE FIND_IN_SET(tag2.name, :tags)>0)
                             )
                     ELSE TRUE
                     END
