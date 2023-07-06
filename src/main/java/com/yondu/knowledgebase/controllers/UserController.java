@@ -1,6 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
+import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
@@ -10,6 +11,7 @@ import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.repositories.UserRepository;
+import com.yondu.knowledgebase.services.GroupService;
 import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.ReviewService;
 import com.yondu.knowledgebase.services.UserService;
@@ -39,6 +41,8 @@ public class UserController {
     private PageService pageService;
     @Autowired
     private ReviewService reviewService;
+    @Autowired
+    private GroupService groupService;
 
     @GetMapping("")
     public ResponseEntity<ApiResponse<PaginatedResponse<UserDTO.WithRolesResponse>>> getAllUser(
@@ -375,5 +379,13 @@ public class UserController {
 
         ApiResponse apiResponse = ApiResponse.success(userResponse, "Successfully changed password");
         return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/groups")
+    public ResponseEntity<ApiResponse<List<GroupDTO.GroupPermissions>>> getMyGroups() {
+        log.info("UserController.getMyGroups()");
+
+        List<GroupDTO.GroupPermissions> groupPermissions = groupService.getMyGroups();
+        return ResponseEntity.ok(ApiResponse.success(groupPermissions, "Fetched groups!"));
     }
 }

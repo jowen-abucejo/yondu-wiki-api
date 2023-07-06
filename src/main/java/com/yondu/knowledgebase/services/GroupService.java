@@ -228,4 +228,18 @@ public class GroupService {
         return null;
     }
 
+    public List<GroupDTO.GroupPermissions> getMyGroups() {
+        log.info("GroupService.getMyGroups()");
+
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        List<Group> groups = groupRepository.findAllGroupsByUser(user);
+        if(groups.isEmpty()){
+            throw new NoContentException("You have no groups.");
+        }
+
+        List<GroupDTO.GroupPermissions> groupDTOs = groups.stream().map(GroupDTOMapper::mapToGroupPermission).collect(Collectors.toList());
+        return groupDTOs;
+    }
+
 }
