@@ -58,10 +58,8 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
     private Set<Notification> notifications = new HashSet<>();
 
-    // @ManyToMany(fetch = FetchType.EAGER)
-    // @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "user_id"),
-    // inverseJoinColumns = @JoinColumn(name = "group_id"))
-    // private Set<Group> group = new HashSet<>();
+     @ManyToMany(mappedBy = "users",fetch = FetchType.EAGER)
+     private Set<Group> groups = new HashSet<>();
 
     // @ManyToMany(fetch = FetchType.EAGER)
     // @JoinTable(name = "user_rights", joinColumns = @JoinColumn(name = "user_id"),
@@ -237,6 +235,22 @@ public class User implements UserDetails {
 
     public Set<Notification> getNotifications() {
         return notifications;
+    }
+
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroup(Set<Group> groups) {
+        this.groups = groups;
+    }
+
+    public Set<DirectoryUserAccess> getDirectoryUserAccesses() {
+        return directoryUserAccesses;
+    }
+
+    public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
+        this.directoryUserAccesses = directoryUserAccesses;
     }
 
     // public Set<Rights> getRights() {

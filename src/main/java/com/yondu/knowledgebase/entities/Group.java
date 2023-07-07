@@ -25,7 +25,8 @@ public class Group {
     private User modifiedBy;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    @JoinTable(name = "user_group", joinColumns = @JoinColumn(name = "group_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users;
 
     @ManyToMany

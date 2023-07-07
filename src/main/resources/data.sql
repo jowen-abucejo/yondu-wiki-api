@@ -140,7 +140,11 @@ INSERT IGNORE INTO directory_user_access VALUES
 -- INITIALIZE USER RIGHTS
 -- INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
 
-INSERT IGNORE INTO CLUSTER(id, name, description, is_active) VALUES (1, "ALL", "Group for all users", true);
+INSERT IGNORE INTO CLUSTER(id, name, description, is_active) VALUES (1, "Yondu", "Group for all users", true);
+
+INSERT IGNORE INTO DIRECTORY_GROUP_ACCESS(id, directory_id, group_id, permission_id) VALUES
+(1, 1, 1, 19);
+
 
 -- INITIALIZE CATEGORIES
 INSERT IGNORE INTO category(id, is_deleted, name) VALUES
@@ -201,4 +205,12 @@ VALUES
 UPDATE directory SET workflow_id = 1 WHERE id = 1;
 ---- Add FULLTEXT index to the `title` column in the `page_version` table
 ALTER TABLE post ADD FULLTEXT INDEX idx_post_title_content (title, modified_content);
+
+INSERT IGNORE INTO user_group(group_id, user_id) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5),
+(1, 6);
 
