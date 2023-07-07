@@ -2,15 +2,11 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.post.PostDTO;
+import com.yondu.knowledgebase.DTO.post.PostSearchResult;
 import com.yondu.knowledgebase.enums.PageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -23,10 +19,10 @@ public class PostPageService {
         this.pageService = pageService;
     }
 
-    public PaginatedResponse<Object> getAllPostsAndPageSortedByDateCreated(int page, int size, String searchKey){
-        PaginatedResponse<PostDTO> postPage = postService.getAllPost(page, size, searchKey);
-        PaginatedResponse<PageDTO> pagePage = pageService.findAllByFullTextSearch(PageType.WIKI, searchKey, new Long[]{}, new String[]{}, new String[]{}, false, true, true, page, size,  new String[]{});
-        PaginatedResponse<PageDTO> announcementPage = pageService.findAllByFullTextSearch(PageType.ANNOUNCEMENT, searchKey, new Long[]{}, new String[]{}, new String[]{}, false, true, true, page, size,  new String[]{});
+    public PaginatedResponse<Object> getAllPostsAndPageSortedByDateCreated(String searchKey, String[] categories, String[] tags, Boolean isArchive, Boolean exactSearch, int page, int size, String[] sortBy, Boolean published){
+        PaginatedResponse<PostSearchResult> postPage = postService.findAllByFullTextSearch(searchKey, categories, tags, isArchive, exactSearch, page, size, sortBy);
+        PaginatedResponse<PageDTO> pagePage = pageService.findAllByFullTextSearch(PageType.WIKI, searchKey, new Long[]{}, categories, tags, isArchive, published, exactSearch, page, size,  sortBy);
+        PaginatedResponse<PageDTO> announcementPage = pageService.findAllByFullTextSearch(PageType.ANNOUNCEMENT, searchKey, new Long[]{}, categories, tags, isArchive, published, exactSearch, page, size,  sortBy);
         List<Object> contentList = new ArrayList<>();
         contentList.addAll(postPage.getData());
         contentList.addAll(pagePage.getData());

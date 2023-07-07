@@ -21,12 +21,18 @@ public class MainSearchController {
 
     @GetMapping("/main-search")
     public ResponseEntity<ApiResponse<PaginatedResponse<Object>>> getAllMainSearch(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "15") int size,
-            @RequestParam(defaultValue = "") String searchKey
+            @RequestParam(defaultValue = "", name = "key") String searchKey,
+            @RequestParam(defaultValue = "", name = "categories") String[] categories,
+            @RequestParam(defaultValue = "", name = "tags") String[] tags,
+            @RequestParam(defaultValue = "false", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "true", name = "exactSearch") Boolean exactSearch,
+            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
+            @RequestParam(defaultValue = "15", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
+            @RequestParam(defaultValue = "true", name = "published") Boolean published
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.success(postPageService.getAllPostsAndPageSortedByDateCreated(page, size, searchKey), "Success retrieving")
+                ApiResponse.success(postPageService.getAllPostsAndPageSortedByDateCreated(searchKey, categories, tags, archived, exactSearch, pageNumber, pageSize, sortBy, published), "Success retrieving")
         );
     }
 }
