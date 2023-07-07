@@ -3,6 +3,8 @@ package com.yondu.knowledgebase.services.implementations;
 import com.yondu.knowledgebase.DTO.comment.*;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.user.UserDTO;
+import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
@@ -73,6 +75,8 @@ public class CommentServiceImpl implements CommentService {
         }else throw new InvalidNotificationTypeException("Invalid entity type");
 
         Comment comment = CommentDTOMapper.mapToComment(request, user, entityType, entityId);
+        Set <User> commentMentions = Arrays.stream(request.commentMentions()).map(id->userRepository.findById(id).get()).collect(Collectors.toSet());
+        comment.setCommentMentions(commentMentions);
         String fromUser = user.getFirstName() + " " + user.getLastName();
         String contentType = data.get("contentType").toString();
         Long toUserId = (Long)data.get("authorId");
