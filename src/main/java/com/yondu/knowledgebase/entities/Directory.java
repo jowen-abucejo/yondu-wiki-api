@@ -45,6 +45,9 @@ public class Directory {
     @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
+    @OneToMany(mappedBy = "directory", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryGroupAccess> directoryGroupAccesses;
+
     public Directory() {}
 
     // creation of subdirectories
@@ -56,6 +59,7 @@ public class Directory {
         this.dateModified = LocalDate.now();
         this.parent = parent;
         this.directoryUserAccesses = new HashSet<>();
+        this.directoryGroupAccesses = new HashSet<>();
         this.subDirectories = new HashSet<>();
         this.pages = new HashSet<>();
     }
@@ -155,6 +159,14 @@ public class Directory {
 
     public void setWorkflow(Workflow workflow) {
         this.workflow = workflow;
+    }
+
+    public Set<DirectoryGroupAccess> getDirectoryGroupAccesses() {
+        return directoryGroupAccesses;
+    }
+
+    public void setDirectoryGroupAccesses(Set<DirectoryGroupAccess> directoryGroupAccesses) {
+        this.directoryGroupAccesses = directoryGroupAccesses;
     }
 
     @Override

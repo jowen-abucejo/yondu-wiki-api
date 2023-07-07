@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.entities;
 
 import jakarta.persistence.*;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -15,13 +16,16 @@ public class Permission {
     private String category;
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<UserPageAccess> userPageAccess;
+    private Set<UserPageAccess> userPageAccess = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY)
-    private Set<GroupPageAccess> groupPageAccess;
+    private Set<GroupPageAccess> groupPageAccess = new HashSet<>();
 
     @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private Set<DirectoryUserAccess> directoryUserAccesses;
+    private Set<DirectoryUserAccess> directoryUserAccesses = new HashSet<>();
+
+    @OneToMany(mappedBy = "permission", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<DirectoryGroupAccess> directoryGroupAccesses = new HashSet<>();
 
     public Permission() {
     }
@@ -73,6 +77,38 @@ public class Permission {
 
     public void setDirectoryUserAccesses(Set<DirectoryUserAccess> directoryUserAccesses) {
         this.directoryUserAccesses = directoryUserAccesses;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public void setUserPageAccess(Set<UserPageAccess> userPageAccess) {
+        this.userPageAccess = userPageAccess;
+    }
+
+    public void setGroupPageAccess(Set<GroupPageAccess> groupPageAccess) {
+        this.groupPageAccess = groupPageAccess;
+    }
+
+    public Set<DirectoryGroupAccess> getDirectoryGroupAccesses() {
+        return directoryGroupAccesses;
+    }
+
+    public void setDirectoryGroupAccesses(Set<DirectoryGroupAccess> directoryGroupAccesses) {
+        this.directoryGroupAccesses = directoryGroupAccesses;
     }
 
     @Override

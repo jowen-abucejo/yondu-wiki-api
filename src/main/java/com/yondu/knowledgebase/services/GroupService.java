@@ -138,6 +138,12 @@ public class GroupService {
     }
 
     public GroupDTO.BaseResponse editGroupById(Long id, GroupDTO.UpdateGroupRequest request) {
+        if (request.name() == null || request.name().isEmpty() || request.description() == null || request.description().isEmpty()) {
+            throw new RequestValidationException("name must not be empty");
+        }
+
+        
+
         Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
 
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -147,10 +153,6 @@ public class GroupService {
         group.setModifiedBy(currentUser);
         group.setDateModified(LocalDateTime.now());
         group.setActive(request.isActive());
-
-        if (request.name() == null || request.name().isEmpty() || request.description() == null || request.description().isEmpty()) {
-            throw new RequestValidationException("name must not be empty");
-        }
 
         Set<User> members = new HashSet<>();
         for (Long memberId : request.members()) {

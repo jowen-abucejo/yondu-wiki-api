@@ -28,17 +28,15 @@ public class Group {
     @JoinTable(name = "group_users", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
     private Set<User> users;
 
-    // @ManyToMany(fetch = FetchType.LAZY)
-    // @JoinTable(name = "group_rights", joinColumns = @JoinColumn(name =
-    // "group_id"), inverseJoinColumns = @JoinColumn(name = "rights_id"))
-    // private Set<Rights> rights;
-
     @ManyToMany
     @JoinTable(name = "group_permissions", joinColumns = @JoinColumn(name = "group_id"), inverseJoinColumns = @JoinColumn(name = "permission_id"))
     private Set<Permission> permissions;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<GroupPageAccess> groupPageAccess = new HashSet<>();
+
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<DirectoryGroupAccess> directoryGroupAccesses = new HashSet<>();
 
     public Group() {
     }
@@ -129,14 +127,6 @@ public class Group {
         this.users = users;
     }
 
-    // public Set<Rights> getRights() {
-    // return rights;
-    // }
-
-    // public void setRights(Set<Rights> rights) {
-    // this.rights = rights;
-    // }
-
     public Set<GroupPageAccess> getGroupPageAccess() {
         return groupPageAccess;
     }
@@ -151,6 +141,14 @@ public class Group {
 
     public void setPermissions(Set<Permission> permissions) {
         this.permissions = permissions;
+    }
+
+    public Set<DirectoryGroupAccess> getDirectoryGroupAccesses() {
+        return directoryGroupAccesses;
+    }
+
+    public void setDirectoryGroupAccesses(Set<DirectoryGroupAccess> directoryGroupAccesses) {
+        this.directoryGroupAccesses = directoryGroupAccesses;
     }
 
     @Override
