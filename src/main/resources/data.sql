@@ -140,8 +140,8 @@ INSERT IGNORE INTO directory_user_access VALUES
 -- INITIALIZE USER RIGHTS
 -- INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
 
-INSERT IGNORE INTO CLUSTER(id, name, description, is_active) VALUES (1, "Yondu", "Group for all users", true);
-
+INSERT IGNORE INTO CLUSTER(id, name, description, is_active, date_created) VALUES (1, "Yondu", "Group for all users", true, CURRENT_DATE);
+INSERT IGNORE INTO GROUP_PERMISSIONS VALUES (1, 19);
 INSERT IGNORE INTO DIRECTORY_GROUP_ACCESS(id, directory_id, group_id, permission_id) VALUES
 (1, 1, 1, 19);
 
