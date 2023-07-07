@@ -206,7 +206,7 @@ UPDATE directory SET workflow_id = 1 WHERE id = 1;
 ---- Add FULLTEXT index to the `title` column in the `page_version` table
 ALTER TABLE post ADD FULLTEXT INDEX idx_post_title_content (title, modified_content);
 
-INSERT IGNORE INTO user_group(group_id, user_id) VALUES
+INSERT IGNORE INTO group_users(group_id, user_id) VALUES
 (1, 1),
 (1, 2),
 (1, 3),
