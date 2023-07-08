@@ -147,7 +147,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
                                             directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
@@ -220,13 +220,13 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
                                             AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga ON gu10.group_id = dga.group_id LEFT JOIN
-                                            permission p10 ON dga.permission_id = p10.id
+                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
+                                            permission p10 ON dga10.permission_id = p10.id
                                             WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dga.directory_id = p.directory_id AND c10.is_active=1)
+                                            AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
                                         OR (:pendingOnly AND EXISTS(SELECT u10.id FROM users u10
                                             LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
                                             workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
@@ -345,7 +345,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT dga10.page_id FROM users u10 LEFT JOIN
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
                                             directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
@@ -417,13 +417,13 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             permission p10 ON dua10.permission_id = p10.id
                                             WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
                                             AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
+                                        OR EXISTS(SELECT dga10.page_id FROM users u10 LEFT JOIN
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga ON gu10.group_id = dga.group_id LEFT JOIN
-                                            permission p10 ON dga.permission_id = p10.id
+                                            directory_group_access dga ON gu10.group_id = dga10.group_id LEFT JOIN
+                                            permission p10 ON dga10.permission_id = p10.id
                                             WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dga.directory_id = p.directory_id AND c10.is_active=1)
+                                            AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
                                         OR (:pendingOnly AND EXISTS(SELECT u10.id FROM users u10
                                             LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
                                             workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
