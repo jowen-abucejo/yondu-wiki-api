@@ -28,7 +28,7 @@ public class PostPageService {
         contentList.addAll(pagePage.getData());
         contentList.addAll(announcementPage.getData());
 
-        long total = postPage.getSize() + pagePage.getSize() + announcementPage.getSize();
+        long total = postPage.getTotal() + pagePage.getTotal() + announcementPage.getTotal();
 
         PaginatedResponse<Object> result = new PaginatedResponse<>(contentList, page, size, total);
         System.out.println(result);
