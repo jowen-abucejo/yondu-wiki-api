@@ -10,7 +10,8 @@ public enum Permission {
     DELETE_CONTENT(7, "Content", "Allows user to delete created content", "DELETE_CONTENT"),
     READ_CONTENT(8, "Content", "Allows user to read created contents", "READ_CONTENT"),
     CONTENT_APPROVAL(9, "Content Moderation", "Allows user to approve created content", "CONTENT_APPROVAL"),
-    COMMENT_AVAILABILITY(10, "Comment", "Allows user to enable or disable content", "COMMENT_AVAILABILITY"),
+    COMMENT_AVAILABILITY(10, "Comment", "Allows user to enable or disable comment availability",
+            "COMMENT_AVAILABILITY"),
     CREATE_COMMENT(11, "Comment", "Allows user to create comment in a page", "CREATE_COMMENT"),
     UPDATE_COMMENT(12, "Comment", "Allows user to update comment in a page", "UPDATE_COMMENT"),
     DELETE_COMMENT(13, "Comment", "Allows user to delete their own comment", "DELETE_COMMENT"),
@@ -25,7 +26,8 @@ public enum Permission {
     DELETE_ROLES(22, "Roles", "Allow user to delete roles", "DELETE_ROLES"),
     MANAGE_ROLES(23, "Roles", "Allow user to manage roles", "MANAGE_ROLES"),
     READ_ROLES(24, "Roles", "Allow user to view roles", "READ_ROLES"),
-    MANAGE_DIRECTORY_PERMISSIONS(25, "Directory", "Allow user to manage the directory permissions", "MANAGE_DIRECTORY_PERMISSIONS"),
+    MANAGE_DIRECTORY_PERMISSIONS(25, "Directory", "Allow user to manage the directory permissions",
+            "MANAGE_DIRECTORY_PERMISSIONS"),
     MANAGE_PAGE_PERMISSIONS(26, "Content", "Allow user to manage the page permissions", "MANAGE_PAGE_PERMISSIONS");
 
     private long id;
