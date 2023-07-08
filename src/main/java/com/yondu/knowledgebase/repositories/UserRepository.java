@@ -68,31 +68,45 @@ public interface UserRepository extends JpaRepository<User, Long> {
                         LEFT JOIN permission p ON gpa.permission_id = p.id
                         WHERE
                             p.name = :permission AND u.id = :userId
-                                AND gpa.page_id = :pageId))) AS isGranted
+                                AND gpa.page_id = :pageId)
+                    OR EXISTS(SELECT
+                            p.id
+                        FROM
+                            users u
+                        LEFT JOIN group_users gu ON u.id = gu.user_id
+                        LEFT JOIN directory_group_access dga ON gu.group_id = dga.group_id
+                        LEFT JOIN page pa ON dga.directory_id=pa.directory_id
+                        LEFT JOIN permission p ON dga.permission_id = p.id
+                        WHERE
+                            p.name = :permission AND u.id = :userId
+                                AND pa.id = :pageId))) AS isGranted
                                                         """)
     public Long userHasPagePermission(Long userId, Long pageId, String permission);
 
     @Query(nativeQuery = true, value = """
             SELECT
                 (EXISTS(SELECT
-                            p.id
-                        FROM
-                            users u
+                        p.id
+                    FROM
+                        users u
                         LEFT JOIN user_role ur ON u.id = ur.user_id
                         LEFT JOIN role_permission rp ON rp.role_id = ur.role_id
                         LEFT JOIN permission p ON rp.permission_id = p.id
-                        WHERE
-                            p.name = :permission AND u.id = :userId)
-                    AND EXISTS(SELECT
-                            p.id
-                        FROM
-                            users u
+                    WHERE
+                        p.name = 'VIEW_DIRECTORY' AND u.id = 1))
+                AND EXISTS(SELECT DISTINCT
+                        pr.id
+                    FROM
+                        users u
                         LEFT JOIN directory_user_access dua ON u.id = dua.user_id
-                        LEFT JOIN permission p ON dua.permission_id = p.id
-                        WHERE
-                            p.name = :permission AND u.id = :userId
-                                AND dua.directory_id = :directoryId)) AS isGranted
-                                                """)
+                        LEFT JOIN group_users gu ON u.id = gu.user_id
+                        LEFT JOIN directory_group_access dga ON gu.group_id = dga.group_id
+                        LEFT JOIN permission pr ON (pr.id = dua.permission_id OR pr.id = dga.permission_id)
+                    WHERE
+                        u.id = :userId AND pr.name = :permission
+                        AND (dua.directory_id = :directoryId OR dga.directory_id = :directoryId)
+                ) AS isGranted
+                                                        """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
 
     @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2 AND r.roleName = ?3")
