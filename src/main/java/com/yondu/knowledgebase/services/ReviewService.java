@@ -140,7 +140,7 @@ public class ReviewService {
 
         Review review = new Review();
         review.setPageVersion(pageVersion);
-        review.setUser(null);
+        review.setUser(currentUser);
         review.setWorkflowStep(null);
         review.setComment("");
         review.setReviewDate(LocalDateTime.now());

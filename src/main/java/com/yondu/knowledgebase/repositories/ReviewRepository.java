@@ -17,13 +17,12 @@ import java.util.Set;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-
-    Page<Review> findAllByStatus (ReviewStatus status, Pageable pageable);
+    Page<Review> findAllByStatus(ReviewStatus status, Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE lower(r.pageVersion.title) like %:title%")
     Page<Review> findAllByPageVersionTitle(String title, Pageable pageable);
 
-    Page<Review> findAll (Pageable pageable);
+    Page<Review> findAll(Pageable pageable);
 
     @Query("SELECT r FROM Review r WHERE r.pageVersion.id = :pageVersionId " +
             "AND r.pageVersion.page.id = :pageId " +
@@ -39,7 +38,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("""
             SELECT r FROM Review r WHERE r.pageVersion.id = ?1
             AND r.pageVersion.page.id = ?2
-            AND r.status != 'PENDING'
             """)
     List<Review> findAllApprovedByPageIdAndPageVersionId(Long pageVersionId, Long pageId);
 
