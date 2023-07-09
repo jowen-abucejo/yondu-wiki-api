@@ -25,14 +25,16 @@ public class MainSearchController {
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
             @RequestParam(defaultValue = "false", name = "archived") Boolean archived,
+            @RequestParam(defaultValue = "", name = "author") Long authorId,
             @RequestParam(defaultValue = "true", name = "exactSearch") Boolean exactSearch,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "15", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
-            @RequestParam(defaultValue = "true", name = "published") Boolean published
-    ) {
+            @RequestParam(defaultValue = "true", name = "published") Boolean published) {
         return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.success(postPageService.getAllPostsAndPageSortedByDateCreated(searchKey, categories, tags, archived, exactSearch, pageNumber, pageSize, sortBy, published), "Success retrieving")
-        );
+                ApiResponse.success(
+                        postPageService.getAllPostsAndPageSortedByDateCreated(searchKey, categories, tags,
+                                authorId, archived, exactSearch, pageNumber, pageSize, sortBy, published),
+                        "Success retrieving"));
     }
 }

@@ -19,8 +19,8 @@ public class PostPageService {
         this.pageService = pageService;
     }
 
-    public PaginatedResponse<Object> getAllPostsAndPageSortedByDateCreated(String searchKey, String[] categories, String[] tags, Boolean isArchive, Boolean exactSearch, int page, int size, String[] sortBy, Boolean published){
-        PaginatedResponse<PostSearchResult> postPage = postService.findAllByFullTextSearch(searchKey, categories, tags, isArchive, exactSearch, page, size, sortBy);
+    public PaginatedResponse<Object> getAllPostsAndPageSortedByDateCreated(String searchKey, String[] categories, String[] tags, Long authorId, Boolean isArchive, Boolean exactSearch, int page, int size, String[] sortBy, Boolean published){
+        PaginatedResponse<PostSearchResult> postPage = postService.findAllByFullTextSearch(searchKey, categories, tags, authorId, isArchive, exactSearch, page, size, sortBy);
         PaginatedResponse<PageDTO> pagePage = pageService.findAllByFullTextSearch(PageType.WIKI, searchKey, new Long[]{}, categories, tags, isArchive, published, exactSearch, page, size,  sortBy);
         PaginatedResponse<PageDTO> announcementPage = pageService.findAllByFullTextSearch(PageType.ANNOUNCEMENT, searchKey, new Long[]{}, categories, tags, isArchive, published, exactSearch, page, size,  sortBy);
         List<Object> contentList = new ArrayList<>();
@@ -34,6 +34,5 @@ public class PostPageService {
         System.out.println(result);
         return result;
     }
-
 
 }

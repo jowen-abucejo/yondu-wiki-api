@@ -96,6 +96,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 users a ON p.author = a.id
             WHERE
                 p.is_deleted = 0
+                AND (:authorId IS NULL OR p.author=:authorId)
                 AND p.is_active <> :isArchived
                 AND CASE
                     WHEN :categories IS NOT NULL AND :categories <> ''
@@ -135,5 +136,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("isArchived") Boolean isArchived,
             @Param("categories") String categories,
             @Param("tags") String tags,
+            @Param("authorId") Long authorId,
             Pageable pageable);
 }
