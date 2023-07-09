@@ -420,7 +420,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga ON gu10.group_id = dga10.group_id LEFT JOIN
+                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
                                             permission p10 ON dga10.permission_id = p10.id
                                             WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
                                             AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
