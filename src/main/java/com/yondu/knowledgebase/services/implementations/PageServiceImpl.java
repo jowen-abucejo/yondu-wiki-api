@@ -128,8 +128,6 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
             // lock the page
             checkLock(pageDraft.getPage(), true);
 
-            setTitleAndContents(pageDTO, pageDraft);
-
             var categories = setCategories(pageDTO.getCategories(), pageDraft.getPage());
             var tags = setTags(pageDTO.getTags(), pageDraft.getPage());
 
@@ -144,6 +142,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 pageDraft = newVersion;
                 reviewsCount = new Long[] { 0L, 0L, 0L };
             }
+
+            setTitleAndContents(pageDTO, pageDraft);
 
             pageDraft = pageVersionRepository.save(pageDraft);
 
