@@ -69,6 +69,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             WHERE a.approver = ?1
             AND r.status = ?2
             AND pv.title LIKE ?3
+            AND r.user = null
             """)
     Page<Review> findAllByUser(User currentUser, String status, String searchKey, PageRequest pageRequest);
 }

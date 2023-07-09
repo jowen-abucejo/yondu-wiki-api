@@ -57,7 +57,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
-            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' AND c.isDeleted = false" +
             "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
             "WHERE (p.author.id = :id) " +
             "AND (:searchKey IS NULL OR :searchKey = '' OR p.title LIKE %:searchKey% OR p.modifiedContent LIKE %:searchKey% OR p.author.username LIKE %:searchKey% OR p.author.email LIKE %:searchKey% OR CONCAT(p.author.firstName, ' ', p.author.lastName) LIKE %:searchKey% OR EXISTS (SELECT t FROM p.tags t WHERE t.name LIKE %:searchKey%) OR EXISTS (SELECT c FROM p.categories c WHERE c.name LIKE %:searchKey%)) "
