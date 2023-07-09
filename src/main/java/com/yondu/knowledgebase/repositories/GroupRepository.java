@@ -15,7 +15,9 @@ import java.util.Optional;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
+
+    Optional<Group> findByNameIgnoreCase(String name);
     @Query("SELECT g FROM cluster g WHERE g.id = :userGroupId AND g.isActive = :isActive ")
     Optional<Group> findByIdAndIsActive(Long userGroupId, Boolean isActive);
 

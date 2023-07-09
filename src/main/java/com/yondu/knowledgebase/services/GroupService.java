@@ -6,10 +6,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Group;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
-import com.yondu.knowledgebase.exceptions.NoContentException;
-import com.yondu.knowledgebase.exceptions.RequestValidationException;
-import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
+import com.yondu.knowledgebase.exceptions.*;
 import com.yondu.knowledgebase.repositories.GroupRepository;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
@@ -114,7 +111,7 @@ public class GroupService {
             throw new RequestValidationException("Name and Description are required");
         }
 
-        if (groupRepository.existsByName(request.name())) {
+        if (groupRepository.existsByNameIgnoreCase(request.name())) {
             throw new DuplicateResourceException(String.format("Group name '%s' already exists", request.name()));
         }
 
@@ -138,15 +135,23 @@ public class GroupService {
     }
 
     public GroupDTO.BaseResponse editGroupById(Long id, GroupDTO.UpdateGroupRequest request) {
+        if (id == 1) {
+            throw new AccessDeniedException();
+        }
+
         if (request.name() == null || request.name().isEmpty() || request.description() == null || request.description().isEmpty()) {
             throw new RequestValidationException("name must not be empty");
         }
 
-        
-
         Group group = groupRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException("Group not found with ID: " + id));
 
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        Group groupToCompare = groupRepository.findByNameIgnoreCase(request.name()).orElse(null);
+        // check if name already exists
+        if (groupToCompare != null && !groupToCompare.equals(group) ) {
+            throw new DuplicateResourceException(String.format("Group name '%s' already exists!", request.name()));
+        }
 
         group.setName(request.name());
         group.setDescription(request.description());
