@@ -106,10 +106,10 @@ public class PostController {
             @RequestParam(defaultValue = "0", name = "exactSearch") Boolean exactSearch,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
+            @RequestParam(defaultValue = "", name = "author") Long author,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
-        return postService.findAllByFullTextSearch(searchKey, categories, tags, archived, exactSearch, pageNumber,
-                pageSize,
-                sortBy);
+        return postService.findAllByFullTextSearch(searchKey, categories, tags, author, archived, exactSearch,
+                pageNumber, pageSize, sortBy);
     }
 
 }

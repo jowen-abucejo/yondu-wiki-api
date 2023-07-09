@@ -277,7 +277,7 @@ public class PostService {
     }
 
     public PaginatedResponse<PostSearchResult> findAllByFullTextSearch(
-            String searchKey, String[] categories, String[] tags,
+            String searchKey, String[] categories, String[] tags, Long authorId,
             Boolean isArchive, Boolean exactSearch, Integer pageNumber,
             Integer pageSize, String[] sortBy) {
         int retrievedPage = Math.max(1, pageNumber);
@@ -299,7 +299,7 @@ public class PostService {
         // Fetch ids and relevance scores, will use to display sorted and filtered posts
         var postResults = postRepository.findByFullTextSearch(
                 searchKey, exactSearch, isArchive, NativeQueryUtils.arrayToSqlStringList(categories),
-                NativeQueryUtils.arrayToSqlStringList(tags), paging)
+                NativeQueryUtils.arrayToSqlStringList(tags),  authorId, paging)
                 .orElse(null);
 
         // create a list of ids of posts to fetch

@@ -564,7 +564,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
                         null, null, userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] { pageId }), null,
-                        true, true, false, paging)
+                        true, false, false, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
