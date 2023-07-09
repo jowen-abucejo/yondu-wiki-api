@@ -379,7 +379,7 @@ public class ReviewService {
                     .stream().map(ReviewDTOMapper::mapToBaseResponse).collect(Collectors.toList());
 
             PaginatedResponse<ReviewDTO.BaseResponse> result = new PaginatedResponse<>(reviewDTOS, page, size,
-                    reviewForUser.getTotalElements());
+                    (long)reviewForUser.getTotalPages());
             return result;
         } else {
             throw new NoContentException("No reviews retrieved for this user.");
