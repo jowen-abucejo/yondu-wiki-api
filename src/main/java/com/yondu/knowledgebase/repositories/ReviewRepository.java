@@ -38,6 +38,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("""
             SELECT r FROM Review r WHERE r.pageVersion.id = ?1
             AND r.pageVersion.page.id = ?2
+            AND r.user != null
             """)
     List<Review> findAllApprovedByPageIdAndPageVersionId(Long pageVersionId, Long pageId);
 
