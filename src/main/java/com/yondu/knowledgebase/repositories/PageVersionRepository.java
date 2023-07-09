@@ -176,7 +176,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                                 (v.page_id , v.id) IN
                                                 (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
                                                     (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                        WHERE rCheck2.totalPendingReviews > 1)
+                                                        WHERE rCheck2.totalPendingReviews > 0)
                                                 GROUP BY pv.page_id)
                                                 )
                                             OR (
@@ -185,7 +185,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                                 (v.page_id , v.id) IN
                                                 (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
                                                     (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                        WHERE rCheck3.totalPendingReviews <= 1)
+                                                        WHERE rCheck3.totalPendingReviews = 0)
                                                 GROUP BY pv.page_id)
                                                 )
                                         )
@@ -373,7 +373,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                                 (v.page_id , v.id) IN
                                                 (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
                                                     (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                        WHERE rCheck2.totalPendingReviews > 1)
+                                                        WHERE rCheck2.totalPendingReviews > 0)
                                                 GROUP BY pv.page_id)
                                                 )
                                             OR (
@@ -382,7 +382,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                                 (v.page_id , v.id) IN
                                                 (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
                                                     (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                        WHERE rCheck3.totalPendingReviews <= 1)
+                                                        WHERE rCheck3.totalPendingReviews = 0)
                                                 GROUP BY pv.page_id)
                                                 )
                                         )
