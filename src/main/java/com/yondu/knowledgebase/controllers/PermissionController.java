@@ -45,7 +45,7 @@ public class PermissionController {
     public ResponseEntity<ApiResponse<Set<Long>>> getAllUserPermissionByPageId(@PathVariable Long pageId) {
         Set<Long> permissions = permissionService.getAllUserPermissionByPageId(pageId);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(permissions, "Success retrieving list of directory permissions"));
+                .body(ApiResponse.success(permissions, "Success retrieving list of page permissions"));
     }
 
 }

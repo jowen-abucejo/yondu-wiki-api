@@ -45,7 +45,7 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
                     OR p.directory_id = d2.id
                     OR p.id = gpa.page_id)
             WHERE
-                u.id = :userId AND p.id = :pageId
+                u.id = :userId AND p.id = :pageId AND (gpa.page_id = :pageId OR upa.page_id = :pageId)
                 """)
     public Set<Long> findAllDistinctIdByPageIdAndUserId(Long pageId, Long userId);
 
