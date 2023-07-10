@@ -157,6 +157,13 @@ public class DirectoryService {
         savedDirectory.setWorkflow(savedWorkflow);
         directoryRepository.save(savedDirectory);
 
+        /**
+         * Save the creator's
+         * access to the user directory access.
+         */
+        List<DirectoryUserAccess> creatorAccesses = creatorUserAccess(savedDirectory, currentUser);
+        directoryUserAccessRepository.saveAll(creatorAccesses);
+
         List<DirectoryUserAccess> newUserAccess = request.userAccess().stream()
                 .map((access) -> new DirectoryUserAccess(savedDirectory,
                         permissionRepository.findById(access.permissionId())
@@ -602,5 +609,25 @@ public class DirectoryService {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return getDirectoriesByUserAccess(com.yondu.knowledgebase.enums.Permission.CREATE_CONTENT, currentUser.getId(),
                 page, size);
+    }
+
+    public List<DirectoryUserAccess> creatorUserAccess(Directory directory, User user) {
+        if(user == null) {
+            throw new UserException("User Not Found");
+        }
+
+        List<Permission> permissionsToBeAddedToCreator = new ArrayList<>();
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.CREATE_DIRECTORY.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.UPDATE_DIRECTORY.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.DELETE_DIRECTORY.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.VIEW_DIRECTORY.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.MANAGE_DIRECTORY_PERMISSIONS.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.CREATE_CONTENT.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.UPDATE_CONTENT.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.DELETE_CONTENT.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.READ_CONTENT.getId()));
+        permissionsToBeAddedToCreator.add(new Permission(com.yondu.knowledgebase.enums.Permission.CONTENT_APPROVAL.getId()));
+
+        return permissionsToBeAddedToCreator.stream().map(permission -> new DirectoryUserAccess(directory, permission, user)).collect(Collectors.toList());
     }
 }
