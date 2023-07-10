@@ -64,6 +64,11 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 mb.email AS modifiedByEmail,
                 mb.profile_photo AS modifiedByProfilePhoto,
                 mb.position AS modifiedByPosition,
+                lb.first_name AS lockedByFirstName,
+                lb.last_name AS lockedByLastName,
+                lb.email AS lockedByEmail,
+                lb.profile_photo AS lockedByProfilePhoto,
+                lb.position AS lockedByPosition,
                 p.id AS pageId,
                 p.is_active AS isActive,
                 p.allow_comment AS allowComment,
@@ -81,6 +86,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 page p ON v.page_id = p.id LEFT JOIN
                 users mb ON v.modified_by = mb.id LEFT JOIN
                 users a ON p.author = a.id LEFT JOIN
+                users lb ON p.locked_by = lb.id LEFT JOIN
                 directory dr ON dr.id = p.directory_id LEFT JOIN
                 workflow w ON w.directory_id=dr.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
@@ -279,6 +285,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 page p ON v.page_id = p.id LEFT JOIN
                 users mb ON v.modified_by = mb.id LEFT JOIN
                 users a ON p.author = a.id LEFT JOIN
+                users lb ON p.locked_by = lb.id LEFT JOIN
                 directory dr ON dr.id = p.directory_id LEFT JOIN
                 workflow w ON w.directory_id=dr.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
