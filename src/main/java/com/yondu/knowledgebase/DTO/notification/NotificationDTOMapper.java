@@ -12,7 +12,8 @@ public class NotificationDTOMapper {
                 notification.getFromUser().getId(),
                 notification.getMessage(),
                 notification.getTimestamp(),
-                notification.isRead());
+                notification.isRead(),
+                notification.getNotificationType());
     }
 
     public static Notification mapBaseToEntity(NotificationDTO.BaseRequest base, User user, User fromUser) {
@@ -35,7 +36,8 @@ public class NotificationDTOMapper {
                 notification.getTimestamp(),
                 notification.isRead(),
                 notification.getType(),
-                notification.getTypeId()
+                notification.getTypeId(),
+                notification.getNotificationType()
         );
     }
 }
