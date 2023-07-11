@@ -96,6 +96,17 @@ public class CategoryController {
                 .body(ApiResponse.success(newCategoryDTO, "Category has been successfully deleted"));
     }
 
+    @PutMapping("/categories/{id}/restore")
+    public ResponseEntity<ApiResponse<CategoryDTO>> restoreCategory(@PathVariable Long id) {
+        Category category = categoryService.getCategory(id);
+
+        Category updatedCategory = categoryService.restoreCategory(category);
+        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(newCategoryDTO, "Category has been successfully restored"));
+    }
+
+
     @GetMapping("/categories/{id}")
     public ResponseEntity<ApiResponse<CategoryDTO>> getCategoryById(@PathVariable Long id) {
         Category category = categoryService.getCategory(id);

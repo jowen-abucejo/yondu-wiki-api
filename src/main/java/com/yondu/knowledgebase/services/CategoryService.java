@@ -69,4 +69,10 @@ public class CategoryService {
 
         return updatedCategory;
     }
+
+    public Category restoreCategory(Category category) {
+        category.setDeleted(false);
+        categoryRepository.save(category);
+        return category;
+    }
 }
