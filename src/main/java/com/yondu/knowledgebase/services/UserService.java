@@ -188,41 +188,19 @@ public class UserService implements UserDetailsService {
     }
 
     public PaginatedResponse<UserDTO.WithRolesResponse> getAllUser(String searchKey, String statusFilter, String roleFilter, int page, int size) {
-        log.info("UserService.getAllUser()");
-        log.info("searchKey: " + searchKey);
-        log.info("statusFilter: " + statusFilter);
-        log.info("roleFilter: " + roleFilter);
-        log.info("page: " + page);
-        log.info("size: " + size);
-
         PageRequest pageRequest = PageRequest.of(page - 1, size);
-        Page<User> userPages;
-
-        if (!statusFilter.isEmpty() && !roleFilter.isEmpty()) {
-            userPages = userRepository.findAllByFullNameAndStatusAndRole(searchKey, statusFilter, roleFilter, pageRequest);
-        } else if (!statusFilter.isEmpty()) {
-            userPages = userRepository.findAllByFullNameAndStatus(searchKey, statusFilter, pageRequest);
-        } else if (!roleFilter.isEmpty()) {
-            userPages = userRepository.findAllByFullNameAndRole(searchKey, roleFilter, pageRequest);
-        } else if(!searchKey.isEmpty()){
-            userPages = userRepository.findAllByFullName(searchKey, pageRequest);
-        }else{
-            userPages = userRepository.findAll(pageRequest);
+        Page<User> userPages = userRepository.findAllUsers(searchKey, statusFilter, roleFilter, pageRequest);
+        if (userPages == null || userPages.isEmpty()) {
+            throw new NoContentException("No content found");
         }
 
         List<User> users = userPages.getContent();
 
-        if (users.isEmpty()) {
-            throw new NoContentException("No content found");
-        }
-
         List<UserDTO.WithRolesResponse> userDTOs = users.stream()
-                .map(user -> UserDTOMapper.mapToWithRolesResponse(user))
+                .map(UserDTOMapper::mapToWithRolesResponse)
                 .collect(Collectors.toList());
 
-        PaginatedResponse<UserDTO.WithRolesResponse> paginatedResponse = new PaginatedResponse<>(userDTOs, page, size, (long) userPages.getTotalPages());
-
-        return paginatedResponse;
+        return new PaginatedResponse<>(userDTOs, page, size, (long) userPages.getTotalPages());
     }
 
 
