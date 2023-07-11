@@ -110,9 +110,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                                         """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
 
-    @Query("SELECT u FROM users u JOIN u.role r WHERE ((:searchKey IS NULL OR :searchKey = '') OR (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%)) AND ((:statusFilter IS NULL OR :statusFilter = '') OR u.status = :statusFilter) AND ((:roleFilter IS NULL OR :roleFilter = '') OR r.roleName = :roleFilter)")
-    Page<User> findAllUsers(@Param("searchKey") String searchKey, @Param("statusFilter") String statusFilter, @Param("roleFilter") String roleFilter, Pageable pageable);
+    @Query("SELECT u FROM users u JOIN u.role r WHERE (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%) AND u.status = :statusFilter AND r.roleName = :roleFilter")
+    Page<User> findAllByFullNameAndStatusAndRole(@Param("searchKey") String searchKey, @Param("statusFilter") String statusFilter, @Param("roleFilter") String roleFilter, Pageable pageable);
 
+    @Query("SELECT u FROM users u JOIN u.role r WHERE (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%) AND u.status = :statusFilter")
+    Page<User> findAllByFullNameAndStatus(@Param("searchKey") String searchKey, @Param("statusFilter") String statusFilter, Pageable pageable);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%) AND r.roleName = :roleFilter")
+    Page<User> findAllByFullNameAndRole(@Param("searchKey") String searchKey, @Param("roleFilter") String roleFilter, Pageable pageable);
+
+    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%")
+    Page<User> findAllByFullName(@Param("searchKey") String searchKey, Pageable pageable);
 
 
     @Query("""
