@@ -52,7 +52,7 @@ public class RoleController {
     @GetMapping("/roles/{id}")
     public ResponseEntity<ApiResponse<RoleDTO>> getRoleByID(@PathVariable Long id) {
         RoleDTO role = roleService.getRole(id);
-        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role, "Role with id: " + id + " found"));
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(role, "Role found"));
     }
 
     @PostMapping("/roles/{id}")
@@ -66,6 +66,6 @@ public class RoleController {
     public ResponseEntity<ApiResponse<Long>> deleteRoleById(@PathVariable Long id) {
         roleService.deleteRoleById(id);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(id, "Role with " +id+ " has been delete successfully"));
+                .body(ApiResponse.success(id, "Role has been delete successfully"));
     }
 }

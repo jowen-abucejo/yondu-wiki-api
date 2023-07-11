@@ -93,11 +93,11 @@ public class Tag {
 
     @Override
     public boolean equals(Object o) {
-        return (o instanceof Tag) && ((Tag) o).getName().equals(this.getName());
+        return (o instanceof Tag) && ((Tag) o).getName().toLowerCase().equals(this.getName().toLowerCase());
     }
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return name.toLowerCase().hashCode();
     }
 }
