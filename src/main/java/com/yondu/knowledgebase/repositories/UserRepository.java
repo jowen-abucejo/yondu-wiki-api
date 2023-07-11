@@ -110,10 +110,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
                                                         """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
 
-    @Query("SELECT u FROM users u JOIN u.role r WHERE CONCAT(u.firstName, ' ', u.lastName) LIKE %?1% AND u.status = ?2 AND r.roleName = ?3")
-    Page<User> findAllByFullNameAndStatusAndRole(String fullName, String statusFilter, String roleFilter,
-            Pageable pageable);
-
     @Query("SELECT u FROM users u JOIN u.role r WHERE ((:searchKey IS NULL OR :searchKey = '') OR (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%)) AND ((:statusFilter IS NULL OR :statusFilter = '') OR u.status = :statusFilter) AND ((:roleFilter IS NULL OR :roleFilter = '') OR r.roleName = :roleFilter)")
     Page<User> findAllUsers(@Param("searchKey") String searchKey, @Param("statusFilter") String statusFilter, @Param("roleFilter") String roleFilter, Pageable pageable);
 
