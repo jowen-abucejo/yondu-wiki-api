@@ -162,7 +162,7 @@ public class DirectoryController {
      *         user can create content.
      */
     @GetMapping(path = "/create-content")
-    public PaginatedResponse<DirectoryDTO.GetResponse> getDirectoriesWithCreateContentPermission(
+    public PaginatedResponse<DirectoryDTO.GetMinimizeResponse> getDirectoriesWithCreateContentPermission(
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize) {
         return directoryService.getDirectoriesWithCreateContentPermission(pageNumber, pageSize);
