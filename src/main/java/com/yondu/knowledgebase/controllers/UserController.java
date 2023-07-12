@@ -345,18 +345,26 @@ public class UserController {
      * @return PaginatedResponse<ReviewDTO.BaseResponse>
      */
     @GetMapping("/reviews")
-    public ResponseEntity<ApiResponse<PaginatedResponse<ReviewDTO.BaseResponse>>> getReviewRequestsForUser(@RequestParam(defaultValue = "1") int page,
-                                                                                                           @RequestParam(defaultValue = "10") int size,
-                                                                                                           @RequestParam(defaultValue = "") String searchKey,
-                                                                                                           @RequestParam(defaultValue = "PENDING") String status) {
+    public ResponseEntity<ApiResponse<List<ReviewDTO.BaseResponse>>> getReviewRequestsForUser(@RequestParam(defaultValue = "") String searchKey,
+                                                                                              @RequestParam(defaultValue = "PENDING") String status) {
         log.info("UserController.getReviewsByUser()");
-        log.info("page : " + page);
-        log.info("size : " + size);
         log.info("status : " + status);
         log.info("searchKey : " + searchKey);
 
-        PaginatedResponse<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUser(page, size, searchKey, status);
-        return ResponseEntity.ok(ApiResponse.success(reviews, "Successfully retrieved reviews"));
+        List<ReviewDTO.BaseResponse> reviews = reviewService.getReviewRequestForUserList(searchKey, status);
+        List<ReviewDTO.BaseResponse> reviewsToApprove = new ArrayList<>();
+
+        for (ReviewDTO.BaseResponse review : reviews) {
+            Long pageId = review.version().page().id();
+            Long versionId = review.version().id();
+            Map<String, Long> canApproveResponse = reviewService.canApproverApproveContent(pageId, versionId);
+
+            if (canApproveResponse.get("can_approve")==1) {
+                reviewsToApprove.add(review);
+            }
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(reviewsToApprove, "Successfully retrieved reviews"));
     }
 
     /**

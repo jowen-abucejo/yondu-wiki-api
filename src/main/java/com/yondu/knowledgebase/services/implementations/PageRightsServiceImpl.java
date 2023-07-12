@@ -1,11 +1,17 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
+import com.yondu.knowledgebase.DTO.page_rights.PageDTO;
+import com.yondu.knowledgebase.DTO.page_rights.PageDTOMapper;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTO;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTOMapper;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTOMapper;
 import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
+import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.*;
 import com.yondu.knowledgebase.services.PageRightsService;
 import com.yondu.knowledgebase.services.UserPermissionValidatorService;
@@ -213,6 +219,97 @@ public class PageRightsServiceImpl implements PageRightsService {
 
         return PageRightsDTOMapper.mapToPageRightsOfPageResponse(page, groupDTO, userDTO );
 
+    }
+
+    @Override
+    public PageRightsDTO.GetPageRightResponse getPageRightsOfUserToPage(Long pageId) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page not found."));
+
+        Set<UserPageAccess> userPageAccesses = userPageAccessRepository.findByUserAndPage(currentUser, page);
+
+        Set<PageRightsDTO.RightsPermissionResponse> permissions = userPageAccesses
+                .stream()
+                .map(upa -> new PageRightsDTO.RightsPermissionResponse(upa.getId(), PermissionDTOMapper.mapToBaseResponse(upa.getPermission())))
+                .collect(Collectors.toSet());
+
+        PageRightsDTO.GetPageRightResponse response = PageRightsDTOMapper.mapToPageRightResponse(page, permissions);
+        return response;
+    }
+
+    @Override
+    public void checkUserHasRights(Long pageId, Set<PermissionDTO.BaseRequest> permissions) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page not found."));
+
+        Set<UserPageAccess> userPageAccesses = userPageAccessRepository.findByUserAndPage(currentUser, page);
+        Set<Permission> fetchedPermissions = permissions
+                .stream()
+                .map(p -> permissionRepository.findById(p.id()).orElseThrow(() -> new ResourceNotFoundException("Permission not found.")))
+                .collect(Collectors.toSet());
+
+        for(Permission p : fetchedPermissions) {
+            /**
+             * Check if the permission has match.
+             */
+            boolean hasMatch = userPageAccesses.stream()
+                    .anyMatch(upa -> upa.getPermission().getId() == p.getId());
+            /**
+             * Throws access denied
+             * if a single permission is missing.
+             */
+            if(!hasMatch) throw new AccessDeniedException();
+        }
+    }
+
+    @Override
+    public void checkIfOtherUserHasRights(Long pageId, Long userId, Set<PermissionDTO.BaseRequest> permissions) {
+        User currentUser = userRepository.findById(userId).orElseThrow(() -> new UserException("The user does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page not found."));
+
+        Set<UserPageAccess> userPageAccesses = userPageAccessRepository.findByUserAndPage(currentUser, page);
+        Set<Permission> fetchedPermissions = permissions
+                .stream()
+                .map(p -> permissionRepository.findById(p.id()).orElseThrow(() -> new ResourceNotFoundException("Permission not found.")))
+                .collect(Collectors.toSet());
+
+        for(Permission p : fetchedPermissions) {
+            /**
+             * Check if the permission has match.
+             */
+            boolean hasMatch = userPageAccesses.stream()
+                    .anyMatch(upa -> upa.getPermission().getId() == p.getId());
+            /**
+             * Throws access denied
+             * if a single permission is missing.
+             */
+            if(!hasMatch) throw new AccessDeniedException();
+        }
+    }
+
+    @Override
+    public void checkIfGroupHasRights(Long pageId, Long groupId, Set<PermissionDTO.BaseRequest> permissions) {
+        Group group = groupRepository.findById(groupId).orElseThrow(() -> new ResourceNotFoundException("No group found."));
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page not found."));
+
+        Set<GroupPageAccess> groupPageAccesses = groupPageAccessRepository.findByGroupAndPage(group, page);
+        Set<Permission> fetchedPermissions = permissions
+                .stream()
+                .map(p -> permissionRepository.findById(p.id()).orElseThrow(() -> new ResourceNotFoundException("Permission not found.")))
+                .collect(Collectors.toSet());
+
+        for(Permission p : fetchedPermissions) {
+            /**
+             * Check if the permission has match.
+             */
+            boolean hasMatch = groupPageAccesses.stream()
+                    .anyMatch(upa -> upa.getPermission().getId() == p.getId());
+            /**
+             * Throws access denied
+             * if a single permission is missing.
+             */
+            if(!hasMatch) throw new AccessDeniedException();
+        }
     }
 
     private boolean checkIfManagePermissionExists(Long pageId){

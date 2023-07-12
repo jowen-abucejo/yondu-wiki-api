@@ -2,7 +2,10 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTO;
+import com.yondu.knowledgebase.DTO.permission.PermissionDTO;
 import com.yondu.knowledgebase.entities.Page;
+
+import java.util.Set;
 
 public interface PageRightsService {
 
@@ -20,5 +23,14 @@ public interface PageRightsService {
 
     PageRightsDTO.GetUserGroupPageRightResponse getPageRightsOfUserGroup(Long userGroupId);
 
-    PageRightsDTO.GetPageRightOfPageResponse getAllUsersOfPage(Long pageId);}
+    PageRightsDTO.GetPageRightOfPageResponse getAllUsersOfPage(Long pageId);
+
+    PageRightsDTO.GetPageRightResponse getPageRightsOfUserToPage(Long pageId);
+
+    void checkUserHasRights(Long pageId, Set<PermissionDTO.BaseRequest> permissions);
+
+    void checkIfOtherUserHasRights(Long pageId, Long userId, Set<PermissionDTO.BaseRequest> permissions);
+
+    void checkIfGroupHasRights(Long pageId, Long groupId, Set<PermissionDTO.BaseRequest> permissions);
+}
 
