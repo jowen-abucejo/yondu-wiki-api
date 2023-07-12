@@ -386,6 +386,23 @@ public class ReviewService {
         }
     }
 
+    public List<ReviewDTO.BaseResponse> getReviewRequestForUserList(String searchKey,
+                                                                    String status) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        searchKey = "%" + searchKey + "%";
+
+        List<Review> reviewForUser = reviewRepository.findAllByUserList(currentUser, status, searchKey);
+
+        if (!reviewForUser.isEmpty()) {
+            List<ReviewDTO.BaseResponse> reviewDTOS = reviewForUser
+                    .stream().map(ReviewDTOMapper::mapToBaseResponse).collect(Collectors.toList());
+            return reviewDTOS;
+        } else {
+            throw new NoContentException("No reviews retrieved for this user.");
+        }
+    }
+
     public List<ReviewDTO.ApproverResponse> getReviewsByPage(Long pageId, Long pageVersion) {
         List<Review> reviews = reviewRepository.findAllApprovedByPageIdAndPageVersionId(pageVersion, pageId);
         if (!reviews.isEmpty()) {
