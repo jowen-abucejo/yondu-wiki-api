@@ -72,4 +72,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             AND r.user = null
             """)
     Page<Review> findAllByUser(User currentUser, String status, String searchKey, PageRequest pageRequest);
+
+    @Query("""
+            SELECT r FROM Review r
+            JOIN r.pageVersion pv
+            JOIN pv.page p
+            JOIN p.directory d
+            JOIN d.workflow w
+            JOIN w.steps s
+            JOIN s.approvers a
+            WHERE a.approver = ?1
+            AND r.status = ?2
+            AND pv.title LIKE ?3
+            AND r.user = null
+            """)
+    List<Review> findAllByUserList(User currentUser, String status, String searchKey);
 }
