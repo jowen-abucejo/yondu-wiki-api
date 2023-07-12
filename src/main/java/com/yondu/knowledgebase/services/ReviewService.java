@@ -244,8 +244,7 @@ public class ReviewService {
                     NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
         } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())) {
             notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                    String.format("Your content has been disapproved by %s due to ", currentUser.getEmail())
-                            + review.getComment(),
+                    String.format("Your content has been disapproved by %s!", currentUser.getEmail()),
                     NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
         }
 
