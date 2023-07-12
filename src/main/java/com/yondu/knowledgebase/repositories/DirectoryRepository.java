@@ -13,6 +13,10 @@ import java.util.Optional;
 public interface DirectoryRepository extends JpaRepository<Directory, Long> {
     Optional<Directory> findByNameAndParent(String name, Directory parent);
 
+    // TODO: Custom query to retrieve full path as string
+    // @Query(nativeQuery = true, value = """
+
+    // """)
     Optional<Page<Directory>> findByDirectoryUserAccessesPermissionNameAndDirectoryUserAccessesUserId(String permission,
             Long userId, Pageable paging);
 }

@@ -28,25 +28,30 @@ public class DirectoryDTOMapper {
                 directory.getDateCreated(),
                 directory.getDateModified(),
                 getPathFromParentToChild(directory),
-                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse).collect(Collectors.toSet()),
-                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep).collect(Collectors.toSet()),
-                directory.getDirectoryUserAccesses().stream().map(DirectoryDTOMapper::mapToUserAccess).collect(Collectors.toSet()),
-                directory.getDirectoryGroupAccesses().stream().map(DirectoryDTOMapper::mapToGroupAccess).collect(Collectors.toSet()));
+                directory.getSubDirectories().stream().map(DirectoryDTOMapper::mapToGetResponse)
+                        .collect(Collectors.toSet()),
+                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep)
+                        .collect(Collectors.toSet()),
+                directory.getDirectoryUserAccesses().stream().map(DirectoryDTOMapper::mapToUserAccess)
+                        .collect(Collectors.toSet()),
+                directory.getDirectoryGroupAccesses().stream().map(DirectoryDTOMapper::mapToGroupAccess)
+                        .collect(Collectors.toSet()));
     }
 
     public static DirectoryDTO.ShortResponse mapToShortResponse(Directory directory) {
         return new DirectoryDTO.ShortResponse(
                 directory.getId(),
-                directory.getName()
-        );
+                directory.getName());
     }
 
-    public static DirectoryDTO.UserAccess mapToUserAccess(DirectoryUserAccess directoryUserAccess){
-        return new DirectoryDTO.UserAccess(UserDTOMapper.mapToGeneralResponse(directoryUserAccess.getUser()), directoryUserAccess.getPermission().getId());
+    public static DirectoryDTO.UserAccess mapToUserAccess(DirectoryUserAccess directoryUserAccess) {
+        return new DirectoryDTO.UserAccess(UserDTOMapper.mapToGeneralResponse(directoryUserAccess.getUser()),
+                directoryUserAccess.getPermission().getId());
     }
 
-    public static DirectoryDTO.GroupAccess mapToGroupAccess(DirectoryGroupAccess directoryGroupAccess){
-        return new DirectoryDTO.GroupAccess(GroupDTOMapper.mapToBaseResponse(directoryGroupAccess.getGroup()), directoryGroupAccess.getPermission().getId());
+    public static DirectoryDTO.GroupAccess mapToGroupAccess(DirectoryGroupAccess directoryGroupAccess) {
+        return new DirectoryDTO.GroupAccess(GroupDTOMapper.mapToBaseResponse(directoryGroupAccess.getGroup()),
+                directoryGroupAccess.getPermission().getId());
     }
 
     public static DirectoryDTO.Approver mapToApprover(User user) {
@@ -61,14 +66,15 @@ public class DirectoryDTOMapper {
                 workflowStep.getApprovers()
                         .stream()
                         .map((u) -> DirectoryDTOMapper.mapToApprover(u.getApprover()))
-                        .toList()
-        );
+                        .toList());
     }
 
-//    private static String traverse(Directory directory) {
-//        if (directory.getParent() == null) return directory.getId() + "->" + directory.getName();
-//        return traverse(directory.getParent()) + "/" + directory.getId() + "->" + directory.getName();
-//    }
+    // private static String traverse(Directory directory) {
+    // if (directory.getParent() == null) return directory.getId() + "->" +
+    // directory.getName();
+    // return traverse(directory.getParent()) + "/" + directory.getId() + "->" +
+    // directory.getName();
+    // }
 
     private static List<DirectoryDTO.ShortResponse> getPathFromParentToChild(Directory directory) {
         List<DirectoryDTO.ShortResponse> fullPath = new ArrayList<>();
@@ -87,5 +93,16 @@ public class DirectoryDTOMapper {
         }
 
         return fullPath;
+    }
+
+    public static DirectoryDTO.GetMinimizeResponse mapToGetMinimizeResponse(Directory directory) {
+        return new DirectoryDTO.GetMinimizeResponse(
+                directory.getId(),
+                directory.getName(),
+                directory.getDescription(),
+                directory.getDateCreated(),
+                directory.getDateModified(),
+                directory.getWorkflow().getSteps().stream().map(DirectoryDTOMapper::mapToWorkflowStep)
+                        .collect(Collectors.toSet()));
     }
 }
