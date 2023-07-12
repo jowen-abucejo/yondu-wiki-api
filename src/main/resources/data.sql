@@ -38,7 +38,7 @@ VALUES
 (17, 'UPDATE_DIRECTORY', 'Allow user to update directory', 'Directory'),
 (18, 'DELETE_DIRECTORY', 'Allow user to delete directory', 'Directory'),
 (19, 'VIEW_DIRECTORY', 'Allow user to view directory', 'Directory'),
-(25, 'MANAGE_DIRECTOR_PERMISSIONS', 'Allow user to manage the directory permissions', 'Directory'),
+(25, 'MANAGE_DIRECTORY_PERMISSIONS', 'Allow user to manage the directory permissions', 'Directory'),
 -- ROLES
 (20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
 (21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
