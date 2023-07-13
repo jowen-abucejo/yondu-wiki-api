@@ -157,9 +157,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
                                             directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p.id
+                                            permission p10 ON dga10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
-
                                         )
                                     )
                                 )
@@ -356,7 +355,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
                                             cluster c10 ON c10.id = gu10.group_id LEFT JOIN
                                             directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p.id
+                                            permission p10 ON dga10.permission_id = p10.id
                                             WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
                                         )
                                     )
