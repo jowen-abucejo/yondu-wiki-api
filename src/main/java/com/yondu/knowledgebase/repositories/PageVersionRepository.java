@@ -138,6 +138,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
                                         permission p10 ON rp10.permission_id = p10.id
                                         WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
+                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
+                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
+                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
+                                        permission p10 ON gp10.permission_id = p10.id
+                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
                                     AND (
                                         EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                                 user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
@@ -206,6 +212,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         permission p10 ON rp10.permission_id = p10.id
                                         WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                         AND u10.id = :userId)
+                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
+                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
+                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
+                                        permission p10 ON gp10.permission_id = p10.id
+                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
                                     AND (
                                         (NOT :approverOnly AND p.author = :userId)
                                         OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
@@ -336,6 +348,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
                                         permission p10 ON rp10.permission_id = p10.id
                                         WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
+                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
+                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
+                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
+                                        permission p10 ON gp10.permission_id = p10.id
+                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
                                     AND (
                                         EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
                                                 user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
@@ -404,6 +422,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         permission p10 ON rp10.permission_id = p10.id
                                         WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
                                         AND u10.id = :userId)
+                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
+                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
+                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
+                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
+                                        permission p10 ON gp10.permission_id = p10.id
+                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
                                     AND (
                                         (NOT :approverOnly AND p.author = :userId)
                                         OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN

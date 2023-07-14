@@ -25,15 +25,18 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
                     LEFT JOIN
                 directory_user_access dua ON u.id = dua.user_id
                     LEFT JOIN
-                directory d ON dua.directory_id = d.id
-                    LEFT JOIN
                 group_users gu ON u.id = gu.user_id
                     LEFT JOIN
-                group_page_access gpa ON gu.group_id = gpa.group_id
+                (SELECT
+                    id, is_active
+                FROM
+                    cluster
+                WHERE
+                    is_active) ct ON ct.id = gu.group_id
                     LEFT JOIN
-                directory_group_access dga ON gu.group_id = dga.group_id
+                group_page_access gpa ON ct.id = gpa.group_id
                     LEFT JOIN
-                directory d2 ON dga.directory_id = d2.id
+                directory_group_access dga ON ct.id = dga.group_id
                     LEFT JOIN
                 permission pr ON (pr.id = upa.permission_id
                     OR pr.id = dua.permission_id
@@ -41,11 +44,14 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
                     OR pr.id = dga.permission_id)
                     LEFT JOIN
                 page p ON (p.id = upa.page_id
-                    OR p.directory_id = d.id
-                    OR p.directory_id = d2.id
+                    OR p.directory_id = dga.directory_id
+                    OR p.directory_id = dua.directory_id
                     OR p.id = gpa.page_id)
             WHERE
-                u.id = :userId AND p.id = :pageId AND (gpa.page_id = :pageId OR upa.page_id = :pageId)
+                u.id = :userId AND p.id = :pageId
+                    AND (gpa.page_id = :pageId OR upa.page_id = :pageId
+                    OR dga.directory_id = p.directory_id
+                    OR dua.directory_id = p.directory_id)
                 """)
     public Set<Long> findAllDistinctIdByPageIdAndUserId(Long pageId, Long userId);
 
@@ -59,7 +65,14 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
                     LEFT JOIN
                 group_users gu ON u.id = gu.user_id
                     LEFT JOIN
-                directory_group_access dga ON gu.group_id = dga.group_id
+                (SELECT
+                    id, is_active
+                FROM
+                    cluster
+                WHERE
+                    is_active) ct ON ct.id = gu.group_id
+                    LEFT JOIN
+                directory_group_access dga ON ct.id = dga.group_id
                     LEFT JOIN
                 permission pr ON (
                     pr.id = dua.permission_id
