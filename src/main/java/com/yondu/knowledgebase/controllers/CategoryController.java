@@ -16,6 +16,7 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.DTO.category.CategoryMapper;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.Post;
@@ -299,6 +300,17 @@ public class CategoryController {
 
         CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
         return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Post category updated successfully"));
+    }
+
+
+        @GetMapping("/categories/paginated")
+    public ResponseEntity<?> getPaginatedCategory(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PaginatedResponse<CategoryDTO> paginatedCategories = categoryService.getPaginatedCategories(page, size);
+
+        ApiResponse apiResponse = ApiResponse.success(paginatedCategories, "Retrieved categories successfully");
+        return ResponseEntity.ok(apiResponse);
     }
 
 }

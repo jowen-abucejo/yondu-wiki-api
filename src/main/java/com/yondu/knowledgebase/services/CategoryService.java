@@ -1,10 +1,14 @@
 package com.yondu.knowledgebase.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
+import com.yondu.knowledgebase.DTO.category.CategoryMapper;
+import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +19,15 @@ public class CategoryService {
     
     @Autowired
     private CategoryRepository categoryRepository;
+
+        private  CategoryMapper categoryMapper;
+  
+
+    public CategoryService(CategoryMapper categoryMapper, CategoryRepository categoryRepository) {
+        this.categoryMapper = categoryMapper;
+        this.categoryRepository = categoryRepository;
+    }
+
 
     public Category addCategory(Category category){
         categoryRepository.save(category);
@@ -74,5 +87,19 @@ public class CategoryService {
         category.setDeleted(false);
         categoryRepository.save(category);
         return category;
+    }
+
+    public PaginatedResponse<CategoryDTO> getPaginatedCategories(
+            int page,
+            int size) {
+
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Category> category = categoryRepository.searchCategories(pageRequest);
+        List<Category> categories = category.getContent();
+
+        List<CategoryDTO> categoryDTOs = categories.stream()
+                .map(categoryMapper::toDto)
+                .collect(Collectors.toList());
+        return new PaginatedResponse<>(categoryDTOs, page, size, (long) category.getTotalPages());
     }
 }
