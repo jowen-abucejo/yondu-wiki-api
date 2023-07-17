@@ -3,8 +3,6 @@ package com.yondu.knowledgebase.services.implementations;
 import com.yondu.knowledgebase.DTO.comment.*;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
@@ -60,12 +58,14 @@ public class CommentServiceImpl implements CommentService {
                 }else if(selectedPage.getType().equals(ContentType.ANNOUNCEMENT.getCode())){
                     data.put("contentType",ContentType.ANNOUNCEMENT.getCode());
                 }
+                data.put("contentTitle",page.getBody().getTitle());
                 data.put("authorId",selectedPage.getAuthor().getId());
                 data.put("contentId",page.getId());
             }
         }else if (entityType.equals(ContentType.POST.getCode())){
             Post post = postRepository.findById(entityId).orElseThrow(() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
             if (post.getActive() && post.getAllowComment()){
+                data.put("contentTitle",post.getTitle());
                 data.put("contentType",ContentType.POST.getCode());
                 data.put("authorId",post.getAuthor().getId());
                 data.put("contentId",post.getId());
@@ -91,13 +91,13 @@ public class CommentServiceImpl implements CommentService {
                 if(!parentComment.isAllowReply())
                     throw new CommentIsNotAllowed("Replies are turned off in this comment");
                 User parentCommentUser = userRepository.findById(parentComment.getUser().getId()).orElseThrow(()->new ResourceNotFoundException(String.format("User ID not found : %d",parentComment.getUser().getId())));
-                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),user.getId(),String.format("%s replied on your comment", fromUser), NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
+                notificationService.createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(),user.getId(),String.format("%s replied \"%s\" on your comment ", fromUser, getShortenString(comment.getComment())), NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
             }else{
                 throw new ResourceNotFoundException(String.format("Comment ID not found: %d",parentCommentId));
             }
         }else {
             //User to be notified that there is a new comment in the content
-            notificationService.createNotification(new NotificationDTO.BaseRequest(toUserId,user.getId(),String.format("%s added a comment on your %s", fromUser, contentType.toLowerCase()), NotificationType.COMMENT.getCode(), contentType, contentId));
+            notificationService.createNotification(new NotificationDTO.BaseRequest(toUserId,user.getId(),String.format("%s added a comment on your %s \"%s\"", fromUser, contentType.toLowerCase(), getShortenString(data.get("contentTitle").toString())), NotificationType.COMMENT.getCode(), contentType, contentId));
         }
         commentRepository.save(comment);
 
@@ -112,9 +112,10 @@ public class CommentServiceImpl implements CommentService {
             commentReplies.add(comment);
             parentComment.setCommentReplies(commentReplies);
             commentRepository.save(parentComment);
-            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), parentComment.getId(), "created a comment");
-        }else
-            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), "created a comment");
+            auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), parentComment.getId(), String.format("replied \"%s\" to a comment",getShortenString(comment.getComment())));
+        }
+
+        auditLogService.createAuditLog(user,ContentType.REPLY.getCode(), comment.getId(), String.format("created a comment \"%s\" in the content type of %s titled \"%s\"",getShortenString(comment.getComment()), contentType.toLowerCase(), getShortenString(data.get("contentTitle").toString())));
         return CommentDTOMapper.mapToBaseResponse(comment);
     }
 
@@ -188,4 +189,12 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.searchComments(key);
         return comments.stream().map(CommentDTOMapper::mapToShortResponse).collect(Collectors.toList());
     }
+
+    public String getShortenString (String text){
+        if (text.length() > 30) {
+            return text.substring(0, 30) + "...";
+        }
+        return text;
+    }
+
 }
