@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalUpvoteDTO;
+import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
 import com.yondu.knowledgebase.entities.Rating;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
@@ -140,5 +141,11 @@ public class RatingServiceImpl implements RatingService {
 			authorId = comment.getUser().getId();
 		}
 		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()));
+	}
+
+	@Override
+	public TotalVoteDTO totalVote(Long entityId, String entityType) {
+		Integer total = ratingRepository.countTotalVoteByEntityIdAndEntityType(entityId, entityType);
+		return new TotalVoteDTO(entityId,entityType,total);
 	}
 }
