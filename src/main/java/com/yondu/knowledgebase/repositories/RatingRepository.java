@@ -22,9 +22,9 @@ public interface RatingRepository extends JpaRepository<Rating, Long>{
 	
 	@Query(value = "SELECT COUNT(*) FROM rating WHERE entity_id=:entity_id AND entity_type=:entity_type AND is_active=1", nativeQuery = true)
 	public int countTotalVoteByEntityIdAndEntityType(Long entity_id, String entity_type);
-	@Query(value = "SELECT ( SELECT COUNT(*) FROM rating WHERE entity_id=:entity_id AND entity_type=:entity_type AND is_active=1 AND rating='UP'", nativeQuery = true)
+	@Query(value = "SELECT COUNT(*) FROM rating WHERE entity_id=:entity_id AND entity_type=:entity_type AND is_active=1 AND rating='UP'", nativeQuery = true)
 	public int countUpvoteByEntityAndEntityType(Long entity_id, String entity_type);
 
-	@Query(value = "SELECT ( SELECT COUNT(*) FROM rating WHERE entity_id=:entity_id AND entity_type=:entity_type AND is_active=1 AND rating='DOWN'", nativeQuery = true)
+	@Query(value = "SELECT COUNT(*) FROM rating WHERE entity_id=:entity_id AND entity_type=:entity_type AND is_active=1 AND rating='DOWN'", nativeQuery = true)
 	public int countDownVoteByEntityAndEntityType(Long entity_id, String entity_type);
 }
