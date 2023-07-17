@@ -51,10 +51,11 @@ public class PageController {
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
-            @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys) {
+            @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
+            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
 
         return pageService.findAllByFullTextSearch(pageType, searchKey, primaryKeys, categories, tags, archived,
-                published, exactSearch, pageNumber, pageSize, sortBy);
+                published, exactSearch, pageNumber, pageSize, fromDate, sortBy);
     }
 
     @GetMapping(path = "pages")
@@ -63,10 +64,11 @@ public class PageController {
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "50", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
+            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
 
         return pageService.findAllByFullTextSearch(pageType, "", new Long[] {}, categories, tags, false, true, false,
-                pageNumber, pageSize, sortBy);
+                pageNumber, pageSize, fromDate, sortBy);
     }
 
     @GetMapping(path = "pages/{id}/versions")
