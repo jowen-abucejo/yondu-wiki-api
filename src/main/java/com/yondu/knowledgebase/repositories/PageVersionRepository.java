@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.repositories;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 
@@ -109,6 +110,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
                     THEN
                         FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
+                    ELSE TRUE
+                    END
+                AND CASE
+                    WHEN :fromDate IS NOT NULL AND :fromDate <> ''
+                    THEN
+                        DATE(p.date_created) >= :fromDate
                     ELSE TRUE
                     END
                 AND p.is_deleted = 0
@@ -321,6 +328,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
                     ELSE TRUE
                     END
+                AND CASE
+                    WHEN :fromDate IS NOT NULL AND :fromDate <> ''
+                    THEN
+                        DATE(p.date_created) >= :fromDate
+                    ELSE TRUE
+                    END
                 AND p.is_deleted = 0
                 AND (
                         CASE WHEN :isPublished OR :allVersions
@@ -515,6 +528,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("pendingOnly") Boolean pendingOnly,
             @Param("draftOnly") Boolean draftOnly,
             @Param("approverOnly") Boolean approverOnly,
+            @Param("fromDate") LocalDateTime fromDate,
             Pageable pageable);
 
 }
