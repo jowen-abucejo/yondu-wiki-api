@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalUpvoteDTO;
+import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
 import com.yondu.knowledgebase.services.RatingService;
 
 @RestController
@@ -39,5 +40,10 @@ public class RatingController {
 	@GetMapping("/users/upvotes")
 	public RatingDTO checkIfEntityUpvoted(@RequestParam(value="entity_id") Long entityId, @RequestParam(value="type") String entityType) {
 		return ratingService.ratingByEntityIdAndEntityType(entityId,entityType);
+	}
+	
+	@GetMapping("/total")
+	public TotalVoteDTO totalVoteByEntityIdAndEntityType(@RequestParam(value="id") Long entityId, @RequestParam(value="type") String entityType) {
+		return ratingService.totalVote(entityId, entityType);
 	}
 }

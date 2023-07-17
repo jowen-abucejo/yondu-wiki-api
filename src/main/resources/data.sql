@@ -213,4 +213,3 @@ INSERT IGNORE INTO group_users(group_id, user_id) VALUES
 (1, 4),
 (1, 5),
 (1, 6);
-
