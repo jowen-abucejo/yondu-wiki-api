@@ -146,6 +146,8 @@ public class RatingServiceImpl implements RatingService {
 	@Override
 	public TotalVoteDTO totalVote(Long entityId, String entityType) {
 		Integer total = ratingRepository.countTotalVoteByEntityIdAndEntityType(entityId, entityType);
-		return new TotalVoteDTO(entityId,entityType,total);
+		Integer upvote = ratingRepository.countUpvoteByEntityAndEntityType(entityId, entityType);
+		Integer downvote = ratingRepository.countDownVoteByEntityAndEntityType(entityId, entityType);
+		return new TotalVoteDTO(entityId,entityType, upvote, downvote, total);
 	}
 }
