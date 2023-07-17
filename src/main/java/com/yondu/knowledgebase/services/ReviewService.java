@@ -125,7 +125,6 @@ public class ReviewService {
             throw new RequestValidationException("Someone already disapproved the content.");
 
         boolean pageOwner = currentUser.getId().equals(pageVersion.getPage().getAuthor().getId());
-        System.out.println(pageOwner);
         long pId = pageVersion.getPage().getId();
 
         String requiredPermission = Permission.CREATE_CONTENT.getCode();
@@ -161,15 +160,18 @@ public class ReviewService {
                 for (User approver : approvers) {
 
                     if (!reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), approver)) {
+
+                        String pageType = review.getPageVersion().getPage().getType();
+                        String capitalizedPageType = pageType.substring(0, 1).toUpperCase() + pageType.substring(1).toLowerCase();
+
                         notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(),
                                 review.getPageVersion().getPage().getAuthor().getId(),
-                                String.format("A content needs to be approved for page ID %d",
-                                        pageVersion.getPage().getId()),
+                                String.format("Content Approval: %s `%s` is waiting for your approval.",
+                                        capitalizedPageType, pageVersion.getTitle()),
                                 NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),
                                 pageVersion.getPage().getId()));
                     }
                 }
-                break;
             }
         }
         auditLogService.createAuditLog(currentUser, EntityType.PAGE.getCode(), pId,
