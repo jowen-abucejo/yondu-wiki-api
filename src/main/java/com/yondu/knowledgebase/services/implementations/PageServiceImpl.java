@@ -1,9 +1,11 @@
 package com.yondu.knowledgebase.services.implementations;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,6 +26,7 @@ import com.yondu.knowledgebase.Utils.NativeQueryUtils;
 import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
+import com.yondu.knowledgebase.entities.ReadPage;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
@@ -32,6 +35,7 @@ import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PageVersionRepository;
+import com.yondu.knowledgebase.repositories.ReadPageRepository;
 import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.services.PageRightsService;
 import com.yondu.knowledgebase.services.PageService;
@@ -44,24 +48,22 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     private final PageVersionRepository pageVersionRepository;
     private final PageRightsService pageRightsService;
     private final AuditorAware<User> auditorAware;
+    private final ReadPageRepository readPageRepository;
 
     private final Logger log = LoggerFactory.getLogger(PageServiceImpl.class);
 
-    /**
-     * @param pageRepository
-     * @param pageVersionRepository
-     * @param auditorAware
-     */
     public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository,
             UserPermissionValidatorService userPermissionValidatorService,
             PageRightsService pageRightsService,
             AuditorAware<User> auditorAware, TagRepository tagRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository,
+            ReadPageRepository readPageRepository) {
         super(userPermissionValidatorService, auditorAware, categoryRepository, tagRepository);
         this.pageRepository = pageRepository;
         this.pageVersionRepository = pageVersionRepository;
         this.pageRightsService = pageRightsService;
         this.auditorAware = auditorAware;
+        this.readPageRepository = readPageRepository;
     }
 
     @Override
@@ -259,7 +261,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
                         null, null, userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] { id }), null,
-                        true, true, false, paging)
+                        true, true, false, null, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -273,8 +275,17 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
     public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
             Long[] primaryKeys, String[] categories,
             String[] tags, Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-            Integer pageSize, String[] sortBy) {
+            Integer pageSize, String startDate, String[] sortBy) {
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+
+        LocalDateTime fromDate = null;
+        if (startDate != null && !startDate.isEmpty()) {
+            try {
+                fromDate = LocalDate.parse(startDate).atStartOfDay();
+            } catch (Exception e) {
+            }
+        }
+
         int retrievedPage = Math.max(1, pageNumber);
 
         // configure pageable size and orders
@@ -293,7 +304,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                         isPublished, false, NativeQueryUtils.arrayToSqlStringList(categories),
                         NativeQueryUtils.arrayToSqlStringList(tags), userId,
                         NativeQueryUtils.arrayToSqlStringList(primaryKeys), null, true, true,
-                        false, paging)
+                        false, fromDate, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -322,7 +333,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, false,
                         null, null, userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] { id }), null,
-                        false, false, false,
+                        false, false, false, null,
                         PageRequest.of(0, 100))
                 .orElse(null);
 
@@ -369,10 +380,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
         var optionalPageVersions = pageVersionRepository
                 .findByFullTextSearch(pageType.getCode(), searchKey, exactSearch, isArchive,
-                        isPublished, true, NativeQueryUtils.arrayToSqlStringList(categories),
+                        isPublished, false, NativeQueryUtils.arrayToSqlStringList(categories),
                         NativeQueryUtils.arrayToSqlStringList(tags), userId, null, directoryId,
-                        true,
-                        true, false, paging)
+                        true, true, false, null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -413,7 +423,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                         false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
                         NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, false,
-                        false, false, paging)
+                        false, false, null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -450,7 +460,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                         false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
                         NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, true,
-                        false, approverOnly, paging)
+                        false, approverOnly, null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -489,7 +499,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                         false, false, NativeQueryUtils.arrayToSqlStringList(new String[] {}),
                         NativeQueryUtils.arrayToSqlStringList(new String[] {}), userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] {}), null, false, true,
-                        false, paging)
+                        false, null, paging)
                 .orElse(null);
 
         var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -549,7 +559,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 
         if (!pageRepository.existsByIdAndTypeAndDeleted(pageId, pageType.getCode(), false))
-            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType));
+            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, versionId, pageType));
 
         // configure pageable size and orders
         var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
@@ -564,7 +574,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
                 .findByFullTextSearch(pageType.getCode(), "", true, false, true, true,
                         null, null, userId,
                         NativeQueryUtils.arrayToSqlStringList(new Long[] { pageId }), null,
-                        true, false, false, paging)
+                        true, false, false, null, paging)
                 .orElse(null);
 
         if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -585,4 +595,31 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
         return convertMapToPageDTO(versionAsPageBody.get(0), pageList);
     }
 
+    @Override
+    public PageDTO markAsRead(PageType pageType, Long pageId) {
+        User user = auditorAware.getCurrentAuditor().orElse(new User());
+
+        if (!pageRepository.existsByIdAndTypeAndDeleted(pageId, pageType.getCode(), false))
+            throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType));
+
+        Page announcementToMarkAsRead = new Page();
+        announcementToMarkAsRead.setId(pageId);
+
+        readPageRepository.save(new ReadPage(user, announcementToMarkAsRead));
+
+        return findById(pageId);
+    }
+
+    @Override
+    public List<PageDTO> getUnreadPages(PageType pageType) {
+        Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+        String fromDate = LocalDate.now().minusDays(30).toString();
+
+        var pages = findAllByFullTextSearch(pageType, "", new Long[] {},
+                new String[] {}, new String[] {}, false, true,
+                false, 1, 100, fromDate, new String[] {});
+        var readPages = readPageRepository.findAllPageIdByUserIdAndPageType(userId, pageType.getCode());
+
+        return pages.getData().stream().filter(page -> !readPages.contains(page.getId())).toList();
+    }
 }

@@ -1,5 +1,8 @@
 package com.yondu.knowledgebase.services;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
@@ -29,7 +32,7 @@ public interface PageService {
     public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
             Long[] primaryKeys, String[] categories, String[] tags,
             Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-            Integer pageSize, String[] sortBy);
+            Integer pageSize, String fromDate, String[] sortBy);
 
     public Page getPage(Long pageId);
 
@@ -52,4 +55,9 @@ public interface PageService {
     public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId);
 
     public PageDTO findVersion(PageType pageType, Long pageId, Long versionId);
+
+    public PageDTO markAsRead(PageType pageType, Long pageId);
+
+    public List<PageDTO> getUnreadPages(PageType pageType);
+
 }

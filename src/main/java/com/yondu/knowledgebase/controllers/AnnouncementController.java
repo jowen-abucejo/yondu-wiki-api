@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.controllers;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -49,10 +51,11 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
-            @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys) {
+            @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
+            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
 
         return pageService.findAllByFullTextSearch(pageType, searchKey, primaryKeys, categories, tags, archived,
-                published, exactSearch, pageNumber, pageSize, sortBy);
+                published, exactSearch, pageNumber, pageSize, fromDate, sortBy);
     }
 
     @GetMapping(path = "announcements")
@@ -61,10 +64,11 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "", name = "tags") String[] tags,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "50", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
+            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
+            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
 
         return pageService.findAllByFullTextSearch(pageType, "", new Long[] {}, categories, tags, false, true, false,
-                pageNumber, pageSize, sortBy);
+                pageNumber, pageSize, fromDate, sortBy);
     }
 
     @GetMapping(path = "announcements/{id}/versions")
@@ -217,5 +221,17 @@ public class AnnouncementController {
     public ApiResponse<PageDTO> getPageVersion(@PathVariable Long pageId, @PathVariable Long versionId) {
         var page = pageService.findVersion(pageType, pageId, versionId);
         return new ApiResponse<PageDTO>("success", page, "Page version retrieved");
+    }
+
+    @PutMapping(path = "announcements/{pageId}/mark-as-read")
+    public ApiResponse<PageDTO> markAsRead(@PathVariable Long pageId) {
+        var page = pageService.markAsRead(pageType, pageId);
+        return new ApiResponse<PageDTO>("success", page, "Page marked as read");
+    }
+
+    @GetMapping(path = "announcements/unread")
+    public ApiResponse<List<PageDTO>> getUnreadPages() {
+        var pages = pageService.getUnreadPages(pageType);
+        return new ApiResponse<List<PageDTO>>("success", pages, "Unread pages retrieved");
     }
 }
