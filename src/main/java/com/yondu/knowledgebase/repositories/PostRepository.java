@@ -28,11 +28,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "ORDER BY p.dateCreated DESC")
     Page<Object[]> searchPostsWithCommentAndUpvoteCounts(@Param("searchKey") String searchKey, Pageable pageable);
 
-    @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount, COUNT(DISTINCT r2.id) AS totalRatingCount " +
+    @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
             "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
             "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
-            "LEFT JOIN Rating r2 ON p.id = r2.entity_id AND r2.entity_type = 'POST' " +
             "WHERE p.id = :id AND p.active = true AND p.deleted = false " +
             "GROUP BY p")
     List<Object[]> findPostWithCommentAndUpvoteCountsById(@Param("id") Long id);

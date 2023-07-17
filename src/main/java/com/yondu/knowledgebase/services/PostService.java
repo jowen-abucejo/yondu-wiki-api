@@ -88,8 +88,7 @@ public class PostService {
         Post post = (Post) result[0];
         Long commentCount = (Long) result[1];
         Long upVoteCount = (Long) result[2];
-        Long totalRating = (Long) result[3];
-        return new PostDTO(post, commentCount, upVoteCount, totalRating);
+        return new PostDTO(post, commentCount, upVoteCount);
     }
 
     public PostDTO addPost(PostRequestDTO postDTO) {

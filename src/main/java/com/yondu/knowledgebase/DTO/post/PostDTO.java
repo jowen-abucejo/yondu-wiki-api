@@ -32,7 +32,6 @@ public class PostDTO {
     private String type;
     private Long commentCount;
     private Long upVoteCount;
-    private Long totalRating;
     public PostDTO() {
     }
 
@@ -64,42 +63,6 @@ public class PostDTO {
         this.upVoteCount = upVoteCount;
     }
 
-    public PostDTO(Post post, Long commentCount, Long upVoteCount, Long totalRating) {
-        this.id = post.getId();
-        this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
-        this.title = post.getTitle();
-        this.type = ContentType.POST.getCode();
-        this.content = post.getContent();
-        this.dateCreated = post.getDateCreated();
-        this.dateModified = post.getDateModified();
-        this.active = post.getActive();
-        this.deleted = post.getDeleted();
-        this.allowComment = post.getAllowComment();
-        this.tags = post.getTags().stream()
-                .map(tag -> {
-                    return new TagMapper().toDto(tag);
-                })
-                .collect(Collectors.toSet());
-        this.categories = post.getCategories().stream()
-                .map(category -> {
-                    return new CategoryMapper().toDto(category);
-                })
-                .collect(Collectors.toSet());
-        this.postMentions = post.getPostMentions().stream()
-                .map(UserDTOMapper::mapToGeneralResponse)
-                .collect(Collectors.toSet());
-        this.commentCount = commentCount;
-        this.upVoteCount = upVoteCount;
-        this.totalRating = totalRating;
-    }
-
-    public Long getTotalRating() {
-        return totalRating;
-    }
-
-    public void setTotalRating(Long totalRating) {
-        this.totalRating = totalRating;
-    }
 
     public Long getId() {
         return id;
@@ -238,7 +201,6 @@ public class PostDTO {
                 ", type='" + type + '\'' +
                 ", commentCount=" + commentCount +
                 ", upVoteCount=" + upVoteCount +
-                ", totalRating=" + totalRating +
                 '}';
     }
 }
