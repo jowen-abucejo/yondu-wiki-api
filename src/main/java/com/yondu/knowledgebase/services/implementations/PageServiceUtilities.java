@@ -1,9 +1,8 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -187,23 +186,14 @@ class PageServiceUtilities {
     }
 
     protected LocalDateTime parseAndFormat(Object date) {
-        String formatPattern1 = "yyyy-MM-dd HH:mm:ss.S";
-        String formatPattern2 = "yyyy-MM-dd HH:mm:ss.SSSSSS";
         if (date == null || date.toString().isEmpty())
             return null;
-        String dateTimeString = date.toString();
+
         try {
-            return LocalDateTime.parse(dateTimeString,
-                    DateTimeFormatter.ofPattern(formatPattern1));
-
-        } catch (DateTimeParseException e) {
-            try {
-                return LocalDateTime.parse(dateTimeString,
-                        DateTimeFormatter.ofPattern(formatPattern2));
-
-            } catch (DateTimeParseException er) {
-                return null;
-            }
+            var sqlTimestamp = (Timestamp) date;
+            return sqlTimestamp.toLocalDateTime();
+        } catch (Exception er) {
+            return null;
         }
     }
 
