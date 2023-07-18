@@ -195,6 +195,9 @@ public class ReviewService {
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId, versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
 
+        String pageType = review.getPageVersion().getPage().getType();
+        String capitalizedPageType = pageType.substring(0, 1).toUpperCase() + pageType.substring(1).toLowerCase();
+
         boolean isPending = Objects.equals(review.getStatus(), ReviewStatus.PENDING.getCode());
 
         Map<String, Long> test = userRepository
@@ -238,15 +241,29 @@ public class ReviewService {
 
         long pageAuthorId = review.getPageVersion().getPage().getAuthor().getId();
         long pId = review.getPageVersion().getPage().getId();
+        String userFullName = currentUser.getFirstName()+ " "+currentUser.getLastName();
 
+        Map<String, Integer> approverStatus = getCurrentAndTotalSteps(pageVersion);
+        // Get current step and total steps
+        int currentStepCount = approverStatus.get("currentStep");
+        int totalSteps = approverStatus.get("totalSteps");
         // Notify Author
         if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
-            notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                    String.format("Your Content has been Approved by %s!", currentUser.getEmail()),
-                    NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+
+            if (isContentFullyApproved(review.getPageVersion())) {
+                notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
+                        String.format("Your %s page titled `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
+                                pageVersion.getTitle()),
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+            } else {
+                notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
+                        String.format("Your %s page titled `%s` has been approved by %s. (%s out of %s approvers)", capitalizedPageType,
+                                pageVersion.getTitle(), userFullName, currentStepCount, totalSteps),
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+            }
         } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())) {
             notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                    String.format("Your content has been disapproved by %s!", currentUser.getEmail()),
+                    String.format("Your %s page titled `%s` has been disapproved by %s!", capitalizedPageType, pageVersion.getTitle(), userFullName),
                     NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
         }
 
@@ -319,6 +336,29 @@ public class ReviewService {
         });
 
         return data;
+    }
+    private Map<String, Integer> getCurrentAndTotalSteps(PageVersion pageVersion) {
+        Map<WorkflowStep, Boolean> stepApprovalStatus = isStepDone(pageVersion);
+
+        List<WorkflowStep> sortedSteps = sortSteps(stepApprovalStatus.keySet());
+
+        int totalSteps = sortedSteps.size();
+        int currentStep = 0;
+
+        for (WorkflowStep step : sortedSteps) {
+            boolean isStepDone = stepApprovalStatus.get(step);
+            if (!isStepDone) {
+                break;
+            }
+            currentStep++;
+        }
+
+        // Create the HashMap to hold the current step and total steps
+        Map<String, Integer> stepInfo = new HashMap<>();
+        stepInfo.put("currentStep", currentStep);
+        stepInfo.put("totalSteps", totalSteps);
+
+        return stepInfo;
     }
 
     private boolean isContentFullyApproved(PageVersion pageVersion) {
@@ -419,7 +459,7 @@ public class ReviewService {
 
     public ReviewDTO.CanApproveResponse CanApproverApproveContent(Long pageId, Long versionId, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Review review = reviewRepository.getLastReviewByPageVersion(versionId, pageId);
         PageVersion pageVersion = pageVersionRepository.findByPageIdAndId(pageId, versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Page version not found"));
