@@ -128,18 +128,26 @@ public class RatingServiceImpl implements RatingService {
 	private void notifyUser (Rating rating){
 		Long authorId = null;
 		String fromUser = rating.getUser().getFirstName() + " " + rating.getUser().getLastName();
-		String message = (rating.getRating().equals("UP")) ? String.format("%s added an upvote your to %s", fromUser, rating.getEntity_type().toLowerCase()) : String.format("%s added a downvote to your %s", fromUser, rating.getEntity_type().toLowerCase());
+		String entityMsg = null;
+
 		if(rating.getEntity_type().toUpperCase().equals(ContentType.PAGE.getCode())){
 			PageDTO page = pageService.findById(rating.getEntity_id());
 			Page selectedPage = pageRepository.findById(page.getId()).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", page.getId())));
 			authorId = selectedPage.getAuthor().getId();
+			entityMsg = selectedPage.getPageVersions().get(0).getTitle();
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.POST.getCode())) {
 			Post post = postRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Post ID not found: %d", rating.getEntity_id())));
 			authorId = post.getAuthor().getId();
+			entityMsg = post.getTitle();
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.REPLY.getCode())) {
 			Comment comment = commentRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", rating.getEntity_id())));
 			authorId = comment.getUser().getId();
+			entityMsg = comment.getComment();
 		}
+		System.out.println(entityMsg);
+
+		String message = (rating.getRating().equals("UP")) ? String.format("%s added an upvote to your %s `%s`.", fromUser, rating.getEntity_type().toLowerCase(), entityMsg) : String.format("%s added a downvote to your %s `%s`.", fromUser, rating.getEntity_type().toLowerCase(), entityMsg);
+
 		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()));
 	}
 
