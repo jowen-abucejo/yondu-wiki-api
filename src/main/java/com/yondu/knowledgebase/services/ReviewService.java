@@ -166,7 +166,7 @@ public class ReviewService {
 
                         notificationService.createNotification(new NotificationDTO.BaseRequest(approver.getId(),
                                 review.getPageVersion().getPage().getAuthor().getId(),
-                                String.format("Content Approval: %s `%s` is waiting for your approval.",
+                                String.format("%s `%s` is waiting for your approval.",
                                         capitalizedPageType, pageVersion.getTitle()),
                                 NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),
                                 pageVersion.getPage().getId()));
@@ -252,18 +252,18 @@ public class ReviewService {
 
             if (isContentFullyApproved(review.getPageVersion())) {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                        String.format("Your %s page titled `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
+                        String.format("%s `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
                                 pageVersion.getTitle()),
                         NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
             } else {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                        String.format("Your %s page titled `%s` has been approved by %s. (%s out of %s approvers)", capitalizedPageType,
+                        String.format("%s `%s` has been approved by %s. (%s out of %s approvers)", capitalizedPageType,
                                 pageVersion.getTitle(), userFullName, currentStepCount, totalSteps),
                         NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
             }
         } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())) {
             notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
-                    String.format("Your %s page titled `%s` has been disapproved by %s!", capitalizedPageType, pageVersion.getTitle(), userFullName),
+                    String.format("%s `%s` has been disapproved by %s!", capitalizedPageType, pageVersion.getTitle(), userFullName),
                     NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
         }
 
