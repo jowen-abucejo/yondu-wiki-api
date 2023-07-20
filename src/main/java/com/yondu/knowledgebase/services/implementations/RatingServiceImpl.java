@@ -5,6 +5,8 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
+import com.yondu.knowledgebase.enums.PageType;
+import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
@@ -134,7 +136,7 @@ public class RatingServiceImpl implements RatingService {
 			PageDTO page = pageService.findById(rating.getEntity_id());
 			Page selectedPage = pageRepository.findById(page.getId()).orElseThrow(()->new ResourceNotFoundException(String.format("Page ID not found: %d", page.getId())));
 			authorId = selectedPage.getAuthor().getId();
-			entityMsg = selectedPage.getPageVersions().get(0).getTitle();
+			entityMsg = pageService.findById(selectedPage.getId()).getVersions().get(0).getTitle();
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.POST.getCode())) {
 			Post post = postRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Post ID not found: %d", rating.getEntity_id())));
 			authorId = post.getAuthor().getId();
@@ -142,11 +144,19 @@ public class RatingServiceImpl implements RatingService {
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.REPLY.getCode())) {
 			Comment comment = commentRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", rating.getEntity_id())));
 			authorId = comment.getUser().getId();
-			entityMsg = comment.getComment();
-		}
-		System.out.println(entityMsg);
 
-		String message = (rating.getRating().equals("UP")) ? String.format("%s added an upvote to your %s `%s`.", fromUser, rating.getEntity_type().toLowerCase(), entityMsg) : String.format("%s added a downvote to your %s `%s`.", fromUser, rating.getEntity_type().toLowerCase(), entityMsg);
+			Object entity = getEntity(comment.getEntityType(), comment.getEntityId(), Object.class);
+			entityMsg = getEntityTitle(entity);
+		}
+
+
+		String message = (rating.getRating().equals("UP")) ?
+				String.format("%s added an upvote to your %s `%s`.", fromUser,
+						(rating.getEntity_type().toLowerCase().equals("comment")) ? "answer in post" : rating.getEntity_type().toLowerCase(),
+						entityMsg)
+				: String.format("%s added a downvote to your %s `%s`.", fromUser,
+				(rating.getEntity_type().toLowerCase().equals("comment")) ? "answer in post" : rating.getEntity_type().toLowerCase(),
+				entityMsg);
 
 		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()));
 	}
@@ -157,5 +167,28 @@ public class RatingServiceImpl implements RatingService {
 		Integer upvote = ratingRepository.countUpvoteByEntityAndEntityType(entityId, entityType);
 		Integer downvote = ratingRepository.countDownVoteByEntityAndEntityType(entityId, entityType);
 		return new TotalVoteDTO(entityId,entityType, upvote, downvote, total);
+	}
+
+	public <T> T getEntity(String entityType, Long entityId, Class<T> entityClass) {
+		switch (entityType) {
+			case "POST":
+				return (T) postRepository.findById(entityId).orElseThrow(
+						() -> new ResourceNotFoundException(String.format("Post ID not found: %d", entityId)));
+			case "PAGE":
+				return (T) pageRepository.findById(entityId).orElseThrow(
+						() -> new ResourceNotFoundException(String.format("Page ID not found: %d", entityId)));
+			default:
+				throw new RequestValidationException("Invalid Entity Type");
+		}
+	}
+	private String getEntityTitle(Object entity) {
+		if (entity instanceof Post post) {
+			return post.getTitle();
+		} else if (entity instanceof com.yondu.knowledgebase.entities.Page page) {
+			String pageVerTitle = pageService.findById(page.getId()).getVersions().get(0).getTitle();
+			return pageVerTitle;
+		} else {
+			throw new RequestValidationException("Invalid Entity Type");
+		}
 	}
 }
