@@ -14,10 +14,20 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.yondu.knowledgebase.repositories.PageVersionRepository;
 import com.yondu.knowledgebase.services.AttachmentService;
 
 @Service
 public class AttachmentServiceImpl implements AttachmentService {
+
+    private final PageVersionRepository pageVersionRepository;
+
+    /**
+     * @param pageVersionRepository
+     */
+    public AttachmentServiceImpl(PageVersionRepository pageVersionRepository) {
+        this.pageVersionRepository = pageVersionRepository;
+    }
 
     @Override
     public String uploadImage(MultipartFile file) {
@@ -63,7 +73,18 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         // Delete the file
         try {
+            // Construct the URL for the target file
+            String baseUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
+            String fileUrl = baseUrl + "/attachments/" + fileName;
+
+            Long totalReviewedContentsWithSameImageSrc = pageVersionRepository.countByContentWithImageSrc(fileUrl);
+            // do not delete if a reviewed or submitted page version using the same image
+            // exists
+            if (totalReviewedContentsWithSameImageSrc != null && totalReviewedContentsWithSameImageSrc > 0)
+                return true;
+
             Files.deleteIfExists(Paths.get(filePath));
+
             return true;
         } catch (IOException e) {
             e.printStackTrace();

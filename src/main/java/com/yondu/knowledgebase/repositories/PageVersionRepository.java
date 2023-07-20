@@ -531,4 +531,11 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("fromDate") LocalDateTime fromDate,
             Pageable pageable);
 
+    @Query(nativeQuery = true, value = """
+            SELECT COUNT(*) FROM page_version pv LEFT JOIN
+            (SELECT page_version_id,COUNT(*) AS reviewCount FROM reviews GROUP BY page_version_id) a ON pv.id=a.page_version_id
+            WHERE a.reviewCount > 0 AND pv.original_content REGEXP CONCAT('<img[^>]*src=\"', :imageUrl, '[^\"]*')
+            """)
+    Long countByContentWithImageSrc(String imageUrl);
+
 }

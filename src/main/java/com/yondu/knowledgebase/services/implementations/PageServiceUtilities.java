@@ -61,7 +61,7 @@ class PageServiceUtilities {
                 .dateModified(version.getDateModified())
                 .totalApprovedReviews(reviewsCount[0])
                 .totalDisapprovedReviews(reviewsCount[1])
-                .isDraft(reviewsCount[2] == 0)
+                .isDraft((reviewsCount[0] == 0 && reviewsCount[2] == 0) || reviewsCount[1] > 0)
                 .modifiedBy(convertToUserDTO(version.getModifiedBy()));
     }
 
@@ -159,14 +159,18 @@ class PageServiceUtilities {
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {
         var dateModified = pageVersion.getOrDefault("dateModified", "");
+        var totalDisapprovedReviews = (Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L);
+        var totalApprovedReviews = (Long) pageVersion.getOrDefault("totalApprovedReviews", 0L);
+        var totalPendingReviews = (Long) pageVersion.getOrDefault("totalPendingReviews", 0L);
+
         return PageVersionDTO.builder()
                 .id((Long) pageVersion.getOrDefault("versionId", 0L))
                 .content((String) pageVersion.getOrDefault("versionContent", ""))
                 .title((String) pageVersion.getOrDefault("versionTitle", ""))
                 .dateModified(parseAndFormat(dateModified))
-                .totalApprovedReviews((Long) pageVersion.getOrDefault("totalApprovedReviews", 0L))
-                .totalDisapprovedReviews((Long) pageVersion.getOrDefault("totalDisapprovedReviews", 0L))
-                .isDraft(((Long) pageVersion.getOrDefault("totalPendingReviews", 0L)) == 0L)
+                .totalApprovedReviews(totalApprovedReviews)
+                .totalDisapprovedReviews(totalDisapprovedReviews)
+                .isDraft((totalPendingReviews == 0L && totalApprovedReviews == 0) || totalDisapprovedReviews > 0)
                 .modifiedBy(UserDTO.builder()
                         .email((String) pageVersion.getOrDefault("modifiedByEmail", ""))
                         .firstName((String) pageVersion.getOrDefault("modifiedByFirstName", ""))
@@ -249,7 +253,14 @@ class PageServiceUtilities {
         Long totalPending = 0L;
 
         var reviews = new HashSet<>(pageVersion.getReviews());
+        var workflowSteps = pageVersion.getPage().getDirectory().getWorkflow().getSteps();
         for (Review review : reviews) {
+            // break current iteration if review's workflow step doesn't belong to
+            // page parent directory's workflow
+            if (!workflowSteps.contains(review.getWorkflowStep())) {
+                continue;
+            }
+
             if (review.getStatus().equals(ReviewStatus.APPROVED.getCode())) {
                 totalApproved += 1;
             } else if (review.getStatus().equals(ReviewStatus.DISAPPROVED.getCode())) {
