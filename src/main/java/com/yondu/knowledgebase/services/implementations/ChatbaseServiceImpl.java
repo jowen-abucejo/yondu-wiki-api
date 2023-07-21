@@ -77,25 +77,23 @@ public class ChatbaseServiceImpl implements ChatbaseService {
             String newContent = formatNewPage(post);
             String updatedContent = writeChatbaseSourceText(newContent);
 
-            if(updatedContent.length() > 500){
-                JSONObject requestBody = new JSONObject();
-                requestBody.put("chatbotId", CHATBOT_ID);
-                requestBody.put("chatbotName", CHATBOT_NAME);
-                requestBody.put("sourceText", updatedContent);
+            JSONObject requestBody = new JSONObject();
+            requestBody.put("chatbotId", CHATBOT_ID);
+            requestBody.put("chatbotName", CHATBOT_NAME);
+            requestBody.put("sourceText", updatedContent);
 
-                WebClient.ResponseSpec responseSpec = webClientBuilder.build()
-                        .post()
-                        .uri(CHATBASE_UPDATE_ENDPOINT)
-                        .header("Authorization", "Bearer " + CHATBASE_TOKEN)
-                        .header("Content-Type", "application/json")
-                        .body(Mono.just(requestBody.toString()), String.class)
-                        .retrieve();
+            WebClient.ResponseSpec responseSpec = webClientBuilder.build()
+                    .post()
+                    .uri(CHATBASE_UPDATE_ENDPOINT)
+                    .header("Authorization", "Bearer " + CHATBASE_TOKEN)
+                    .header("Content-Type", "application/json")
+                    .body(Mono.just(requestBody.toString()), String.class)
+                    .retrieve();
 
-                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
-                responseBodyMono.subscribe(response -> {
-                    log.info("API RESPONSE: " + response);
-                });
-            }
+            Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+            responseBodyMono.subscribe(response -> {
+                log.info("API RESPONSE: " + response);
+            });
 
         }catch(Exception ex){
             log.info("ex : " + ex.getMessage());
@@ -124,7 +122,7 @@ public class ChatbaseServiceImpl implements ChatbaseService {
         newContent.append("This is a new discussion titled " + post.getTitle() + ". ");
         newContent.append("if you are asked about this, feel free to tell them its content: \"" + post.getContent() + "\" ");
         newContent.append("if you are asked about its ID you should give " + post.getId() + " ");
-        newContent.append("if you are asked who posted it you should tell them its" + post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName());
+        newContent.append("if you are asked who posted it you should tell them its " + post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName());
 //        newContent.append("TYPE : " + pageVersion.getPage().getType()).append("\n");
 //        newContent.append("ID : " + pageVersion.getPage().getId()).append("\n");
 //        newContent.append("TITLE : " + pageVersion.getTitle()).append("\n");
