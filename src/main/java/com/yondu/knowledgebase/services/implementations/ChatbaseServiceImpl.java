@@ -1,7 +1,7 @@
 package com.yondu.knowledgebase.services.implementations;
 
-import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.PageVersion;
+import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.services.ChatbaseService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -39,7 +39,6 @@ public class ChatbaseServiceImpl implements ChatbaseService {
     @Override
     public void updateChatbot(PageVersion pageVersion) {
         log.info("ChatbaseServiceImpl.updateChatbot()");
-        log.info("pageVersion : " + pageVersion.toString());
 
         try{
             String newContent = formatNewPage(pageVersion);
@@ -70,14 +69,62 @@ public class ChatbaseServiceImpl implements ChatbaseService {
         }
     }
 
+    @Override
+    public void updateChatbot(Post post) {
+        log.info("ChatbaseServiceImpl.updateChatbot()");
+
+        try{
+            String newContent = formatNewPage(post);
+            String updatedContent = writeChatbaseSourceText(newContent);
+
+            if(updatedContent.length() > 500){
+                JSONObject requestBody = new JSONObject();
+                requestBody.put("chatbotId", CHATBOT_ID);
+                requestBody.put("chatbotName", CHATBOT_NAME);
+                requestBody.put("sourceText", updatedContent);
+
+                WebClient.ResponseSpec responseSpec = webClientBuilder.build()
+                        .post()
+                        .uri(CHATBASE_UPDATE_ENDPOINT)
+                        .header("Authorization", "Bearer " + CHATBASE_TOKEN)
+                        .header("Content-Type", "application/json")
+                        .body(Mono.just(requestBody.toString()), String.class)
+                        .retrieve();
+
+                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+                responseBodyMono.subscribe(response -> {
+                    log.info("API RESPONSE: " + response);
+                });
+            }
+
+        }catch(Exception ex){
+            log.info("ex : " + ex.getMessage());
+        }
+    }
+
     private String formatNewPage(PageVersion pageVersion) {
         log.info("ChatbaseServiceImpl.formatNewPage()");
-        log.info("pageVersion : " + pageVersion);
 
         StringBuilder newContent = new StringBuilder();
         newContent.append("This is a new " + pageVersion.getPage().getType() + " titled " + pageVersion.getTitle() + ". ");
         newContent.append("if you are asked about this, feel free to tell them its content: \"" + pageVersion.getContent() + "\" ");
         newContent.append("if you are asked about its ID you should give " + pageVersion.getPage().getId());
+//        newContent.append("TYPE : " + pageVersion.getPage().getType()).append("\n");
+//        newContent.append("ID : " + pageVersion.getPage().getId()).append("\n");
+//        newContent.append("TITLE : " + pageVersion.getTitle()).append("\n");
+//        newContent.append("CONTENT : " + pageVersion.getContent()).append("\n");
+
+        return newContent.toString();
+    }
+
+    private String formatNewPage(Post post) {
+        log.info("ChatbaseServiceImpl.formatNewPage()");
+
+        StringBuilder newContent = new StringBuilder();
+        newContent.append("This is a new discussion titled " + post.getTitle() + ". ");
+        newContent.append("if you are asked about this, feel free to tell them its content: \"" + post.getContent() + "\" ");
+        newContent.append("if you are asked about its ID you should give " + post.getId() + " ");
+        newContent.append("if you are asked who posted it you should tell them its" + post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName());
 //        newContent.append("TYPE : " + pageVersion.getPage().getType()).append("\n");
 //        newContent.append("ID : " + pageVersion.getPage().getId()).append("\n");
 //        newContent.append("TITLE : " + pageVersion.getTitle()).append("\n");

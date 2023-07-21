@@ -21,6 +21,7 @@ import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,6 +48,9 @@ public class PostService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
+
+    @Autowired
+    private ChatbaseService chatbaseService;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -92,6 +96,7 @@ public class PostService {
     }
 
     public PostDTO addPost(PostRequestDTO postDTO) {
+        System.out.println("ADDPOST!!!!");
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Set<Category> categories = postDTO.getCategories().stream().map(category -> {
@@ -124,6 +129,7 @@ public class PostService {
                     post.getAuthor().getId(), String.format("%s mentioned you in their post", fromUser),
                     NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
         }
+        chatbaseService.updateChatbot(post);
         return new PostDTO(post, 0L, 0L);
     }
 
