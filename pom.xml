@@ -112,6 +112,18 @@
 			<version>2.4.9</version>
 		</dependency>
 
+		<!-- Spring Webflux -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+		<!-- JSON -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20230618</version>
+		</dependency>
 
 	</dependencies>
 

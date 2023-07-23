@@ -49,6 +49,9 @@ public class ReviewService {
     private final AuditLogService auditLogService;
 
     @Autowired
+    private ChatbaseService chatbaseService;
+
+    @Autowired
     public ReviewService(ReviewRepository reviewRepository, PageVersionRepository pageVersionRepository,
             NotificationService notificationService, UserRepository userRepository,
             UserPermissionValidatorService userPermissionValidatorService, AuditLogService auditLogService) {
@@ -251,6 +254,7 @@ public class ReviewService {
         if (request.status().equals(ReviewStatus.APPROVED.getCode())) {
 
             if (isContentFullyApproved(review.getPageVersion())) {
+                chatbaseService.updateChatbot(review.getPageVersion());
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                         String.format("%s `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
                                 pageVersion.getTitle()),
