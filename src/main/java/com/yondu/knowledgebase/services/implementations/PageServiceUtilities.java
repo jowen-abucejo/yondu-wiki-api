@@ -255,9 +255,12 @@ class PageServiceUtilities {
         var reviews = new HashSet<>(pageVersion.getReviews());
         var workflowSteps = pageVersion.getPage().getDirectory().getWorkflow().getSteps();
         for (Review review : reviews) {
-            // break current iteration if review's workflow step doesn't belong to
-            // page parent directory's workflow
+            // break current iteration if review's status is not PENDING and review's
+            // workflow step doesn't belong to page parent directory's workflow
             if (!workflowSteps.contains(review.getWorkflowStep())) {
+                if (review.getStatus().equals(ReviewStatus.PENDING.getCode())) {
+                    totalPending += 1;
+                }
                 continue;
             }
 
