@@ -30,7 +30,6 @@ import com.yondu.knowledgebase.entities.ReadPage;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
-import com.yondu.knowledgebase.enums.ReviewStatus;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
@@ -72,8 +71,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 		if (page == null)
 			throw new ResourceNotFoundException(pageNotFoundPhrase(id, PageType.WIKI));
-		PageType pageType = page.getType().equals(PageType.WIKI.getCode()) ? PageType.WIKI : PageType.ANNOUNCEMENT;
 
+		PageType pageType = page.getType().equals(PageType.WIKI.getCode()) ? PageType.WIKI : PageType.ANNOUNCEMENT;
 		return findById(pageType, id);
 	}
 
@@ -330,6 +329,18 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						PageRequest.of(0, 100))
 				.orElse(null);
 
+		// if page is not active, search page from archives
+		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty()) {
+			optionalPageVersions = pageVersionRepository
+					.findByFullTextSearch(pageType.getCode(), "", true, true, true, false,
+							null, null, userId,
+							NativeQueryUtils.arrayToSqlStringList(new Long[] { id }), null,
+							false, false, false, null,
+							PageRequest.of(0, 100))
+					.orElse(null);
+		}
+
+		// throw error if page is not found in active and archive search
 		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
 
@@ -570,6 +581,17 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						true, false, false, null, paging)
 				.orElse(null);
 
+		// if page is not active, search page from archives
+		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty()) {
+			optionalPageVersions = pageVersionRepository
+					.findByFullTextSearch(pageType.getCode(), "", true, true, true, true,
+							null, null, userId,
+							NativeQueryUtils.arrayToSqlStringList(new Long[] { pageId }), null,
+							true, false, false, null, paging)
+					.orElse(null);
+		}
+
+		// throw error if page is not found in active and archive search
 		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
 
