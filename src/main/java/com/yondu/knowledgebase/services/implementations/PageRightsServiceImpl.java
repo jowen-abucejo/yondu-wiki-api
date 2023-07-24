@@ -57,7 +57,7 @@ public class PageRightsServiceImpl implements PageRightsService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
         Permission permission = permissionRepository.findById(rightsId).orElseThrow(()-> new ResourceNotFoundException("Permission does not exist."));
         User user = userRepository.findByEmail(email.email()).orElseThrow(()-> new ResourceNotFoundException("User with email "+email+" does not exist."));
         UserPageAccess pageAccess = userPageAccessRepository.findByPageAndUserAndPermission(page, user, permission).orElse(null);
@@ -81,7 +81,7 @@ public class PageRightsServiceImpl implements PageRightsService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
         Permission permission = permissionRepository.findById(rightsId).orElseThrow(()-> new ResourceNotFoundException("Permission does not exist."));
         User user = userRepository.findByEmail(email.email()).orElseThrow(()-> new ResourceNotFoundException("User with email "+email+" does not exist."));
         UserPageAccess pageAccess = userPageAccessRepository.findByPageAndUserAndPermission(page, user, permission).orElse(null);
@@ -124,7 +124,7 @@ public class PageRightsServiceImpl implements PageRightsService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
         Permission permission = permissionRepository.findById(rightsId).orElseThrow(()-> new ResourceNotFoundException("Permission does not exist."));
         Group group = groupRepository.findByIdAndIsActive(groupId.groupId(), true).orElseThrow(()-> new ResourceNotFoundException("User Group does not exist."));
         GroupPageAccess pageAccess = groupPageAccessRepository.findByPageAndGroupAndPermission(page, group, permission).orElse(null);
@@ -147,7 +147,7 @@ public class PageRightsServiceImpl implements PageRightsService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
         }
 
-        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(()-> new ResourceNotFoundException("Page with PageID "+pageId+" does not exist."));
         Permission permission = permissionRepository.findById(rightsId).orElseThrow(()-> new ResourceNotFoundException("Permission does not exist."));
         Group group = groupRepository.findById(groupId.groupId()).orElseThrow(()-> new ResourceNotFoundException("User Group does not exist."));
         GroupPageAccess pageAccess = groupPageAccessRepository.findByPageAndGroupAndPermission(page, group, permission).orElse(null);
@@ -195,7 +195,7 @@ public class PageRightsServiceImpl implements PageRightsService {
 
     @Override
     public PageRightsDTO.GetPageRightOfPageResponse getAllUsersOfPage(Long pageId) {
-        Page page = pageRepository.findByIdAndActive(pageId, true).orElseThrow(() -> new ResourceNotFoundException("Page with PageID " + pageId + " does not exist."));
+        Page page = pageRepository.findById(pageId).orElseThrow(() -> new ResourceNotFoundException("Page with PageID " + pageId + " does not exist."));
 
         Set<GroupPageAccess> groupAccess = groupPageAccessRepository.findByPage(page);
         Set<UserPageAccess> userAccess = userPageAccessRepository.findByPage(page);

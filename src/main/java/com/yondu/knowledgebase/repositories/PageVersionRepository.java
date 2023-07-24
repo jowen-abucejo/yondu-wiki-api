@@ -16,14 +16,6 @@ import com.yondu.knowledgebase.entities.PageVersion;
 public interface PageVersionRepository extends JpaRepository<PageVersion, Long> {
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-    public Optional<PageVersion> findTopByPageIdAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
-            Long id, boolean isDeleted, String status);
-
-    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
-    public Optional<PageVersion> findTopByPageIdAndPageTypeAndPageDeletedAndReviewsStatusOrderByDateModifiedDesc(
-            Long id, String pageType, boolean isDeleted, String status);
-
-    @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
     public Optional<PageVersion> findByPageIdAndId(Long pageId, Long id);
 
     @EntityGraph(attributePaths = { "page.author", "modifiedBy" })
@@ -513,6 +505,48 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     END
                 )
             """)
+    /**
+     * Retrieves a paginated list of pages that meet all the specified filters.
+     * 
+     * @param pageType     The type of pages to retrieve. Possible values are 'WIKI'
+     *                     or 'ANNOUNCEMENT'.
+     * @param searchKey    The keyword(s) to look for in page contents, title, and
+     *                     author name.
+     * @param isExactMatch Set to true to use LIKE query, or false for FULL TEXT
+     *                     search.
+     * @param isArchived   Set to true to retrieve archived pages only, or false for
+     *                     active pages only.
+     * @param isPublished  Set to true to retrieve the latest published version of
+     *                     pages, or false for draft/pending/rejected pages only.
+     * @param allVersions  Set to true to retrieve all versions (including previous
+     *                     versions) of a page, regardless of the isPublished value.
+     * @param categories   If not empty, will only retrieve pages having at least
+     *                     one category from the comma-separated list of categories.
+     * @param tags         If not empty, will only retrieve pages having at least
+     *                     one tag from the comma-separated list of tags.
+     * @param userId       The ID of the user to check for permissions to determine
+     *                     if pages should be retrieved or not. (Pages with a
+     *                     matching author are automatically retrieved regardless of
+     *                     permissions.)
+     * @param pageIds      If not empty, will only retrieve pages having IDs from
+     *                     the comma-separated list of IDs.
+     * @param directoryId  If not null, will only retrieve pages that are under the
+     *                     directory that matches this ID.
+     * @param pendingOnly  If isPublished is false or allVersions is true and this
+     *                     is set to true, will retrieve pending pages.
+     * @param draftOnly    If isPublished is false or allVersions is true and this
+     *                     is set to true, will retrieve draft pages.
+     * @param approverOnly If isPublished is false or allVersions is true and this
+     *                     is set to true, will ignore the checking if userId and
+     *                     page author are the same.
+     * @param fromDate     If not null or empty, will only retrieve all pages that
+     *                     were created from the provided date.
+     * @param pageable     The configuration for sorting, ordering, page number, and
+     *                     page size of records to retrieve.
+     * @return A paginated response containing the pages that meet all the specified
+     *         filters.
+     */
+
     Optional<Page<Map<String, Object>>> findByFullTextSearch(
             @Param("pageTypeFilter") String pageType,
             @Param("searchKey") String searchKey,
