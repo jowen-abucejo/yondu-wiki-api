@@ -22,38 +22,10 @@ public class TagMapper {
     }
 
     public TagDTO toDto(Tag tag){
-
-        Long oldPageId = 0L;
         TagDTO tagDTO = new TagDTO();
         tagDTO.setName(tag.getName());
         tagDTO.setId(tag.getId());
         tagDTO.setDeleted(tag.getDeleted());
-        List<PageDTO> pages = new ArrayList<>();
-
-        for (Page page : tag.getPages()){
-            if(page.getId() != oldPageId){
-                oldPageId = page.getId();
-                pages.add(PageDTO.builder().id(oldPageId).build());
-            }
-        }
-        tagDTO.setPages(pages);
-
-        Long oldPostId = 0L;
-
-        List<PostDTO> posts = new ArrayList<>();
-
-        for (Post post : tag.getPosts()) {
-            if (post.getId() != oldPostId) {
-                oldPostId = post.getId();
-                PostDTO postDto = new PostDTO();
-                postDto.setId(post.getId());
-                posts.add(postDto);
-
-            }
-
-        }
-        tagDTO.setPosts(posts);
-
         return tagDTO;
     }
 

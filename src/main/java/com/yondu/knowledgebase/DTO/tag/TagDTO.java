@@ -12,23 +12,16 @@ public class TagDTO {
     private Long id;
     private String name;
 
-    @JsonInclude
-    private List<PageDTO> pages = new ArrayList<>();
-
-    @JsonInclude
-    private List<PostDTO> posts = new ArrayList<>();
-
     private Boolean deleted = false;
 
     public TagDTO() {
 
     }
 
-    public TagDTO(Long id, String name, Boolean deleted, List<PageDTO> pages) {
+    public TagDTO(Long id, String name, Boolean deleted) {
         this.id = id;
         this.name = name;
         this.deleted = deleted;
-        this.pages = pages;
     }
 
     public Long getId() {
@@ -54,17 +47,4 @@ public class TagDTO {
         this.deleted = deleted;
     }
 
-    public List<PageDTO> getPages() {
-        return pages;
-    }
-
-    public void setPages(List<PageDTO> pages) {
-        this.pages = pages;
-    }
-    public List<PostDTO> getPosts() {
-        return posts;
-    }
-    public void setPosts(List<PostDTO> posts) {
-        this.posts = posts;
-    }
 }
