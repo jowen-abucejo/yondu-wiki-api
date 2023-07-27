@@ -147,8 +147,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationDTO.TotalUnreadNotification getTotalUnreadNotification (Long id) {
-        User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",id)));
+    public NotificationDTO.TotalUnreadNotification getTotalUnreadNotification () {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Long totalUnreadNotification = notificationRepository.totalUnreadNotification(user);
         NotificationDTO.TotalUnreadNotification response =  NotificationDTOMapper.mapToTotalUnreadNotification(user,totalUnreadNotification);
         return response;

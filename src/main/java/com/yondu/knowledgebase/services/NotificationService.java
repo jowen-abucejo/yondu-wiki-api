@@ -12,5 +12,5 @@ public interface NotificationService {
     public PaginatedResponse<NotificationDTO.BaseResponse> getUserNotifications(int page, int size);
     public NotificationDTO.Base readNotification(long notificationId);
     public boolean readAllNotification();
-    public NotificationDTO.TotalUnreadNotification getTotalUnreadNotification (Long id);
+    public NotificationDTO.TotalUnreadNotification getTotalUnreadNotification ();
 }
