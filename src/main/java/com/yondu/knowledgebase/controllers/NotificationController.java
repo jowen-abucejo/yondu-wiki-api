@@ -62,4 +62,11 @@ public class NotificationController {
 
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/user/{id}/total-unread")
+    public ResponseEntity<ApiResponse<Long>> totalUnreadNotification (@PathVariable Long id) {
+        NotificationDTO.TotalUnreadNotification totalUnreadNotification = notificationService.getTotalUnreadNotification(id);
+        ApiResponse response = ApiResponse.success(totalUnreadNotification, "total-unread notifications fetched successfully");
+        return ResponseEntity.ok(response);
+    }
 }

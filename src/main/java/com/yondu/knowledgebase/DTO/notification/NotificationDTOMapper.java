@@ -40,4 +40,11 @@ public class NotificationDTOMapper {
                 notification.getNotificationType()
         );
     }
+
+    public static  NotificationDTO.TotalUnreadNotification mapToTotalUnreadNotification (User user, Long totalUnread){
+        return new NotificationDTO.TotalUnreadNotification(
+                UserDTOMapper.mapToGeneralResponse(user),
+                totalUnread
+        );
+    }
 }

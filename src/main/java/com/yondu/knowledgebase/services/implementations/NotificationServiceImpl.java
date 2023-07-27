@@ -4,6 +4,7 @@ import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
+import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.config.WebSocketHandler;
 import com.yondu.knowledgebase.entities.Notification;
@@ -143,6 +144,14 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.readAllNotification(user);
 
         return true;
+    }
+
+    @Override
+    public NotificationDTO.TotalUnreadNotification getTotalUnreadNotification (Long id) {
+        User user = userRepository.findById(id).orElseThrow(()-> new ResourceNotFoundException(String.format("User ID not found: %d",id)));
+        Long totalUnreadNotification = notificationRepository.totalUnreadNotification(user);
+        NotificationDTO.TotalUnreadNotification response =  NotificationDTOMapper.mapToTotalUnreadNotification(user,totalUnreadNotification);
+        return response;
     }
 
     private Map <String,String> getLinksForEmailNotificationTemplate (Notification notification){
