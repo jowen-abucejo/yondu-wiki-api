@@ -332,7 +332,6 @@ public class DirectoryService {
     }
 
     public DirectoryDTO.GetResponse editDirectory(Long id, DirectoryDTO.CreateRequest request) {
-        System.out.print("yaya" + request);
         if (request.parentId() == null ||
                 request.name() == null || request.description() == null ||
                 request.name().isEmpty() || request.description().isEmpty() ||
@@ -501,11 +500,7 @@ public class DirectoryService {
     }
 
     public boolean isNotEmptyDirectory(Directory directory) {
-        if (!directory.getPages().isEmpty() || !directory.getSubDirectories().isEmpty()) {
-            return true;
-        }
-
-        return false;
+        return directory.getPages().stream().anyMatch(page->!page.getDeleted() || !directory.getSubDirectories().isEmpty());
     }
 
     private Directory traverseByLevel(Directory directory, Permission permission, User user) {
@@ -531,20 +526,15 @@ public class DirectoryService {
     }
 
     private boolean hasPermission(User user, Directory directory, Permission permission) {
-        System.out.println("naghahanap sa role");
         if (user.getRole().stream().anyMatch(role -> role.getRoleName().equalsIgnoreCase("administrator"))) {
             return true;
         }
 
-        System.out.println("naghahanap sa directory user access");
         if (directory.getDirectoryUserAccesses().stream()
                 .anyMatch((dua) -> dua.getUser().equals(user)
                         && dua.getPermission().equals(permission))) {
             return true;
         }
-
-        System.out.println("naghahanap sa directory group access");
-        user.getGroups().stream().forEach((obj) -> System.out.println("nyawaaa" + obj.getId()));
 
         if (user.getGroups().stream()
                 .anyMatch((group) -> directoryGroupAccessRepository

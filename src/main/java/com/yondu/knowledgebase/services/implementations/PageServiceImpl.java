@@ -2,12 +2,11 @@ package com.yondu.knowledgebase.services.implementations;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.yondu.knowledgebase.entities.*;
+import com.yondu.knowledgebase.repositories.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.AuditorAware;
@@ -23,19 +22,9 @@ import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.Utils.NativeQueryUtils;
-import com.yondu.knowledgebase.entities.Directory;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.PageVersion;
-import com.yondu.knowledgebase.entities.ReadPage;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.enums.Permission;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
-import com.yondu.knowledgebase.repositories.CategoryRepository;
-import com.yondu.knowledgebase.repositories.PageRepository;
-import com.yondu.knowledgebase.repositories.PageVersionRepository;
-import com.yondu.knowledgebase.repositories.ReadPageRepository;
-import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.services.PageRightsService;
 import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.UserPermissionValidatorService;
@@ -48,21 +37,23 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 	private final PageRightsService pageRightsService;
 	private final AuditorAware<User> auditorAware;
 	private final ReadPageRepository readPageRepository;
+	private final UserPageAccessRepository userPageAccessRepository;
 
 	private final Logger log = LoggerFactory.getLogger(PageServiceImpl.class);
 
 	public PageServiceImpl(PageRepository pageRepository, PageVersionRepository pageVersionRepository,
-			UserPermissionValidatorService userPermissionValidatorService,
-			PageRightsService pageRightsService,
-			AuditorAware<User> auditorAware, TagRepository tagRepository,
-			CategoryRepository categoryRepository,
-			ReadPageRepository readPageRepository) {
+						   UserPermissionValidatorService userPermissionValidatorService,
+						   PageRightsService pageRightsService,
+						   AuditorAware<User> auditorAware, TagRepository tagRepository,
+						   CategoryRepository categoryRepository,
+						   ReadPageRepository readPageRepository, UserPageAccessRepository userPageAccessRepository) {
 		super(userPermissionValidatorService, auditorAware, categoryRepository, tagRepository);
 		this.pageRepository = pageRepository;
 		this.pageVersionRepository = pageVersionRepository;
 		this.pageRightsService = pageRightsService;
 		this.auditorAware = auditorAware;
 		this.readPageRepository = readPageRepository;
+		this.userPageAccessRepository = userPageAccessRepository;
 	}
 
 	@Override
@@ -164,7 +155,18 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 			checkLock(page, false);
 
 			page.setDeleted(true);
-			pageVersion.setPage(pageRepository.save(page));
+
+			// remove userPageAccess objects associated with page
+			List<UserPageAccess> toRemoveUserPageAccesses = page.getUserPageAccesses()
+					.stream()
+					.filter(userPageAccess -> userPageAccess.getPage().equals(page))
+					.toList();
+
+			toRemoveUserPageAccesses.forEach(page.getUserPageAccesses()::remove);
+			userPageAccessRepository.deleteAll(toRemoveUserPageAccesses);
+
+			Page updatedPage = pageRepository.save(page);
+			pageVersion.setPage(updatedPage);
 
 			return pageDTODefault(pageVersion).deleted(pageVersion.getPage().getDeleted()).build();
 		}
