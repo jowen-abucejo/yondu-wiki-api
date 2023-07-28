@@ -1,15 +1,8 @@
 package com.yondu.knowledgebase.DTO.category;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.springframework.stereotype.Component;
 
-import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.entities.Category;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.Post;
 
 @Component
 public class CategoryMapper {
@@ -22,40 +15,10 @@ public class CategoryMapper {
 
     public CategoryDTO toDto(Category category) {
 
-        Long oldPageId = 0L;
         CategoryDTO categoryDto = new CategoryDTO();
         categoryDto.setName(category.getName());
         categoryDto.setId(category.getId());
         categoryDto.setDeleted(category.getDeleted());
-        List<PageDTO> pages = new ArrayList<>();
-        // Assuming the PageDTO has the necessary fields to create a Page entity
-        for (Page page : category.getPages()) {
-            if (page.getId() != oldPageId) {
-                oldPageId = page.getId();
-                pages.add(PageDTO.builder().id(oldPageId).build());
-
-            }
-
-        }
-        categoryDto.setPages(pages);
-
-        Long oldPostId = 0L;
-
-        List<PostDTO> posts = new ArrayList<>();
-        // Assuming the PageDTO has the necessary fields to create a Page entity
-        for (Post post : category.getPosts()) {
-            if (post.getId() != oldPostId) {
-                oldPostId = post.getId();
-                PostDTO postDto = new PostDTO();
-                postDto.setId(post.getId());
-                posts.add(postDto);
-
-            }
-
-        }
-        categoryDto.setPosts(posts);
-
-
 
         return categoryDto;
     }
@@ -65,15 +28,6 @@ public class CategoryMapper {
         category.setId(dto.getId());
         category.setName(dto.getName());
         category.setDeleted(dto.getDeleted());
-
-        List<Page> pages = new ArrayList<>();
-        // Assuming the PageDTO has the necessary fields to create a Page entity
-        for (PageDTO pageDTO : dto.getPages()) {
-            Page page = new Page();
-            page.setId(pageDTO.getId());
-            pages.add(page);
-        }
-        category.setPages(pages);
 
         return category;
     }

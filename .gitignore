@@ -33,4 +33,4 @@ build/
 ### VS Code ###
 .vscode/
 /uploads/
-/cb_source_text.txt
+/cb_source_*
