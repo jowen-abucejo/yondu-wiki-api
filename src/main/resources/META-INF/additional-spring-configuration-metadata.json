@@ -1,0 +1,39 @@
+{
+	"properties": [
+		{
+			"name": "cb.token",
+			"type": "java.lang.String",
+			"description": "The secret key to use for updating chatbot data."
+		},
+		{
+			"name": "cb.chatbot-id",
+			"type": "java.lang.String",
+			"description": "The id of first chatbot to update"
+		},
+		{
+			"name": "cb.chatbot-name",
+			"type": "java.lang.String",
+			"description": "The name of first chatbot"
+		},
+		{
+			"name": "cb.vue-chatbot-id",
+			"type": "java.lang.String",
+			"description": "The id of second chatbot to update"
+		},
+		{
+			"name": "cb.vue-chatbot-name",
+			"type": "java.lang.String",
+			"description": "The name of second chatbot"
+		},
+		{
+			"name": "cb.vue-chatbot-source-text",
+			"type": "java.lang.String",
+			"description": "The text file name of data source for second chatbot"
+		},
+		{
+			"name": "jwt.secret",
+			"type": "java.lang.String",
+			"description": "The secret key use to encrypt and decrypt json web token"
+		}
+	]
+}
