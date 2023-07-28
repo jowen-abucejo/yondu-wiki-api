@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
 import com.yondu.knowledgebase.DTO.post.PostSearchResult;
+import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.Utils.MultipleSort;
 import com.yondu.knowledgebase.Utils.NativeQueryUtils;
 import com.yondu.knowledgebase.entities.Category;
@@ -48,6 +49,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
+    private final RatingService ratingService;
 
     @Autowired
     private ChatbaseService chatbaseService;
@@ -56,13 +58,14 @@ public class PostService {
 
     public PostService(PostRepository postRepository, CategoryRepository categoryRepository,
             TagRepository tagRepository, UserRepository userRepository, NotificationService notificationService,
-            AuditLogService auditLogService) {
+            AuditLogService auditLogService, RatingService ratingService) {
         this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
         this.auditLogService = auditLogService;
+        this.ratingService = ratingService;
     }
 
     public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey) {
@@ -74,7 +77,7 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount);
+                    return new PostDTO(post, commentCount, upVoteCount, isUpvoted(post.getId()));
                 })
                 .collect(Collectors.toList());
 
@@ -92,7 +95,7 @@ public class PostService {
         Post post = (Post) result[0];
         Long commentCount = (Long) result[1];
         Long upVoteCount = (Long) result[2];
-        return new PostDTO(post, commentCount, upVoteCount);
+        return new PostDTO(post, commentCount, upVoteCount, isUpvoted(post.getId()));
     }
 
     public PostDTO addPost(PostRequestDTO postDTO) {
@@ -130,7 +133,7 @@ public class PostService {
                     NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
         }
         chatbaseService.updateChatbot(post);
-        return new PostDTO(post, 0L, 0L);
+        return new PostDTO(post, 0L, 0L, null);
     }
 
     public PostDTO editPost(PostDTO postDTO, Long id) {
@@ -164,7 +167,7 @@ public class PostService {
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "edited a post");
 
-        return new PostDTO(post, null, null);
+        return new PostDTO(post, null, null, null);
     }
 
     public PostDTO deletePost(Long id) {
@@ -179,7 +182,7 @@ public class PostService {
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "deleted a post");
 
-        return new PostDTO(post, null, null);
+        return new PostDTO(post, null, null, null);
     }
 
     public PostDTO setActive(Long id) {
@@ -194,8 +197,7 @@ public class PostService {
 
         auditLogService.createAuditLog(user, EntityType.POST.getCode(), post.getId(), "archived a post");
 
-        return new PostDTO(post, null, null);
-
+        return new PostDTO(post, null, null, null);
     }
 
     public PostDTO allowComment(Long id, boolean allowComment) {
@@ -206,8 +208,7 @@ public class PostService {
 
         postRepository.save(post);
 
-        return new PostDTO(post, null, null);
-
+        return new PostDTO(post, null, null, null);
     }
 
     public Post getPost(Long id) {
@@ -244,7 +245,7 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount);
+                    return new PostDTO(post, commentCount, upVoteCount, isUpvoted(post.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -258,7 +259,7 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount);
+                    return new PostDTO(post, commentCount, upVoteCount, isUpvoted(post.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -275,7 +276,8 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount);
+
+                    return new PostDTO(post, commentCount, upVoteCount, isUpvoted(post.getId()));
                 })
                 .collect(Collectors.toList());
 
@@ -329,7 +331,7 @@ public class PostService {
                     post,
                     BigDecimal.valueOf((Double) result.get("relevance")),
                     (Long) result.get("totalComments"),
-                    (Long) result.get("totalRatings"));
+                    (Long) result.get("totalRatings"),isUpvoted((Long) result.get("postId")));
         }).collect(Collectors.toList());
 
         /***********************
@@ -344,5 +346,10 @@ public class PostService {
 
         return new PaginatedResponse<>(postList, retrievedPage, pageSize, postResults.getTotalElements(),
                 otherConfiguration);
+    }
+
+    private Boolean isUpvoted(Long postId){
+        RatingDTO rating = ratingService.ratingByEntityIdAndEntityType(postId, "Post");
+        return  rating.getRating() == null ? false : true;
     }
 }

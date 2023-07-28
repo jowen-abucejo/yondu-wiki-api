@@ -19,8 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
-            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
-            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' OR c.isDeleted = false " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' AND r.active = true " +
             "WHERE (:searchKey IS NULL OR :searchKey = '' OR p.title LIKE %:searchKey% OR p.modifiedContent LIKE %:searchKey% OR p.author.username LIKE %:searchKey% OR p.author.email LIKE %:searchKey% OR CONCAT(p.author.firstName, ' ', p.author.lastName) LIKE %:searchKey% OR EXISTS (SELECT t FROM p.tags t WHERE t.name LIKE %:searchKey%) OR EXISTS (SELECT c FROM p.categories c WHERE c.name LIKE %:searchKey%)) "
             +
             "AND p.active = true AND p.deleted = false " +
@@ -30,16 +30,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
-            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
-            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' AND c.isDeleted = false " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' AND r.active = true " +
             "WHERE p.id = :id AND p.active = true AND p.deleted = false " +
             "GROUP BY p")
     List<Object[]> findPostWithCommentAndUpvoteCountsById(@Param("id") Long id);
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
-            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
-            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' AND c.isDeleted = false " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' AND r.active = true " +
             "WHERE p.active = true AND p.deleted = false " +
             "AND (:startDate IS NULL OR p.dateCreated >= :startDate) " +
             "GROUP BY p.id " +
@@ -48,8 +48,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
-            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' " +
-            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' AND c.isDeleted = false " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' AND r.active = true " +
             "WHERE p.active = true AND p.deleted = false " +
             "GROUP BY p.id " +
             "ORDER BY COUNT(DISTINCT r.id) DESC")
@@ -58,7 +58,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p, COUNT(DISTINCT c.id) AS commentCount, COUNT(DISTINCT r.id) AS upVoteCount " +
             "FROM Post p " +
             "LEFT JOIN Comment c ON p.id = c.entityId AND c.entityType = 'POST' AND c.isDeleted = false " +
-            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' " +
+            "LEFT JOIN Rating r ON p.id = r.entity_id AND r.entity_type = 'POST' AND r.rating = 'UP' AND r.active = true " +
             "WHERE (p.author.id = :id) " +
             "AND (:searchKey IS NULL OR :searchKey = '' OR p.title LIKE %:searchKey% OR p.modifiedContent LIKE %:searchKey% OR p.author.username LIKE %:searchKey% OR p.author.email LIKE %:searchKey% OR CONCAT(p.author.firstName, ' ', p.author.lastName) LIKE %:searchKey% OR EXISTS (SELECT t FROM p.tags t WHERE t.name LIKE %:searchKey%) OR EXISTS (SELECT c FROM p.categories c WHERE c.name LIKE %:searchKey%)) "
             +
@@ -91,8 +91,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 p.date_modified as dateModified
              FROM
                 post p LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = false
+                GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active = true GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                 users a ON p.author = a.id
             WHERE
                 p.is_deleted = 0
