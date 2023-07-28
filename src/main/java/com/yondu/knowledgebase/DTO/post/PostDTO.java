@@ -7,7 +7,6 @@ import com.yondu.knowledgebase.DTO.tag.TagMapper;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Post;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.ContentType;
 
 import java.time.LocalDateTime;
@@ -26,6 +25,7 @@ public class PostDTO {
     private Boolean active = true;
     private Boolean deleted = false;
     private Boolean allowComment = true;
+    private Boolean upvoted;
     private Set<CategoryDTO> categories = new HashSet<>();
     private Set<TagDTO> tags = new HashSet<>();
     private Set<UserDTO.GeneralResponse> postMentions = new HashSet<>();
@@ -35,7 +35,7 @@ public class PostDTO {
     public PostDTO() {
     }
 
-    public PostDTO(Post post, Long commentCount, Long upVoteCount) {
+    public PostDTO(Post post, Long commentCount, Long upVoteCount, Boolean upvoted) {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
@@ -45,6 +45,7 @@ public class PostDTO {
         this.dateModified = post.getDateModified();
         this.active = post.getActive();
         this.deleted = post.getDeleted();
+        this.upvoted = upvoted;
         this.allowComment = post.getAllowComment();
         this.tags = post.getTags().stream()
                 .map(tag -> {
@@ -134,6 +135,14 @@ public class PostDTO {
     public void setAllowComment(Boolean allowComment) {
         this.allowComment = allowComment;
     }
+    
+    public Boolean getUpvoted() {
+		return upvoted;
+	}
+
+	public void setUpvoted(Boolean upvoted) {
+		this.upvoted = upvoted;
+	}
 
     public Set<CategoryDTO> getCategories() {
         return categories;
