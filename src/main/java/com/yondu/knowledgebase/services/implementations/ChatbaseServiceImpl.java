@@ -1,5 +1,7 @@
 package com.yondu.knowledgebase.services.implementations;
 
+import com.yondu.knowledgebase.DTO.directory.DirectoryDTOMapper;
+import com.yondu.knowledgebase.entities.Directory;
 import com.yondu.knowledgebase.entities.PageVersion;
 import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.services.ChatbaseService;
@@ -13,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.io.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatbaseServiceImpl implements ChatbaseService {
@@ -103,14 +106,18 @@ public class ChatbaseServiceImpl implements ChatbaseService {
     private String formatNewPage(PageVersion pageVersion) {
         log.info("ChatbaseServiceImpl.formatNewPage()");
 
-        StringBuilder newContent = new StringBuilder();
-        newContent.append("This is a new " + pageVersion.getPage().getType() + " titled " + pageVersion.getTitle() + ". ");
-        newContent.append("if you are asked about this, feel free to tell them its content: \"" + pageVersion.getContent() + "\" ");
-        newContent.append("if you are asked about its ID you should give " + pageVersion.getPage().getId());
-//        newContent.append("TYPE : " + pageVersion.getPage().getType()).append("\n");
-//        newContent.append("ID : " + pageVersion.getPage().getId()).append("\n");
-//        newContent.append("TITLE : " + pageVersion.getTitle()).append("\n");
-//        newContent.append("CONTENT : " + pageVersion.getContent()).append("\n");
+        JSONObject newContent = new JSONObject();
+        newContent.put("post_id", pageVersion.getPage().getId());
+        newContent.put("post_author", pageVersion.getPage().getAuthor().getFirstName() + " " + pageVersion.getPage().getAuthor().getLastName());
+        newContent.put("post_type", pageVersion.getPage().getType().toLowerCase());
+        newContent.put("post_title", pageVersion.getTitle());
+        newContent.put("post_content", pageVersion.getContent());
+
+        Directory pageDirectory = pageVersion.getPage().getDirectory();
+        String fullPath = DirectoryDTOMapper.getPathFromParentToChild(pageDirectory).stream().map(directory -> directory.name() + "/").collect(Collectors.joining());
+
+        newContent.put("post_directory", fullPath);
+
 
         return newContent.toString();
     }
@@ -118,15 +125,12 @@ public class ChatbaseServiceImpl implements ChatbaseService {
     private String formatNewPage(Post post) {
         log.info("ChatbaseServiceImpl.formatNewPage()");
 
-        StringBuilder newContent = new StringBuilder();
-        newContent.append("This is a new discussion titled " + post.getTitle() + ". ");
-        newContent.append("if you are asked about this, feel free to tell them its content: \"" + post.getContent() + "\" ");
-        newContent.append("if you are asked about its ID you should give " + post.getId() + " ");
-        newContent.append("if you are asked who posted it you should tell them its " + post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName());
-//        newContent.append("TYPE : " + pageVersion.getPage().getType()).append("\n");
-//        newContent.append("ID : " + pageVersion.getPage().getId()).append("\n");
-//        newContent.append("TITLE : " + pageVersion.getTitle()).append("\n");
-//        newContent.append("CONTENT : " + pageVersion.getContent()).append("\n");
+        JSONObject newContent = new JSONObject();
+        newContent.put("post_id", post.getId());
+        newContent.put("post_author", post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName());
+        newContent.put("post_type", "discussion");
+        newContent.put("post_title", post.getTitle());
+        newContent.put("post_content", post.getContent().replaceAll("<[^>]+>", ""));
 
         return newContent.toString();
     }
