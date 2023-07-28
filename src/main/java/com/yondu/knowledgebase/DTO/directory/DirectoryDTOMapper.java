@@ -76,7 +76,7 @@ public class DirectoryDTOMapper {
     // directory.getName();
     // }
 
-    private static List<DirectoryDTO.ShortResponse> getPathFromParentToChild(Directory directory) {
+    public static List<DirectoryDTO.ShortResponse> getPathFromParentToChild(Directory directory) {
         List<DirectoryDTO.ShortResponse> fullPath = new ArrayList<>();
         Deque<Directory> stack = new ArrayDeque<>();
         Directory currentDirectory = directory;
