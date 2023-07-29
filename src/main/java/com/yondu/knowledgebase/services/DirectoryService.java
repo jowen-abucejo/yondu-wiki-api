@@ -412,7 +412,7 @@ public class DirectoryService {
                 .stream()
                 .filter(existingStep -> request.workflow()
                         .stream()
-                        .noneMatch(step -> step.id().equals(existingStep.getId())))
+                        .noneMatch(step -> step.id() == null || step.id().equals(existingStep.getId())))
                 .toList();
 
         toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
