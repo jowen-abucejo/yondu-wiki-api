@@ -370,6 +370,16 @@ public class DirectoryService {
 
         Workflow workflow = directory.getWorkflow();
 
+        List<WorkflowStep> toRemoveSteps = workflow.getSteps()
+                .stream()
+                .filter(existingStep -> request.workflow()
+                        .stream().filter(step->step.id()!=null)
+                        .noneMatch(step -> step.id().equals(existingStep.getId())))
+                .toList();
+
+        toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
+        workflowStepRepository.deleteAll(toRemoveSteps);
+
         request.workflow().forEach(step -> {
             WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndId(workflow, step.id())
                     .orElse(null);
@@ -407,16 +417,6 @@ public class DirectoryService {
                 workflowStepRepository.save(workflowStep);
             }
         });
-
-        List<WorkflowStep> toRemoveSteps = workflow.getSteps()
-                .stream()
-                .filter(existingStep -> request.workflow()
-                        .stream()
-                        .noneMatch(step -> step.id() == null || step.id().equals(existingStep.getId())))
-                .toList();
-
-        toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
-        workflowStepRepository.deleteAll(toRemoveSteps);
 
         List<DirectoryUserAccess> newUserAccesses = request.userAccess().stream().map(userAccess -> {
             Permission permission1 = permissionRepository.findById(userAccess.permissionId())
