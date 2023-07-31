@@ -162,7 +162,7 @@ public class ReviewService {
 
                 for (User approver : approvers) {
 
-                    if (!reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), approver)) {
+                    if (!reviewRepository.hasUserApprovedContentInPageVersionForStep(review.getPageVersion(), approver,step)) {
 
                         String pageType = review.getPageVersion().getPage().getType();
                         String capitalizedPageType = pageType.substring(0, 1).toUpperCase() + pageType.substring(1).toLowerCase();
@@ -220,7 +220,7 @@ public class ReviewService {
                 // Check if the current user is an approver for this step
                 if (containsUser(approvers, currentUser)) {
                     // Check if the current user has already approved the content
-                    if (!reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), currentUser)
+                    if (!reviewRepository.hasUserApprovedContentInPageVersionForStep(review.getPageVersion(), currentUser,step)
                             && isPending) {
                         // Update the review with the current step and other information
                         review.setWorkflowStep(step);
@@ -335,7 +335,7 @@ public class ReviewService {
         sortedSteps.forEach(step -> {
             Set<User> approvers = getStepApprovers(step);
             boolean isAnyApproverApproved = approvers.stream()
-                    .anyMatch(approver -> reviewRepository.hasUserApprovedContentInPageVersion(pageVersion, approver));
+                    .anyMatch(approver -> reviewRepository.hasUserApprovedContentInPageVersionForStep(pageVersion, approver,step));
             data.put(step, isAnyApproverApproved);
         });
 
@@ -479,7 +479,7 @@ public class ReviewService {
                 .anyMatch(step -> {
                     Set<User> approvers = getStepApprovers(step);
                     return containsUser(approvers, user)
-                            && !reviewRepository.hasUserApprovedContentInPageVersion(review.getPageVersion(), user)
+                            && !reviewRepository.hasUserApprovedContentInPageVersionForStep(review.getPageVersion(), user, step)
                             && isPending;
                 });
         if (isContentFullyApproved(pageVersion)) {
