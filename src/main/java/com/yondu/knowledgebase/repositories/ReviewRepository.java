@@ -3,6 +3,7 @@ package com.yondu.knowledgebase.repositories;
 import com.yondu.knowledgebase.entities.PageVersion;
 import com.yondu.knowledgebase.entities.Review;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.WorkflowStep;
 import com.yondu.knowledgebase.enums.ReviewStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -50,6 +51,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             "AND r.status = 'APPROVED' " +
             "AND r.user = :user")
     boolean hasUserApprovedContentInPageVersion(PageVersion pageVersion, User user);
+
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
+            "FROM Review r " +
+            "WHERE r.pageVersion = :pageVersion " +
+            "AND r.status = 'APPROVED' " +
+            "AND r.user = :user " +
+            "AND r.workflowStep = :step")
+    boolean hasUserApprovedContentInPageVersionForStep(PageVersion pageVersion, User user, WorkflowStep step);
+
 
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
             "FROM Review r " +
