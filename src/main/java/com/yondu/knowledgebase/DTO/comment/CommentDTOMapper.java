@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.DTO.comment;
 
+import com.yondu.knowledgebase.DTO.comment.CommentDTO.ShortRatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.Comment;
@@ -42,6 +43,43 @@ public class CommentDTOMapper {
                 commentMentions,
                 (long) comment.getCommentReplies().size(),
                 comment.isDeleted()
+        );
+    }
+
+    public static ShortRatedResponse mapToShortRatedResponse(Comment comment, String voteType, Integer voteCount, Integer totalVoteCount) {
+        Set<User> users = comment.getCommentMentions();
+        Set<UserDTO.GeneralResponse> commentMentions = new HashSet<>();
+        for (User user : users){
+            commentMentions.add(UserDTOMapper.mapToGeneralResponse(user));
+        }
+        return new CommentDTO.ShortRatedResponse(
+                comment.getId(),
+                comment.getDateCreated(),
+                comment.getComment(),
+                UserDTOMapper.mapToGeneralResponse(comment.getUser()),
+                comment.getParentCommentId(),
+                comment.getEntityId(),
+                comment.getEntityType(),
+                comment.isAllowReply(),
+                commentMentions,
+                (long) comment.getCommentReplies().size(),
+                comment.isDeleted(),
+                voteType,
+                voteCount,
+                totalVoteCount
+        );
+    }
+
+    public static CommentDTO.BaseRatedResponse mapToBaseRatedResponse(Comment comment, String voteType, Integer voteCount, Integer totalVoteCount) {
+        CommentDTO.ShortRatedResponse shortRatedResponse = mapToShortRatedResponse(comment, voteType, voteCount, totalVoteCount);
+        Set<Comment> replies = comment.getCommentReplies();
+        List<CommentDTO.ShortResponse> commentReplies = new ArrayList<>();
+        for (Comment reply: replies){
+            commentReplies.add(CommentDTOMapper.mapToShortResponse(reply));
+        }
+        return new CommentDTO.BaseRatedResponse(
+                shortRatedResponse,
+                commentReplies
         );
     }
 

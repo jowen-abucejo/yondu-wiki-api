@@ -16,8 +16,8 @@ public class PostSearchResult extends PostDTO {
      * @param totalRatings
      * @param post
      */
-    public PostSearchResult(Post post, BigDecimal relevance, Long totalComments, Long totalRatings, Boolean upvoted) {
-        super(post, totalComments, totalRatings, upvoted);
+    public PostSearchResult(Post post, BigDecimal relevance, Long totalComments, Long totalRatings, String vote, int totalVote) {
+        super(post, totalComments, totalRatings, vote, totalVote);
         this.relevance = relevance;
     }
 

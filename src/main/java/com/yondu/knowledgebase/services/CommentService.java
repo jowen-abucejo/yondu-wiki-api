@@ -10,6 +10,7 @@ public interface CommentService {
     CommentDTO.BaseResponse createComment(CommentDTO.BaseRequest request, Long parentCommentId, String entityType, Long entityId);
     public List<CommentDTO.BaseResponse> getAllComments(String entity, Long id);
     public List<CommentDTO.ShortResponse> getAllParentComments(String entity, Long id);
+    public List<CommentDTO.ShortRatedResponse> getAllParentCommentsWithRate(String entity, Long id);
     CommentDTO.CountResponse getTotalComments(String entity, Long id);
     CommentDTO.BaseResponse getComment (Long id);
     CommentDTO.ShortResponse allowReply (Long id, boolean allowReply);
