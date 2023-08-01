@@ -3,6 +3,9 @@ package com.yondu.knowledgebase.services.implementations;
 import com.yondu.knowledgebase.DTO.comment.*;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
+import com.yondu.knowledgebase.DTO.rating.RatingDTO;
+import com.yondu.knowledgebase.DTO.rating.TotalUpvoteDTO;
+import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
@@ -15,6 +18,8 @@ import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.AuditLogService;
 import com.yondu.knowledgebase.services.CommentService;
+import com.yondu.knowledgebase.services.RatingService;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -30,8 +35,9 @@ public class CommentServiceImpl implements CommentService {
     private final NotificationServiceImpl notificationService;
     private final PageServiceImpl pageService;
     private final AuditLogService auditLogService;
+    private final RatingService ratingService;
 
-    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService, AuditLogService auditLogService) {
+    public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository, PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService, PageServiceImpl pageService, AuditLogService auditLogService, RatingService ratingService) {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.postRepository = postRepository;
@@ -39,6 +45,7 @@ public class CommentServiceImpl implements CommentService {
         this.notificationService = notificationService;
         this.pageService = pageService;
         this.auditLogService = auditLogService;
+        this.ratingService = ratingService;
     }
 
     @Override
@@ -130,6 +137,17 @@ public class CommentServiceImpl implements CommentService {
         return commentResponseList;
     }
 
+     @Override
+    public List<CommentDTO.ShortRatedResponse> getAllParentCommentsWithRate(String entity, Long id) {
+        List<Comment> comments = commentRepository.getAllParentComments(entity,id);
+        List <CommentDTO.ShortRatedResponse> commentResponseList = new ArrayList<>();
+        for (Comment comment : comments){
+            CommentDTO.ShortRatedResponse shortResponse = CommentDTOMapper.mapToShortRatedResponse(comment, voteType(comment.getId()), upvoteCount(comment.getId()), totalVote(comment.getId()));
+            commentResponseList.add(shortResponse);
+        }
+        return commentResponseList;
+    }
+
     @Override
     public List<CommentDTO.ShortResponse> getAllParentComments (String entity, Long id){
         List<Comment> comments = commentRepository.getAllParentComments(entity,id);
@@ -203,6 +221,23 @@ public class CommentServiceImpl implements CommentService {
             return cleanText.substring(0, 30) + "...";
         }
         return cleanText;
+    }
+
+    private String voteType(Long id){
+        RatingDTO rating = ratingService.ratingByEntityIdAndEntityType(id, "Comment");
+        return  rating.getRating();
+    }
+
+    private Integer upvoteCount(Long id){
+        /* upvote - downvote */
+        TotalUpvoteDTO vote = ratingService.totalUpvote(id, "Comment");
+        return  vote.getTotal_upvote();
+    }
+
+    private Integer totalVote(Long id){
+        TotalVoteDTO vote = ratingService.totalVote(id, "Comment");
+        /* upvote + downvote */
+        return  vote.getTotal_vote();
     }
 
 }

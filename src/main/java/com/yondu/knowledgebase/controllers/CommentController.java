@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.comment.*;
+import com.yondu.knowledgebase.DTO.comment.CommentDTO.BaseRatedResponse;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.services.CommentService;
 import jakarta.validation.Valid;
@@ -59,8 +60,8 @@ public class CommentController {
 
     //GET ALL PARENT comments in a POST
     @GetMapping ("/posts/{id}/comments/parent-comment")
-    public ResponseEntity<ApiResponse<List<CommentDTO.ShortResponse>>> getAllParentCommentsInPost(@PathVariable Long id) {
-        List<CommentDTO.ShortResponse> comment = commentService.getAllParentComments(ContentType.POST.getCode(), id);
+    public ResponseEntity<ApiResponse<List<CommentDTO.ShortRatedResponse>>> getAllParentCommentsInPost(@PathVariable Long id) {
+        List<CommentDTO.ShortRatedResponse> comment = commentService.getAllParentCommentsWithRate(ContentType.POST.getCode(), id);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(comment, "All parent comments retrieved successfully"));
     }
 

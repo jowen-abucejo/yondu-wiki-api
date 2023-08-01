@@ -25,7 +25,8 @@ public class PostDTO {
     private Boolean active = true;
     private Boolean deleted = false;
     private Boolean allowComment = true;
-    private Boolean upvoted;
+    private String vote;
+    private int totalVote;
     private Set<CategoryDTO> categories = new HashSet<>();
     private Set<TagDTO> tags = new HashSet<>();
     private Set<UserDTO.GeneralResponse> postMentions = new HashSet<>();
@@ -35,7 +36,7 @@ public class PostDTO {
     public PostDTO() {
     }
 
-    public PostDTO(Post post, Long commentCount, Long upVoteCount, Boolean upvoted) {
+    public PostDTO(Post post, Long commentCount, Long upVoteCount, String vote, int totalVote) {
         this.id = post.getId();
         this.author = UserDTOMapper.mapToGeneralResponse(post.getAuthor());
         this.title = post.getTitle();
@@ -45,7 +46,8 @@ public class PostDTO {
         this.dateModified = post.getDateModified();
         this.active = post.getActive();
         this.deleted = post.getDeleted();
-        this.upvoted = upvoted;
+        this.vote = vote;
+        this.totalVote = totalVote;
         this.allowComment = post.getAllowComment();
         this.tags = post.getTags().stream()
                 .map(tag -> {
@@ -136,12 +138,20 @@ public class PostDTO {
         this.allowComment = allowComment;
     }
     
-    public Boolean getUpvoted() {
-		return upvoted;
+    public String getVote() {
+		return vote;
 	}
 
-	public void setUpvoted(Boolean upvoted) {
-		this.upvoted = upvoted;
+	public void setVote(String vote) {
+		this.vote = vote;
+	}
+
+    public int gettotalVote() {
+		return totalVote;
+	}
+
+	public void settotalVote(int totalVote) {
+		this.totalVote = totalVote;
 	}
 
     public Set<CategoryDTO> getCategories() {
