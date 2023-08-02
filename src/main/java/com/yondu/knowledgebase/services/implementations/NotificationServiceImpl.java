@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
+import com.yondu.knowledgebase.DTO.notification.NotificationDTO.BaseResponse;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
@@ -167,5 +168,30 @@ public class NotificationServiceImpl implements NotificationService {
             data.put("contentLink",String.format("http://localhost:8080/posts/%d",notification.getTypeId()));
         }
         return data;
+    }
+
+    @Override
+    public PaginatedResponse<NotificationDTO.BaseResponse> getUserUnreadNotifications(int page, int size) {
+         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        PageRequest pageRequest = PageRequest.of(page - 1, size);
+        Page<Notification> fetchedNotification = notificationRepository.getUnreadNotification(user, pageRequest);
+
+        if(fetchedNotification.isEmpty()){
+            throw new NoContentException("There are no unread notifications found.");
+        }
+
+        List<NotificationDTO.BaseResponse> notifications = fetchedNotification.getContent()
+                .stream()
+                .map(notification -> NotificationDTOMapper.mapEntityToBaseResponse(notification))
+                .collect(Collectors.toList());
+
+        PaginatedResponse paginatedResponse = new PaginatedResponse(
+                notifications,
+                page,
+                size,
+                (long)notifications.size()
+        );
+
+        return paginatedResponse;
     }
 }
