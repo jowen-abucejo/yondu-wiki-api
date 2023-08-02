@@ -22,4 +22,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     @Query("SELECT COUNT (n) FROM notifications n WHERE user = ?1 AND (isRead = false AND fromUser <> ?1 OR (isRead = false AND notificationType = 'APPROVAL' AND fromUser = ?1)) ")
     Long totalUnreadNotification(User user);
+
+    @Query("SELECT n FROM notifications n WHERE user = ?1 AND (isRead = false AND fromUser <> ?1 OR (isRead = false AND notificationType = 'APPROVAL' AND fromUser = ?1)) ")
+    Page<Notification> getUnreadNotification(User user, Pageable pageable);
 }

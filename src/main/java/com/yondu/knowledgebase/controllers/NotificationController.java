@@ -69,4 +69,17 @@ public class NotificationController {
         ApiResponse response = ApiResponse.success(totalUnreadNotification, "total unread notifications fetched successfully");
         return ResponseEntity.ok(response);
     }
+ 
+    @GetMapping("/user/unread")
+    public ResponseEntity<ApiResponse<PaginatedResponse<NotificationDTO.BaseResponse>>> getUserUnreadNotif(@RequestParam(defaultValue = "1") int page, @RequestParam(defaultValue = "15") int size) {
+        log.info("NotificationController.getUserNotifications()");
+        log.info("page : " + page);
+        log.info("size : " + size);
+
+        PaginatedResponse<NotificationDTO.BaseResponse> unreadNotifications = notificationService.getUserUnreadNotifications(page, size);
+        ApiResponse apiResponse = ApiResponse.success(unreadNotifications, "success");
+
+        return ResponseEntity.ok(apiResponse);
+    }
+    
 }
