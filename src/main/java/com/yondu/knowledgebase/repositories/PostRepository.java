@@ -91,7 +91,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 p.date_modified as dateModified
              FROM
                 post p LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = false
+                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE parent_comment_id IS NULL AND entity_type = 'POST' AND is_deleted = false
                 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
                 (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active = true GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                 users a ON p.author = a.id
