@@ -168,10 +168,6 @@ public class AnnouncementController {
      * 
      * @param searchKey  The search key to filter the announcements.
      * 
-     * @param archived   Flag indicating whether to retrieve only archived
-     *                   announcements if true or active announcements only if
-     *                   false. Default is false.
-     * 
      * @param pageNumber The page number for pagination. Default is 1,
      * 
      * @param pageSize   The number of announcements to include per page. Default is
@@ -185,12 +181,11 @@ public class AnnouncementController {
      */
     public PaginatedResponse<PageDTO> getAllDraftVersions(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
-            @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
+        return pageService.findAllDraftVersions(pageType, searchKey, pageNumber, pageSize, sortBy);
     }
 
     @PatchMapping(path = "announcements/{id}/change-directory")
