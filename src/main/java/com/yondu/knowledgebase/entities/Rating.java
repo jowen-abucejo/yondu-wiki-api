@@ -18,14 +18,16 @@ public class Rating {
 	private Long entity_id;
 
 
-	@Pattern(regexp="^(Page|Comment|Post)$",message="This field can only accept 'Page', 'Comment' and 'Post'")
+	@Pattern(regexp="^(PAGE|COMMENT|POST)$",message="This field can only accept 'PAGE', 'COMMENT' and 'POST'")
 	@Column(nullable = false)
 	private String entity_type;
+
 	@Pattern(regexp="^(UP|DOWN)$", message="This field can only accept 'UP' or 'DOWN'")
 	@Column(nullable = false)
 	private String rating;
+
 	@Column(name = "is_active")
-    private Boolean active = true;
+  private Boolean active = true;
 	
 	public Rating() {}
 
