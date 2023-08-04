@@ -107,7 +107,6 @@ public class CategoryController {
                 .body(ApiResponse.success(newCategoryDTO, "Category has been successfully restored"));
     }
 
-
     @GetMapping("/categories/{id}")
     public ResponseEntity<ApiResponse<CategoryDTO>> getCategoryById(@PathVariable Long id) {
         Category category = categoryService.getCategory(id);
@@ -120,7 +119,7 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<List<CategoryDTO>>> getAllCategories() {
         List<Category> categories = categoryService.getAllCategories();
         List<CategoryDTO> categoryDTOs = categories.stream()
-            .filter(category -> !category.getDeleted()) 
+                .filter(category -> !category.getDeleted())
                 .map(categoryMapper::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK)
@@ -137,104 +136,111 @@ public class CategoryController {
                 .body(ApiResponse.success(categoryDTOs, "Success retrieving all categories"));
     }
 
-    @PostMapping("/pages/{pageId}/categories")
-    public ResponseEntity<ApiResponse<CategoryDTO>> assignPageCategory(@RequestBody CategoryDTO categoryDto,
-            @PathVariable Long pageId) {
-        // Retrieve the page by ID using the PageService
-        Page page = pageService.getPage(pageId);
+    // @PostMapping("/pages/{pageId}/categories")
+    // public ResponseEntity<ApiResponse<CategoryDTO>>
+    // assignPageCategory(@RequestBody CategoryDTO categoryDto,
+    // @PathVariable Long pageId) {
+    // // Retrieve the page by ID using the PageService
+    // Page page = pageService.getPage(pageId);
 
-        // Check if the page is locked
-        if (isPageLocked(page)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error("Page is currently locked and cannot be edited"));
-        }
+    // // Check if the page is locked
+    // if (isPageLocked(page)) {
+    // return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    // .body(ApiResponse.error("Page is currently locked and cannot be edited"));
+    // }
 
-        // Retrieve the category by ID using the CategoryService
-        Category category = categoryService.getCategory(categoryDto.getId());
+    // // Retrieve the category by ID using the CategoryService
+    // Category category = categoryService.getCategory(categoryDto.getId());
 
-        // Check if the page is already assigned to the category
-        boolean pageAlreadyAssigned = category.getPages().stream()
-                .anyMatch(p -> p.getId().equals(page.getId()));
+    // // Check if the page is already assigned to the category
+    // boolean pageAlreadyAssigned = category.getPages().stream()
+    // .anyMatch(p -> p.getId().equals(page.getId()));
 
-        if (pageAlreadyAssigned) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Page is already assigned to the category"));
-        }
+    // if (pageAlreadyAssigned) {
+    // return ResponseEntity.badRequest().body(ApiResponse.error("Page is already
+    // assigned to the category"));
+    // }
 
-        // Add the page to the category's pages list
-        category.getPages().add(page);
+    // // Add the page to the category's pages list
+    // category.getPages().add(page);
 
-        // Save the updated category
-        Category updatedCategory = categoryService.addPageCategory(category);
+    // // Save the updated category
+    // Category updatedCategory = categoryService.addPageCategory(category);
 
-        CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
+    // CategoryDTO newCategoryDTO = categoryMapper.toDto(updatedCategory);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(newCategoryDTO, "Category added to page successfully"));
-    }
+    // return ResponseEntity.status(HttpStatus.CREATED)
+    // .body(ApiResponse.success(newCategoryDTO, "Category added to page
+    // successfully"));
+    // }
 
-    private boolean isPageLocked(Page page) {
-        var currentTime = LocalDateTime.now();
-        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    // private boolean isPageLocked(Page page) {
+    // var currentTime = LocalDateTime.now();
+    // var currentUser = (User)
+    // SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        boolean isSameUser = page.getLockedBy().getId().equals(currentUser.getId());
-        boolean isPageUnlocked = currentTime.isAfter(page.getLockEnd());
+    // boolean isSameUser = page.getLockedBy().getId().equals(currentUser.getId());
+    // boolean isPageUnlocked = currentTime.isAfter(page.getLockEnd());
 
-        // Check if the page can be edited by the current user
-        if (!isSameUser && !isPageUnlocked) {
-            return true;
-        }
+    // // Check if the page can be edited by the current user
+    // if (!isSameUser && !isPageUnlocked) {
+    // return true;
+    // }
 
-        if (!isSameUser) {
-            page.setLockedBy(currentUser);
-        }
+    // if (!isSameUser) {
+    // page.setLockedBy(currentUser);
+    // }
 
-        if (isPageUnlocked) {
-            page.setLockStart(currentTime);
-        }
+    // if (isPageUnlocked) {
+    // page.setLockStart(currentTime);
+    // }
 
-        page.setLockEnd(currentTime.plusHours(1));
+    // page.setLockEnd(currentTime.plusHours(1));
 
-        return false;
-    }
+    // return false;
+    // }
 
-    @PutMapping("/pages/{pageId}/categories/{newCategoryId}")
-    public ResponseEntity<ApiResponse<CategoryDTO>> editPageCategory(@RequestBody CategoryDTO categoryDto,
-            @PathVariable Long pageId, @PathVariable Long newCategoryId) {
-        // Retrieve the page by ID using the PageService
-        Page page = pageService.getPage(pageId);
+    // @PutMapping("/pages/{pageId}/categories/{newCategoryId}")
+    // public ResponseEntity<ApiResponse<CategoryDTO>> editPageCategory(@RequestBody
+    // CategoryDTO categoryDto,
+    // @PathVariable Long pageId, @PathVariable Long newCategoryId) {
+    // // Retrieve the page by ID using the PageService
+    // Page page = pageService.getPage(pageId);
 
-        // Check if the page is locked
-        if (isPageLocked(page)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(ApiResponse.error("Page is currently locked and cannot be edited"));
-        }
+    // // Check if the page is locked
+    // if (isPageLocked(page)) {
+    // return ResponseEntity.status(HttpStatus.FORBIDDEN)
+    // .body(ApiResponse.error("Page is currently locked and cannot be edited"));
+    // }
 
-        // Retrieve the category by ID using the CategoryService
-        Category category = categoryService.getCategory(newCategoryId);
+    // // Retrieve the category by ID using the CategoryService
+    // Category category = categoryService.getCategory(newCategoryId);
 
-        // Check if the page is already assigned to the category
-        boolean pageAlreadyAssigned = category.getPages().stream()
-                .anyMatch(p -> p.getId().equals(page.getId()));
+    // // Check if the page is already assigned to the category
+    // boolean pageAlreadyAssigned = category.getPages().stream()
+    // .anyMatch(p -> p.getId().equals(page.getId()));
 
-        if (pageAlreadyAssigned) {
-            return ResponseEntity.badRequest().body(ApiResponse.error("Page is already assigned to the category"));
-        }
+    // if (pageAlreadyAssigned) {
+    // return ResponseEntity.badRequest().body(ApiResponse.error("Page is already
+    // assigned to the category"));
+    // }
 
-        Category oldCategory = categoryService.getCategory(categoryDto.getId());
+    // Category oldCategory = categoryService.getCategory(categoryDto.getId());
 
-        // Remove the page from its current categories set
-        Set<Category> currentCategories = page.getCategories();
-        currentCategories.remove(oldCategory);
+    // // Remove the page from its current categories set
+    // Set<Category> currentCategories = page.getCategories();
+    // currentCategories.remove(oldCategory);
 
-        // Add the page to the new category's pages list
-        category.getPages().add(page);
+    // // Add the page to the new category's pages list
+    // category.getPages().add(page);
 
-        // Save the updated category and page
-        categoryService.editPageCategory(category);
+    // // Save the updated category and page
+    // categoryService.editPageCategory(category);
 
-        CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
-        return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Page category updated successfully"));
-    }
+    // CategoryDTO updatedCategoryDto = categoryMapper.toDto(category);
+    // return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Page
+    // category updated successfully"));
+    // }
 
     @PostMapping("/posts/{postId}/categories")
     public ResponseEntity<ApiResponse<CategoryDTO>> assignPostCategory(@RequestBody CategoryDTO categoryDto,
@@ -302,8 +308,7 @@ public class CategoryController {
         return ResponseEntity.ok(ApiResponse.success(updatedCategoryDto, "Post category updated successfully"));
     }
 
-
-        @GetMapping("/categories/paginated")
+    @GetMapping("/categories/paginated")
     public ResponseEntity<?> getPaginatedCategory(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {

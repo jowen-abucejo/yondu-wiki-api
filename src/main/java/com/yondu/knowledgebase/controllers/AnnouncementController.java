@@ -40,7 +40,7 @@ public class AnnouncementController {
         return new ApiResponse<PageDTO>("success", page, "Announcement retrieved");
     }
 
-    @GetMapping(path = "announcements/search")
+    @GetMapping(path = "announcements")
     public PaginatedResponse<PageDTO> searchPages(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
@@ -52,23 +52,14 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
-            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
+            @RequestParam(defaultValue = "", name = "days") Long days,
+            @RequestParam(defaultValue = "0", name = "isAuthor") Boolean isAuthor,
+            @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
+            @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly) {
 
-        return pageService.findAllByFullTextSearch(pageType, searchKey, primaryKeys, categories, tags, archived,
-                published, exactSearch, pageNumber, pageSize, fromDate, sortBy);
-    }
-
-    @GetMapping(path = "announcements")
-    public PaginatedResponse<PageDTO> getAllApprovedPages(
-            @RequestParam(defaultValue = "", name = "categories") String[] categories,
-            @RequestParam(defaultValue = "", name = "tags") String[] tags,
-            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
-            @RequestParam(defaultValue = "50", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
-            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
-
-        return pageService.findAllByFullTextSearch(pageType, "", new Long[] {}, categories, tags, false, true, false,
-                pageNumber, pageSize, fromDate, sortBy);
+        return pageService.searchAll(new String[] { pageType.getCode() }, searchKey, primaryKeys,
+                categories, tags, archived, published, exactSearch,
+                pageNumber, pageSize, days, isAuthor, savedOnly, upVotedOnly, sortBy);
     }
 
     @GetMapping(path = "announcements/{id}/versions")
@@ -124,7 +115,7 @@ public class AnnouncementController {
         return new ApiResponse<PageDTO>("success", page, "Announcement commenting on");
     }
 
-    @GetMapping(path = "directories/{id}/announcements/search")
+    @GetMapping(path = "directories/{id}/announcements")
     public PaginatedResponse<PageDTO> searchPagesInDirectory(
             @PathVariable Long id,
             @RequestParam(defaultValue = "", name = "key") String searchKey,

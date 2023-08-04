@@ -40,7 +40,7 @@ public class PageController {
         return new ApiResponse<PageDTO>("success", page, "Wiki retrieved");
     }
 
-    @GetMapping(path = "pages/search")
+    @GetMapping(path = "pages")
     public PaginatedResponse<PageDTO> searchPages(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "", name = "categories") String[] categories,
@@ -52,23 +52,14 @@ public class PageController {
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
-            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
+            @RequestParam(defaultValue = "", name = "days") Long days,
+            @RequestParam(defaultValue = "0", name = "isAuthor") Boolean isAuthor,
+            @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
+            @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly) {
 
-        return pageService.findAllByFullTextSearch(pageType, searchKey, primaryKeys, categories, tags, archived,
-                published, exactSearch, pageNumber, pageSize, fromDate, sortBy);
-    }
-
-    @GetMapping(path = "pages")
-    public PaginatedResponse<PageDTO> getAllApprovedPages(
-            @RequestParam(defaultValue = "", name = "categories") String[] categories,
-            @RequestParam(defaultValue = "", name = "tags") String[] tags,
-            @RequestParam(defaultValue = "1", name = "page") int pageNumber,
-            @RequestParam(defaultValue = "50", name = "size") int pageSize,
-            @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
-            @RequestParam(defaultValue = "", name = "fromDate") String fromDate) {
-
-        return pageService.findAllByFullTextSearch(pageType, "", new Long[] {}, categories, tags, false, true, false,
-                pageNumber, pageSize, fromDate, sortBy);
+        return pageService.searchAll(new String[] { pageType.getCode() }, searchKey, primaryKeys,
+                categories, tags, archived, published, exactSearch,
+                pageNumber, pageSize, days, isAuthor, savedOnly, upVotedOnly, sortBy);
     }
 
     @GetMapping(path = "pages/{id}/versions")
@@ -124,7 +115,7 @@ public class PageController {
         return new ApiResponse<PageDTO>("success", page, "Wiki commenting on");
     }
 
-    @GetMapping(path = "directories/{id}/pages/search")
+    @GetMapping(path = "directories/{id}/pages")
     public PaginatedResponse<PageDTO> searchPagesInDirectory(
             @PathVariable Long id,
             @RequestParam(defaultValue = "", name = "key") String searchKey,
@@ -204,24 +195,6 @@ public class PageController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
         return pageService.findAllDraftVersions(pageType, searchKey, archived, pageNumber, pageSize, sortBy);
-    }
-
-    @GetMapping(path = "pages/{id}/lock")
-    /**
-     * Retrieves a page lock status.
-     * Gives the user choice to lock after
-     * checking or not
-     *
-     * @param id        ID of the page you want to
-     *                  check
-     *
-     * @param lockAfter Locks the page after checking.
-     *                  Default false.
-     */
-    public ResponseEntity getLockStatus(@PathVariable Long id,
-            @RequestParam(defaultValue = "0", name = "lockAfter") Boolean lockAfter) {
-        pageService.getLockStatus(id, lockAfter);
-        return ResponseEntity.ok().build();
     }
 
     @PatchMapping(path = "pages/{id}/change-directory")

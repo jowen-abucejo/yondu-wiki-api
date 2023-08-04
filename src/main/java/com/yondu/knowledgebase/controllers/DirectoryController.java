@@ -86,24 +86,6 @@ public class DirectoryController {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
     }
 
-    @GetMapping("/{id}/pages")
-    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> getPages(@PathVariable("id") Long directoryId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "WIKI") String type) {
-        log.info("DirectoryController.getPages()");
-        log.info("directoryId : " + directoryId);
-        log.info("page : " + page);
-        log.info("size : " + size);
-        log.info("type : " + type);
-
-        PaginatedResponse<PageDTO> pages = directoryService.getPages(directoryId, page, size, type);
-        if (pages == null) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(ApiResponse.success(pages, "success"));
-    }
-
     /**
      * Updates the directories user access. This is a two-way update.
      * If the same access has been found, it will delete the access.

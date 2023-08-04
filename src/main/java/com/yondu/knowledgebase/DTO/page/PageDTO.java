@@ -83,6 +83,10 @@ public class PageDTO {
     private Long directoryWorkflowId;
     private Long directoryWorkflowStepCount;
 
+    private Boolean saved;
+    @JsonProperty(value = "vote")
+    private String myRating;
+
     private PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
         this.dateCreated = builder.dateCreated;
@@ -105,6 +109,8 @@ public class PageDTO {
         this.directoryName = builder.directoryName;
         this.directoryWorkflowId = builder.directoryWorkflowId;
         this.directoryWorkflowStepCount = builder.directoryWorkflowStepCount;
+        this.saved = builder.saved;
+        this.myRating = builder.myRating;
     }
 
     /**
@@ -243,6 +249,8 @@ public class PageDTO {
         private Long directoryWorkflowId;
         private Long directoryWorkflowStepCount;
         private String directoryName;
+        private Boolean saved;
+        private String myRating;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -352,6 +360,16 @@ public class PageDTO {
             return this;
         }
 
+        public PageDTOBuilder saved(Boolean saved) {
+            this.saved = saved;
+            return this;
+        }
+
+        public PageDTOBuilder myRating(String myRating) {
+            this.myRating = myRating;
+            return this;
+        }
+
         public PageDTO build() {
             return new PageDTO(this);
         }
@@ -391,4 +409,19 @@ public class PageDTO {
     public Long getDirectoryWorkflowStepCount() {
         return directoryWorkflowStepCount;
     }
+
+    /**
+     * @return the saved
+     */
+    public Boolean getSaved() {
+        return saved;
+    }
+
+    /**
+     * @return the myRating
+     */
+    public String getMyRating() {
+        return myRating;
+    }
+
 }

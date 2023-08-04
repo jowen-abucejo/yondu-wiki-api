@@ -1,6 +1,5 @@
 package com.yondu.knowledgebase.services;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import com.yondu.knowledgebase.DTO.page.PageDTO;
@@ -25,32 +24,18 @@ public interface PageService {
 
     public PageDTO updateCommenting(PageType pageType, Long pageId, Boolean allowCommenting);
 
-    public Page getPage(PageType pageType, Long pageId);
-
     public PageDTO findByIdWithVersions(PageType pageType, Long pageId);
 
-    public PaginatedResponse<PageDTO> findAllByFullTextSearch(PageType pageType, String searchKey,
-            Long[] primaryKeys, String[] categories, String[] tags,
-            Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-            Integer pageSize, String fromDate, String[] sortBy);
-
-    public Page getPage(Long pageId);
-
     public PaginatedResponse<PageDTO> findAllByDirectoryIdAndFullTextSearch(PageType pageType, Long directoryId,
-            String searchKey,
-            String[] categories, String[] tags,
-            Boolean isArchive, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+            String searchKey, String[] categories, String[] tags,
+            Boolean isArchived, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
             Integer pageSize, String[] sortBy);
 
-    public PaginatedResponse<PageDTO> findPagesByUser(int page, int size, String type, String[] sortBy);
-
-    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchive,
+    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchived,
             Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy);
 
-    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchive,
+    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchived,
             Integer pageNumber, Integer pageSize, String[] sortBy);
-
-    public Boolean getLockStatus(Long pageId, Boolean lockAfter);
 
     public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId);
 
@@ -60,4 +45,9 @@ public interface PageService {
 
     public List<PageDTO> getUnreadPages(PageType pageType);
 
+    public PaginatedResponse<PageDTO> searchAll(String[] pageTypeFilter, String searchKey,
+            Long[] primaryKeys, String[] categories, String[] tags,
+            Boolean isArchived, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
+            Integer pageSize, Long days, Boolean userIsAuthor, Boolean savedOnly,
+            Boolean upVotedOnly, String[] sortBy);
 }
