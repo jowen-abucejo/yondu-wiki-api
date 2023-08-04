@@ -137,22 +137,15 @@ public class AnnouncementController {
      * Retrieves a paginated list of announcements that are submitted for
      * approval and are accessible to the current user.
      * 
-     * @param searchKey    The search key to filter the announcements.
+     * @param searchKey  The search key to filter the announcements.
      * 
-     * @param archived     Flag indicating whether to retrieve only archived
-     *                     announcements if true or active announcements only if
-     *                     false. Default is false.
+     * @param pageNumber The page number for pagination. Default is 1,
      * 
-     * @param approverOnly Flag indicating whether to retrieve only announcements
-     *                     that the user can approve. Defaults is true.
+     * @param pageSize   The number of announcements to include per page. Default
+     *                   is 20.
      * 
-     * @param pageNumber   The page number for pagination. Default is 1,
-     * 
-     * @param pageSize     The number of announcements to include per page. Default
-     *                     is 20.
-     * 
-     * @param sortBy       An array of fields to sort the announcements by. Default
-     *                     is an empty array.
+     * @param sortBy     An array of fields to sort the announcements by. Default
+     *                   is an empty array.
      * 
      * @return A paginated response containing a list of pending announcement
      *         versions accessible to the current user.
@@ -160,12 +153,11 @@ public class AnnouncementController {
     public PaginatedResponse<PageDTO> getAllPendingVersions(
             @RequestParam(defaultValue = "", name = "key") String searchKey,
             @RequestParam(defaultValue = "0", name = "archived") Boolean archived,
-            @RequestParam(defaultValue = "1", name = "approverOnly") Boolean approverOnly,
             @RequestParam(defaultValue = "1", name = "page") int pageNumber,
             @RequestParam(defaultValue = "20", name = "size") int pageSize,
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy) {
 
-        return pageService.findAllPendingVersions(pageType, searchKey, archived, approverOnly, pageNumber, pageSize,
+        return pageService.findAllPendingVersions(pageType, searchKey, pageNumber, pageSize,
                 sortBy);
     }
 

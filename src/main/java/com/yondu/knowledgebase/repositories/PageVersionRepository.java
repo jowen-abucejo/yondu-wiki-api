@@ -124,7 +124,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     allTags.pTags AS pageTags,
                     allCats.pCats AS pageCategories,
                     COALESCE(sp.entity_id, 0) AS isSaved,
-                    rrp.rating AS myRating
+                    rrp.rating AS myRating,
+                    upp.userPermissions AS userPagePermissions
                  FROM
                     page_version v JOIN
                     page p ON v.page_id = p.id LEFT JOIN
@@ -133,8 +134,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     users lb ON p.locked_by = lb.id LEFT JOIN
                     directory dr ON dr.id = p.directory_id LEFT JOIN
                     workflow w ON w.directory_id=dr.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active = 1 GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
                     (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
                     (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
@@ -142,8 +143,32 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
                     (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
                     (SELECT entity_id,author FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
-                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active = 1 GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id
-
+                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id LEFT JOIN
+                    (SELECT
+                        p20.id AS pageId,
+                        GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
+                        GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
+                    FROM
+                        (SELECT *FROM users WHERE id = :userId) u20 LEFT JOIN
+                        user_page_access upa20 ON u20.id = upa20.user_id LEFT JOIN
+                        directory_user_access dua20 ON u20.id = dua20.user_id LEFT JOIN
+                        group_users gu20 ON u20.id = gu20.user_id LEFT JOIN
+                        (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                        group_page_access gpa20 ON ct20.id = gpa20.group_id LEFT JOIN
+                        directory_group_access dga20 ON ct20.id = dga20.group_id LEFT JOIN
+                        page p20 ON (
+                            p20.id = upa20.page_id
+                            OR p20.directory_id = dga20.directory_id
+                            OR p20.directory_id = dua20.directory_id
+                            OR p20.id = gpa20.page_id
+                        ) LEFT JOIN
+                        permission pr20 ON (
+                            (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                            OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                            OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                            OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                        )
+                    GROUP BY p20.id) upp ON upp.pageId=v.page_id
                 WHERE
                     FIND_IN_SET(p.page_type, :pageTypeFilter)>0
                     AND p.is_deleted = 0
@@ -186,11 +211,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             )
                             AND (
                                 EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
-                                AND (
-                                    EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN permission p10 ON upa10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                    OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN permission p10 ON gpa10.permission_id = p.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
+                                OR (
+                                    (
+                                        EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
+                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active)
+                                    )
+                                    AND FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
                                 )
                             )
                         )
@@ -200,55 +226,37 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         CASE
                         WHEN NOT :isPublished OR :allVersions
                         THEN (
-                                (
-                                    (v.page_id , v.id) IN
-                                    (SELECT pv.page_id, pv.id
-                                        FROM page_version pv
-                                        WHERE NOT EXISTS(
-                                            SELECT 1
-                                            FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
-                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
-                                        )
-                                        GROUP BY pv.page_id
-                                    )
-                                    AND (
-                                        (NOT :pendingOnly AND NOT :draftOnly)
-                                        OR (:pendingOnly AND (v.page_id , v.id) IN
-                                            (SELECT pv.page_id, pv.id
-                                                FROM page_version pv
-                                                WHERE EXISTS(
-                                                    SELECT 1
-                                                    FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                    WHERE rCheck2.totalPendingReviews > 0
-                                                )
-                                                GROUP BY pv.page_id
-                                            )
-                                        )
-                                        OR (
-                                            :draftOnly
-                                            AND
-                                            (v.page_id , v.id) IN
-                                            (SELECT pv.page_id, pv.id
-                                                FROM page_version pv
-                                                WHERE EXISTS(
-                                                    SELECT 1
-                                                    FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                    WHERE rCheck3.totalPendingReviews = 0
-                                                )
-                                                GROUP BY pv.page_id
-                                            )
-                                        )
-                                    )
+                            (v.page_id , v.id) IN
+                            (
+                                SELECT pv.page_id, pv.id
+                                FROM page_version pv
+                                WHERE NOT EXISTS(
+                                    SELECT 1
+                                    FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                    WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                 )
-                                AND (
-                                    EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
+                                GROUP BY pv.page_id
+                            )
+                            AND (
+                                (
+                                    :pendingOnly
+                                    AND
+                                    rv3.totalPendingReviews > 0
                                     AND (
-                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN permission p10 ON upa10.permission_id = p10.id WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT')) AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN permission p10 ON gpa10.permission_id = p10.id WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT')) AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                        OR (:pendingOnly AND NOT :draftOnly AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                        EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId)
+                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId AND c10.is_active)
                                     )
+                                    AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                )
+                                OR (
+                                    :draftOnly
+                                    AND (
+                                        EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId)
+                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId AND c10.is_active)
+                                    )
+                                    AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
                                 )
                             )
                         )
@@ -305,16 +313,17 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     allTags.pTags AS pageTags,
                     allCats.pCats AS pageCategories,
                     COALESCE(sp.entity_id, 0) AS isSaved,
-                    rrp.rating AS myRating
+                    rrp.rating AS myRating,
+                    '' AS userPagePermissions
                 FROM
                     post p LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active = 1 GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
                     (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
                     (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
-                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active = 1 GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
+                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                 WHERE
                     FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0
                     AND p.is_deleted = 0
@@ -355,8 +364,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         users lb ON p.locked_by = lb.id LEFT JOIN
                         directory dr ON dr.id = p.directory_id LEFT JOIN
                         workflow w ON w.directory_id=dr.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active = 1 GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE'  GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
                         (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
                         (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
@@ -364,7 +373,32 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
                         (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
                         (SELECT entity_id,author FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
-                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active = 1 GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id LEFT JOIN
+                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id LEFT JOIN
+                        (SELECT
+                            p20.id AS pageId,
+                            GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
+                            GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
+                        FROM
+                            (SELECT *FROM users WHERE id = :userId) u20 LEFT JOIN
+                            user_page_access upa20 ON u20.id = upa20.user_id LEFT JOIN
+                            directory_user_access dua20 ON u20.id = dua20.user_id LEFT JOIN
+                            group_users gu20 ON u20.id = gu20.user_id LEFT JOIN
+                            (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                            group_page_access gpa20 ON ct20.id = gpa20.group_id LEFT JOIN
+                            directory_group_access dga20 ON ct20.id = dga20.group_id LEFT JOIN
+                            page p20 ON (
+                                p20.id = upa20.page_id
+                                OR p20.directory_id = dga20.directory_id
+                                OR p20.directory_id = dua20.directory_id
+                                OR p20.id = gpa20.page_id
+                            ) LEFT JOIN
+                            permission pr20 ON (
+                                (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                                OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                                OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                                OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                            )
+                        GROUP BY p20.id) upp ON upp.pageId=v.page_id
                     WHERE
                         FIND_IN_SET(p.page_type, :pageTypeFilter)>0
                         AND p.is_deleted = 0
@@ -407,11 +441,12 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 )
                                 AND (
                                     EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
-                                    AND (
-                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN permission p10 ON upa10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN permission p10 ON gpa10.permission_id = p.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
+                                    OR (
+                                        (
+                                            EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
+                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active)
+                                        )
+                                        AND FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
                                     )
                                 )
                             )
@@ -421,55 +456,37 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             CASE
                             WHEN NOT :isPublished OR :allVersions
                             THEN (
-                                    (
-                                        (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, pv.id
-                                            FROM page_version pv
-                                            WHERE NOT EXISTS(
-                                                SELECT 1
-                                                FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
-                                                WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
-                                            )
-                                            GROUP BY pv.page_id
-                                        )
-                                        AND (
-                                            (NOT :pendingOnly AND NOT :draftOnly)
-                                            OR (:pendingOnly AND (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id
-                                                    FROM page_version pv
-                                                    WHERE EXISTS(
-                                                        SELECT 1
-                                                        FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                        WHERE rCheck2.totalPendingReviews > 0
-                                                    )
-                                                    GROUP BY pv.page_id
-                                                )
-                                            )
-                                            OR (
-                                                :draftOnly
-                                                AND
-                                                (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id
-                                                    FROM page_version pv
-                                                    WHERE EXISTS(
-                                                        SELECT 1
-                                                        FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                        WHERE rCheck3.totalPendingReviews = 0
-                                                    )
-                                                    GROUP BY pv.page_id
-                                                )
-                                            )
-                                        )
+                                (v.page_id , v.id) IN
+                                (
+                                    SELECT pv.page_id, pv.id
+                                    FROM page_version pv
+                                    WHERE NOT EXISTS(
+                                        SELECT 1
+                                        FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                        WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                     )
-                                    AND (
-                                        EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId)
-                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
+                                    GROUP BY pv.page_id
+                                )
+                                AND (
+                                    (
+                                        :pendingOnly
+                                        AND
+                                        rv3.totalPendingReviews > 0
                                         AND (
-                                            EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN permission p10 ON upa10.permission_id = p10.id WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT')) AND u10.id = :userId AND upa10.page_id = p.id)
-                                            OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN permission p10 ON gpa10.permission_id = p10.id WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT')) AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                            OR (:pendingOnly AND NOT :draftOnly AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                            EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                            OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId)
+                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId AND c10.is_active)
                                         )
+                                        AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                    )
+                                    OR (
+                                        :draftOnly
+                                        AND (
+                                            EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                            OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId)
+                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId AND c10.is_active)
+                                        )
+                                        AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
                                     )
                                 )
                             )
@@ -484,11 +501,11 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         post p LEFT JOIN
                         users a ON p.author = a.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active = 1 GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
                         (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
                         (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
-                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active = 1 GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
+                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                     WHERE
                         AND FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0
                         AND p.is_deleted = 0

@@ -17,8 +17,9 @@ public class MultipleSort {
     public static final String RELEVANCE = "relevance";
     public static final String TOTAL_COMMENTS = "totalComments";
     public static final String TOTAL_RATINGS = "totalRatings";
+    public static final String PAGE_TITLE = "versionTitle";
     public static final Set<String> VALID_SORT_ALIASES = Set.of(DATE_CREATED, DATE_MODIFIED, RELEVANCE,
-            TOTAL_COMMENTS, TOTAL_RATINGS);
+            TOTAL_COMMENTS, TOTAL_RATINGS, PAGE_TITLE);
 
     public static List<Order> sortWithOrders(String[] sort, String[] defaultSorting) {
         List<Order> orders = new ArrayList<Order>();

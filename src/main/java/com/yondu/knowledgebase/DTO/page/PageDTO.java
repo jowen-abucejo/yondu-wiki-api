@@ -70,6 +70,10 @@ public class PageDTO {
     private String[] tags;
 
     @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty(value = "user_page_permissions")
+    private long[] pagePermissions;
+
+    @JsonInclude(Include.NON_EMPTY)
     private List<PageVersionDTO> versions = new ArrayList<>();
 
     @JsonInclude(Include.NON_EMPTY)
@@ -111,6 +115,7 @@ public class PageDTO {
         this.directoryWorkflowStepCount = builder.directoryWorkflowStepCount;
         this.saved = builder.saved;
         this.myRating = builder.myRating;
+        this.pagePermissions = builder.pagePermissions;
     }
 
     /**
@@ -229,6 +234,13 @@ public class PageDTO {
         return tags;
     }
 
+    /**
+     * @return the pagePermissions
+     */
+    public long[] getPagePermissions() {
+        return pagePermissions;
+    }
+
     public static class PageDTOBuilder {
         private String pageType;
         private BigDecimal relevance;
@@ -251,6 +263,7 @@ public class PageDTO {
         private String directoryName;
         private Boolean saved;
         private String myRating;
+        private long[] pagePermissions;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -367,6 +380,11 @@ public class PageDTO {
 
         public PageDTOBuilder myRating(String myRating) {
             this.myRating = myRating;
+            return this;
+        }
+
+        public PageDTOBuilder pagePermissions(long[] pagePermissions) {
+            this.pagePermissions = pagePermissions;
             return this;
         }
 

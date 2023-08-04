@@ -262,7 +262,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						null, !IS_PUBLISHED_ONLY, INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] { id }), null, INCLUDE_PENDING,
-						INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY,  paging)
+						INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
 				.orElse(null);
 
 		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -309,8 +309,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 	}
 
-	public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchived,
-			Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy) {
+	@Override
+	public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Integer pageNumber,
+			Integer pageSize, String[] sortBy) {
 		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 		int retrievedPage = Math.max(1, pageNumber);
 
@@ -323,7 +324,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 		var optionalPageVersions = pageVersionRepository
 				.searchAll(arrayToSqlStringList(new String[] { pageType.getCode() }), searchKey, !IS_EXACT_MATCH_ONLY,
-						isArchived, !IS_PUBLISHED_ONLY, !INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
+						!IS_ARCHIVED_ONLY, !IS_PUBLISHED_ONLY, !INCLUDE_ALL_VERSIONS,
+						arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] {}), null, INCLUDE_PENDING,
 						!INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
@@ -338,8 +340,9 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 	}
 
-	public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchived,
-			Integer pageNumber, Integer pageSize, String[] sortBy) {
+	@Override
+	public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Integer pageNumber,
+			Integer pageSize, String[] sortBy) {
 		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 		int retrievedPage = Math.max(1, pageNumber);
 
@@ -352,7 +355,8 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 		var optionalPageVersions = pageVersionRepository
 				.searchAll(arrayToSqlStringList(new String[] { pageType.getCode() }), searchKey, !IS_EXACT_MATCH_ONLY,
-						isArchived, !IS_PUBLISHED_ONLY, !INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
+						!IS_ARCHIVED_ONLY, !IS_PUBLISHED_ONLY, !INCLUDE_ALL_VERSIONS,
+						arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] {}), null, !INCLUDE_PENDING, INCLUDE_DRAFT,
 						null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)

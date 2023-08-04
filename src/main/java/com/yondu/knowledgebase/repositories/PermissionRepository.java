@@ -16,43 +16,48 @@ public interface PermissionRepository extends JpaRepository<Permission, Long> {
             String category3, String category4);
 
     @Query(nativeQuery = true, value = """
-            SELECT DISTINCT
-                pr.id
+            SELECT
+                DISTINCT pr20.id
             FROM
-                users u
+                (SELECT
+                    *
+                FROM
+                    users
+                WHERE
+                    id = :userId) u20
                     LEFT JOIN
-                user_page_access upa ON u.id = upa.user_id
+                user_page_access upa20 ON u20.id = upa20.user_id
                     LEFT JOIN
-                directory_user_access dua ON u.id = dua.user_id
+                directory_user_access dua20 ON u20.id = dua20.user_id
                     LEFT JOIN
-                group_users gu ON u.id = gu.user_id
+                group_users gu20 ON u20.id = gu20.user_id
                     LEFT JOIN
                 (SELECT
                     id, is_active
                 FROM
                     cluster
                 WHERE
-                    is_active) ct ON ct.id = gu.group_id
+                    is_active) ct20 ON ct20.id = gu20.group_id
                     LEFT JOIN
-                group_page_access gpa ON ct.id = gpa.group_id
+                group_page_access gpa20 ON ct20.id = gpa20.group_id
                     LEFT JOIN
-                directory_group_access dga ON ct.id = dga.group_id
+                directory_group_access dga20 ON ct20.id = dga20.group_id
                     LEFT JOIN
-                permission pr ON (pr.id = upa.permission_id
-                    OR pr.id = dua.permission_id
-                    OR pr.id = gpa.permission_id
-                    OR pr.id = dga.permission_id)
+                page p20 ON (p20.id = upa20.page_id
+                    OR p20.directory_id = dga20.directory_id
+                    OR p20.directory_id = dua20.directory_id
+                    OR p20.id = gpa20.page_id)
                     LEFT JOIN
-                page p ON (p.id = upa.page_id
-                    OR p.directory_id = dga.directory_id
-                    OR p.directory_id = dua.directory_id
-                    OR p.id = gpa.page_id)
-            WHERE
-                u.id = :userId AND p.id = :pageId
-                    AND (gpa.page_id = :pageId OR upa.page_id = :pageId
-                    OR dga.directory_id = p.directory_id
-                    OR dua.directory_id = p.directory_id)
-                """)
+                permission pr20 ON ((pr20.id = upa20.permission_id
+                    AND upa20.page_id = p20.id)
+                    OR (pr20.id = dua20.permission_id
+                    AND dua20.directory_id = p20.directory_id)
+                    OR (pr20.id = gpa20.permission_id
+                    AND gpa20.page_id = p20.id)
+                    OR (pr20.id = dga20.permission_id
+                    AND dga20.directory_id = p20.directory_id))
+            WHERE p20.id=:pageId
+                    """)
     public Set<Long> findAllDistinctIdByPageIdAndUserId(Long pageId, Long userId);
 
     @Query(nativeQuery = true, value = """

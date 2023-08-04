@@ -158,7 +158,9 @@ class PageServiceUtilities {
                 .directoryWorkflowStepCount((Long) pageVersion.getOrDefault("workflowStepCount", 0L))
                 .directoryName((String) pageVersion.getOrDefault("directoryName", "-----"))
                 .saved(((Long) pageVersion.getOrDefault("isSaved", 0L)) > 0L)
-                .myRating((String) pageVersion.getOrDefault("myRating", ""));
+                .myRating((String) pageVersion.getOrDefault("myRating", ""))
+                .pagePermissions(Arrays.stream(((String) pageVersion.getOrDefault("userPagePermissions", ""))
+                        .split(",")).mapToLong(Long::parseLong).toArray());
     }
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {

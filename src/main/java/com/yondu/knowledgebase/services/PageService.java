@@ -31,11 +31,11 @@ public interface PageService {
             Boolean isArchived, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
             Integer pageSize, String[] sortBy);
 
-    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Boolean isArchived,
-            Boolean approverOnly, Integer pageNumber, Integer pageSize, String[] sortBy);
+    public PaginatedResponse<PageDTO> findAllPendingVersions(PageType pageType, String searchKey, Integer pageNumber,
+            Integer pageSize, String[] sortBy);
 
-    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Boolean isArchived,
-            Integer pageNumber, Integer pageSize, String[] sortBy);
+    public PaginatedResponse<PageDTO> findAllDraftVersions(PageType pageType, String searchKey, Integer pageNumber,
+            Integer pageSize, String[] sortBy);
 
     public PageDTO movePageToDirectory(PageType pageType, Long directoryId, Long pageId);
 
