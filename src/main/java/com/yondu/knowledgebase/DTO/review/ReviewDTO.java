@@ -2,8 +2,6 @@ package com.yondu.knowledgebase.DTO.review;
 
 import com.yondu.knowledgebase.DTO.review.pageVersion.PageVerDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.entities.Review;
-
 import java.time.LocalDateTime;
 
 public class ReviewDTO {

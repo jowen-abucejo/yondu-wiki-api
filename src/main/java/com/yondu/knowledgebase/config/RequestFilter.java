@@ -1,7 +1,6 @@
 package com.yondu.knowledgebase.config;
 
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.AccessDeniedException;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.UserService;
 import io.jsonwebtoken.Jwt;
@@ -13,28 +12,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
 
 @Component
 public class RequestFilter extends OncePerRequestFilter {
 
     @Autowired
     private TokenUtil tokenUtil;
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private UserService userService;

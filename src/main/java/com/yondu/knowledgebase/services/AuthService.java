@@ -7,7 +7,6 @@ import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.InvalidCredentialsException;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
-import com.yondu.knowledgebase.exceptions.UserException;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

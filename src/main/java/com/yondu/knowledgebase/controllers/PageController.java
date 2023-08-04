@@ -2,7 +2,6 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.enums.PageType;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;

@@ -1,31 +1,21 @@
 package com.yondu.knowledgebase.controllers;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.DTO.category.CategoryMapper;
-import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.entities.Category;
-import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.Post;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
-import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.services.CategoryService;
-import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.PostService;
 
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +25,6 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
-
-    @Autowired
-    private PageService pageService;
 
     @Autowired
     private PostService postService;

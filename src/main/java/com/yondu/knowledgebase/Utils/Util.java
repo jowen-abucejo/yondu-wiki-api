@@ -1,9 +1,5 @@
 package com.yondu.knowledgebase.Utils;
 
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-
-import java.net.URI;
 import java.net.URL;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;

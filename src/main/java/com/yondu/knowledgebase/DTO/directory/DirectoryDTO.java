@@ -3,8 +3,6 @@ package com.yondu.knowledgebase.DTO.directory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.entities.Workflow;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;

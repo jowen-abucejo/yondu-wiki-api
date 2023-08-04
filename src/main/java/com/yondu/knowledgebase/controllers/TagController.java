@@ -1,22 +1,18 @@
 package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
-import com.yondu.knowledgebase.DTO.category.CategoryDTO;
 import com.yondu.knowledgebase.DTO.tag.TagDTO;
 import com.yondu.knowledgebase.DTO.tag.TagMapper;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.repositories.TagRepository;
-import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.PostService;
 import com.yondu.knowledgebase.services.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,8 +25,6 @@ public class TagController {
     private final TagMapper tagMapper;
     private final TagRepository tagRepository;
 
-    @Autowired
-    private PageService pageService;
     @Autowired
     private PostService postService;
 
@@ -156,31 +150,6 @@ public class TagController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(newTagDTO, "Tag added to post successfully"));
 
-    }
-
-    private boolean isPageLocked(Page page) {
-        var currentTime = LocalDateTime.now();
-        var currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        boolean isSameUser = page.getLockedBy().getId().equals(currentUser.getId());
-        boolean isPageUnlocked = currentTime.isAfter(page.getLockEnd());
-
-        // Check if the page can be edited by the current user
-        if (!isSameUser && !isPageUnlocked) {
-            return true;
-        }
-
-        if (!isSameUser) {
-            page.setLockedBy(currentUser);
-        }
-
-        if (isPageUnlocked) {
-            page.setLockStart(currentTime);
-        }
-
-        page.setLockEnd(currentTime.plusHours(1));
-
-        return false;
     }
 
 }

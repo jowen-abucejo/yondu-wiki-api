@@ -5,7 +5,6 @@ import java.util.List;
 import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PageVersionDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.enums.PageType;
 
 public interface PageService {

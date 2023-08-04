@@ -2,10 +2,8 @@ package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
-import com.yondu.knowledgebase.DTO.notification.NotificationDTO.BaseResponse;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTOMapper;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.config.WebSocketHandler;
 import com.yondu.knowledgebase.entities.Notification;

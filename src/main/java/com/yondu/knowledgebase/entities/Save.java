@@ -28,9 +28,7 @@ public class Save {
     private Long entityId;
 
     public Save(User author, String entityType, Long entityId) {
-        this.id = id;
         this.author = author;
-        this.dateCreated = dateCreated;
         this.entityType = entityType;
         this.entityId = entityId;
     }

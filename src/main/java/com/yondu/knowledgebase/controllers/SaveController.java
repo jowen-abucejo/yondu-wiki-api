@@ -6,9 +6,7 @@ import com.yondu.knowledgebase.DTO.save.SaveDTO;
 import com.yondu.knowledgebase.DTO.save.SaveEntityDTO;
 import com.yondu.knowledgebase.DTO.save.SaveStatusDTO;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.repositories.SaveRepository;
 import com.yondu.knowledgebase.services.SaveService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,7 +18,6 @@ public class SaveController {
 
     private final SaveService saveService;
 
-    @Autowired
     public SaveController (SaveService saveService) {
         this.saveService = saveService;
 

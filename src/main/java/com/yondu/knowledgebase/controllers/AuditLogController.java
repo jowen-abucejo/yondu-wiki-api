@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.audit_log.AuditLogDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.services.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

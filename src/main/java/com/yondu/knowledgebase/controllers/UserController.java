@@ -7,9 +7,7 @@ import com.yondu.knowledgebase.DTO.review.ReviewDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.entities.*;
-import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.GroupService;
-import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.ReviewService;
 import com.yondu.knowledgebase.services.UserService;
 import org.slf4j.Logger;
@@ -31,10 +29,7 @@ public class UserController {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PageService pageService;
+
     @Autowired
     private ReviewService reviewService;
     @Autowired

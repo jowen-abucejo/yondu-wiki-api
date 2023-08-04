@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.entities.Notification;
 import com.yondu.knowledgebase.services.NotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

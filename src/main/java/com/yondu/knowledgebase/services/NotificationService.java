@@ -2,9 +2,6 @@ package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
-import com.yondu.knowledgebase.entities.User;
-
-import java.util.List;
 
 public interface NotificationService {
 

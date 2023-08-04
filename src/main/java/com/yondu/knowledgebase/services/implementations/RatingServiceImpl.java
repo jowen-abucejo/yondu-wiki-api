@@ -5,7 +5,6 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
-import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
@@ -23,7 +22,6 @@ import com.yondu.knowledgebase.entities.Rating;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
-import com.yondu.knowledgebase.repositories.NotificationRepository;
 import com.yondu.knowledgebase.repositories.RatingRepository;
 import com.yondu.knowledgebase.services.RatingService;
 
@@ -31,7 +29,6 @@ import com.yondu.knowledgebase.services.RatingService;
 @Service
 public class RatingServiceImpl implements RatingService {
 	private final RatingRepository ratingRepository;
-	private final NotificationRepository notificationRepository;
 	private final CommentRepository commentRepository;
 	private final PageRepository pageRepository;
 	private final PostRepository postRepository;
@@ -39,9 +36,8 @@ public class RatingServiceImpl implements RatingService {
 	private final NotificationService notificationService;
 
 
-	public RatingServiceImpl(RatingRepository ratingRepository, NotificationRepository notificationRepository, CommentRepository commentRepository, PageRepository pageRepository, PostRepository postRepository, PageServiceImpl pageService, NotificationService notificationService) {
+	public RatingServiceImpl(RatingRepository ratingRepository, CommentRepository commentRepository, PageRepository pageRepository, PostRepository postRepository, PageServiceImpl pageService, NotificationService notificationService) {
 		this.ratingRepository = ratingRepository;
-		this.notificationRepository = notificationRepository;
 		this.pageService = pageService;
 		this.pageRepository = pageRepository;
 		this.commentRepository = commentRepository;

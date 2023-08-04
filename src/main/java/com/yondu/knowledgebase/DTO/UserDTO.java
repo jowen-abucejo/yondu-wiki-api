@@ -1,12 +1,9 @@
 package com.yondu.knowledgebase.DTO;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yondu.knowledgebase.entities.User;
-import org.springframework.cglib.core.Local;
-
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.yondu.knowledgebase.entities.User;
 
 public class UserDTO {
     private Long id;
