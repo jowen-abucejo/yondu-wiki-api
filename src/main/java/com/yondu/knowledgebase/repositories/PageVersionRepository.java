@@ -125,7 +125,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     allCats.pCats AS pageCategories,
                     COALESCE(sp.entity_id, 0) AS isSaved,
                     rrp.rating AS myRating,
-                    upp.userPermissions AS userPagePermissions
+                    upp.userPermissions AS userPagePermissions,
+                    sp.date_created AS dateSaved
                  FROM
                     page_version v JOIN
                     page p ON v.page_id = p.id LEFT JOIN
@@ -142,7 +143,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
                     (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
                     (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
-                    (SELECT entity_id,author FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
+                    (SELECT entity_id,author,date_created FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
                     (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id LEFT JOIN
                     (SELECT
                         p20.id AS pageId,
@@ -314,7 +315,8 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     allCats.pCats AS pageCategories,
                     COALESCE(sp.entity_id, 0) AS isSaved,
                     rrp.rating AS myRating,
-                    '' AS userPagePermissions
+                    '' AS userPagePermissions,
+                    sp.date_created AS dateSaved
                 FROM
                     post p LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
@@ -322,7 +324,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
                     (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
-                    (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
+                    (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
                     (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                 WHERE
                     (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
@@ -372,7 +374,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
                         (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
                         (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
-                        (SELECT entity_id,author FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
+                        (SELECT entity_id,author,date_created FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=v.page_id LEFT JOIN
                         (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=v.page_id LEFT JOIN
                         (SELECT
                             p20.id AS pageId,
@@ -504,7 +506,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
                         (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
-                        (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
+                        (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
                         (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                     WHERE
                         (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)

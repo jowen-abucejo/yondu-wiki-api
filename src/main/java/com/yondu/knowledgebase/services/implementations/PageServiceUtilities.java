@@ -126,6 +126,7 @@ class PageServiceUtilities {
         var isActive = pageVersion.get("isActive");
         var allowComment = pageVersion.get("allowComment");
         var userPagePermissions = (String) pageVersion.getOrDefault("userPagePermissions", "");
+        var dateSaved = pageVersion.getOrDefault("dateSaved", "");
         return PageDTO.builder()
                 .id((Long) pageVersion.getOrDefault("pageId", 0L))
                 .dateCreated(parseAndFormat(dateCreated))
@@ -162,7 +163,8 @@ class PageServiceUtilities {
                 .myRating((String) pageVersion.getOrDefault("myRating", ""))
                 .pagePermissions(
                         userPagePermissions.isBlank() ? new long[] {}
-                                : Arrays.stream((userPagePermissions).split(",")).mapToLong(Long::parseLong).toArray());
+                                : Arrays.stream((userPagePermissions).split(",")).mapToLong(Long::parseLong).toArray())
+                .dateSaved(parseAndFormat(dateSaved));
     }
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {

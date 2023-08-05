@@ -2,8 +2,6 @@ package com.yondu.knowledgebase.services.implementations;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -474,10 +472,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		LocalDateTime fromDate = null;
 
 		if (days != null) {
-			if (days <= 0)
-				LocalDateTime.now().with(LocalTime.MIN).with(TemporalAdjusters.firstDayOfMonth());
-			else
-				fromDate = LocalDate.now().minusDays(days).atStartOfDay();
+			fromDate = LocalDate.now().minusDays(days).atStartOfDay();
 		}
 
 		int retrievedPage = Math.max(1, pageNumber);

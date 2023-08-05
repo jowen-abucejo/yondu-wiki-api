@@ -88,6 +88,12 @@ public class PageDTO {
     private Long directoryWorkflowStepCount;
 
     private Boolean saved;
+
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "saved_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dateSaved;
+
     @JsonProperty(value = "vote")
     private String myRating;
 
@@ -116,6 +122,7 @@ public class PageDTO {
         this.saved = builder.saved;
         this.myRating = builder.myRating;
         this.pagePermissions = builder.pagePermissions;
+        this.dateSaved = builder.dateSaved;
     }
 
     /**
@@ -264,6 +271,7 @@ public class PageDTO {
         private Boolean saved;
         private String myRating;
         private long[] pagePermissions;
+        private LocalDateTime dateSaved;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -388,6 +396,11 @@ public class PageDTO {
             return this;
         }
 
+        public PageDTOBuilder dateSaved(LocalDateTime dateSaved) {
+            this.dateSaved = dateSaved;
+            return this;
+        }
+
         public PageDTO build() {
             return new PageDTO(this);
         }
@@ -440,6 +453,13 @@ public class PageDTO {
      */
     public String getMyRating() {
         return myRating;
+    }
+
+    /**
+     * @return the dateSaved
+     */
+    public LocalDateTime getDateSaved() {
+        return dateSaved;
     }
 
 }
