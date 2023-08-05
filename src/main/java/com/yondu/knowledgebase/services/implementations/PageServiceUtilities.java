@@ -125,6 +125,7 @@ class PageServiceUtilities {
         var lockEnd = pageVersion.getOrDefault("lockEnd", "");
         var isActive = pageVersion.get("isActive");
         var allowComment = pageVersion.get("allowComment");
+        var userPagePermissions = (String) pageVersion.getOrDefault("userPagePermissions", "");
         return PageDTO.builder()
                 .id((Long) pageVersion.getOrDefault("pageId", 0L))
                 .dateCreated(parseAndFormat(dateCreated))
@@ -159,8 +160,9 @@ class PageServiceUtilities {
                 .directoryName((String) pageVersion.getOrDefault("directoryName", "-----"))
                 .saved(((Long) pageVersion.getOrDefault("isSaved", 0L)) > 0L)
                 .myRating((String) pageVersion.getOrDefault("myRating", ""))
-                .pagePermissions(Arrays.stream(((String) pageVersion.getOrDefault("userPagePermissions", ""))
-                        .split(",")).mapToLong(Long::parseLong).toArray());
+                .pagePermissions(
+                        userPagePermissions.isBlank() ? new long[] {}
+                                : Arrays.stream((userPagePermissions).split(",")).mapToLong(Long::parseLong).toArray());
     }
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {

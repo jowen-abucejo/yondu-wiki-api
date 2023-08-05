@@ -325,7 +325,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
                     (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                 WHERE
-                    FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0
+                    (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
                     AND p.is_deleted = 0
                     AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
                     AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
@@ -507,7 +507,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (SELECT entity_id,author FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author) sp ON sp.entity_id=p.id LEFT JOIN
                         (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id) rrp ON rrp.entity_id=p.id
                     WHERE
-                        AND FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0
+                        (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
                         AND p.is_deleted = 0
                         AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
                         AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
