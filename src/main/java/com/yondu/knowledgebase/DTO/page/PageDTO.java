@@ -61,6 +61,10 @@ public class PageDTO {
     @JsonProperty(value = "total_ratings")
     private Long totalRatings;
 
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_down_ratings")
+    private Long totalDownRatings;
+
     @JsonInclude(Include.NON_EMPTY)
     @JsonProperty(value = "categories")
     private String[] categories;
@@ -123,6 +127,7 @@ public class PageDTO {
         this.myRating = builder.myRating;
         this.pagePermissions = builder.pagePermissions;
         this.dateSaved = builder.dateSaved;
+        this.totalDownRatings = builder.totalDownRatings;
     }
 
     /**
@@ -228,6 +233,13 @@ public class PageDTO {
     }
 
     /**
+     * @return the totalDownRatings
+     */
+    public Long getTotalDownRatings() {
+        return totalDownRatings;
+    }
+
+    /**
      * @return the categories
      */
     public String[] getCategories() {
@@ -272,6 +284,7 @@ public class PageDTO {
         private String myRating;
         private long[] pagePermissions;
         private LocalDateTime dateSaved;
+        private Long totalDownRatings;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -343,6 +356,11 @@ public class PageDTO {
 
         public PageDTOBuilder totalRatings(Long totalRatings) {
             this.totalRatings = totalRatings;
+            return this;
+        }
+
+        public PageDTOBuilder totalDownRatings(Long totalDownRatings) {
+            this.totalDownRatings = totalDownRatings;
             return this;
         }
 

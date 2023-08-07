@@ -47,6 +47,6 @@ public interface PageService {
     public PaginatedResponse<PageDTO> searchAll(String[] pageTypeFilter, String searchKey,
             Long[] primaryKeys, String[] categories, String[] tags,
             Boolean isArchived, Boolean isPublished, Boolean exactSearch, Integer pageNumber,
-            Integer pageSize, Long days, Long author, Boolean savedOnly,
+            Integer pageSize, Long days, String author, Boolean savedOnly,
             Boolean upVotedOnly, String[] sortBy);
 }

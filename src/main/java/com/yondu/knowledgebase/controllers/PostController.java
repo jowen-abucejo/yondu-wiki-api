@@ -6,6 +6,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
 import com.yondu.knowledgebase.DTO.post.PostSearchResult;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.services.PageService;
 import com.yondu.knowledgebase.services.PostService;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class PostController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
             @RequestParam(defaultValue = "", name = "days") Long days,
-            @RequestParam(defaultValue = "", name = "author") Long author,
+            @RequestParam(defaultValue = "", name = "author") String author,
             @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
             @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly) {
 
@@ -47,9 +48,15 @@ public class PostController {
                 pageNumber, pageSize, days, author, savedOnly, upVotedOnly, sortBy);
     }
 
-    @GetMapping("/posts/{id}")
+    @GetMapping("/posts/{id}/as-post")
     public ResponseEntity<ApiResponse<PostDTO>> getPostById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getPostById(id), "success"));
+    }
+
+    @GetMapping("/posts/{id}")
+    public ResponseEntity<ApiResponse<PageDTO>> getPostAsPageById(@PathVariable Long id) {
+        var post = pageService.findByIdWithVersions(PageType.DISCUSSION, id);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(post, "success"));
     }
 
     @PostMapping("/posts")

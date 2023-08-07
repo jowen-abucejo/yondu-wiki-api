@@ -132,6 +132,7 @@ class PageServiceUtilities {
                 .dateCreated(parseAndFormat(dateCreated))
                 .totalComments((Long) pageVersion.getOrDefault("totalComments", 0L))
                 .totalRatings((Long) pageVersion.getOrDefault("totalRatings", 0L))
+                .totalDownRatings((Long) pageVersion.getOrDefault("totalDownRatings", 0L))
                 .relevance(BigDecimal.valueOf((Double) pageVersion.getOrDefault("relevance", 0.0)))
                 .active(isActive instanceof Boolean ? (Boolean) isActive : (Byte) isActive > 0)
                 .allowComment(allowComment instanceof Boolean ? (Boolean) allowComment : (Byte) allowComment > 0)

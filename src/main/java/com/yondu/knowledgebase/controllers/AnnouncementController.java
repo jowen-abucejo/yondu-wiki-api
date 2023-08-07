@@ -53,7 +53,7 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
             @RequestParam(defaultValue = "", name = "days") Long days,
-            @RequestParam(defaultValue = "", name = "author") Long author,
+            @RequestParam(defaultValue = "", name = "author") String author,
             @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
             @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly) {
 
