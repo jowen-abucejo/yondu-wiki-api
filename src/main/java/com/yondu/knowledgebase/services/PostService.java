@@ -74,7 +74,8 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()), totalVote(post.getId()));
+                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
+                            totalVote(post.getId()));
                 })
                 .collect(Collectors.toList());
 
@@ -242,7 +243,8 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()), totalVote(post.getId()));
+                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
+                            totalVote(post.getId()));
                 })
                 .collect(Collectors.toList());
     }
@@ -256,104 +258,19 @@ public class PostService {
                     Post post = (Post) result[0];
                     Long commentCount = (Long) result[1];
                     Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()), totalVote(post.getId()));
+                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
+                            totalVote(post.getId()));
                 })
                 .collect(Collectors.toList());
     }
 
-    public PaginatedResponse<PostDTO> searchPostsByUser(int page, int size, String searchKey, Boolean active,
-            Boolean deleted) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, active, deleted,
-                user.getId(), pageable);
-
-        List<PostDTO> postDTOs = postResults.getContent().stream()
-                .map(result -> {
-                    Post post = (Post) result[0];
-                    Long commentCount = (Long) result[1];
-                    Long upVoteCount = (Long) result[2];
-
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()), totalVote(post.getId()));
-                })
-                .collect(Collectors.toList());
-
-        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalElements());
-    }
-
-    public PaginatedResponse<PostSearchResult> findAllByFullTextSearch(
-            String searchKey, String[] categories, String[] tags, Long authorId,
-            Boolean isArchive, Boolean exactSearch, Integer pageNumber,
-            Integer pageSize, String[] sortBy) {
-        int retrievedPage = Math.max(1, pageNumber);
-
-        // configure pageable size and orders
-        var validSortAliases = Arrays.asList("dateModified", "dateCreated", "relevance", "totalComments",
-                "totalRatings");
-        var nativeSort = MultipleSort.sortWithOrders(sortBy, new String[] { "dateModified,desc" },
-                new HashSet<>(validSortAliases));
-        Pageable paging = PageRequest.of(retrievedPage - 1, pageSize, Sort.by(nativeSort));
-        paging = MultipleSort.sortByAliases(paging);
-
-        // format search key words
-        searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-
-        /***********************
-         * TODO: Refactor to simplify implementations
-         ********************************/
-        // Fetch ids and relevance scores, will use to display sorted and filtered posts
-        var postResults = postRepository.findByFullTextSearch(
-                searchKey, exactSearch, isArchive, NativeQueryUtils.arrayToSqlStringList(categories),
-                NativeQueryUtils.arrayToSqlStringList(tags),  authorId, paging)
-                .orElse(null);
-
-        // create a list of ids of posts to fetch
-        List<Long> postResults2 = postResults.getContent().stream().map(result -> (Long) result.get("postId"))
-                .collect(Collectors.toList());
-
-        // fetch all post entities
-        var postEntitiesList = postRepository.findAllById(postResults2);
-
-        // create a post map required to achieved a O(1) complexity when mapping the
-        // results
-        Map<Long, Post> postEntitiesMap = new HashMap<>();
-        postEntitiesList.forEach(post -> {
-            postEntitiesMap.put(post.getId(), post);
-        });
-
-        // return a sorted post dtos with additional field of relevance
-        var postList = postResults.getContent().stream().map(result -> {
-            var post = postEntitiesMap.get((Long) result.get("postId"));
-            return new PostSearchResult(
-                    post,
-                    BigDecimal.valueOf((Double) result.get("relevance")),
-                    (Long) result.get("totalComments"),
-                    (Long) result.get("totalRatings"),
-                    voteType((Long) result.get("postId")),
-                    totalVote((Long) result.get("postId")));
-        }).collect(Collectors.toList());
-
-        /***********************
-         * TODO: END
-         ********************************/
-
-        var otherConfiguration = new HashMap<String, Object>();
-        otherConfiguration.put("available_sorting", validSortAliases);
-        otherConfiguration.put("applied_sorting", postResults.getSort()
-                .map(order -> String.format("%s,%s", order.getProperty(), order.getDirection()))
-                .toList());
-
-        return new PaginatedResponse<>(postList, retrievedPage, pageSize, postResults.getTotalElements(),
-                otherConfiguration);
-    }
-
-    private String voteType(Long postId){
+    private String voteType(Long postId) {
         RatingDTO rating = ratingService.ratingByEntityIdAndEntityType(postId, "Post");
-        return  rating.getRating();
+        return rating.getRating();
     }
 
-    private Integer totalVote(Long postId){
+    private Integer totalVote(Long postId) {
         TotalVoteDTO vote = ratingService.totalVote(postId, "Post");
-        return  vote.getTotal_vote();
+        return vote.getTotal_vote();
     }
 }
