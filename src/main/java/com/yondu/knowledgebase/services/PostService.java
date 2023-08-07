@@ -65,23 +65,6 @@ public class PostService {
         this.ratingService = ratingService;
     }
 
-    public PaginatedResponse<PostDTO> getAllPost(int page, int size, String searchKey) {
-        Pageable pageable = PageRequest.of(page - 1, size);
-        Page<Object[]> postResults = postRepository.searchPostsWithCommentAndUpvoteCounts(searchKey, pageable);
-
-        List<PostDTO> postDTOs = postResults.getContent().stream()
-                .map(result -> {
-                    Post post = (Post) result[0];
-                    Long commentCount = (Long) result[1];
-                    Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
-                            totalVote(post.getId()));
-                })
-                .collect(Collectors.toList());
-
-        return new PaginatedResponse<>(postDTOs, page, size, (long) postResults.getTotalElements());
-    }
-
     public PostDTO getPostById(Long id) {
         List<Object[]> results = postRepository.findPostWithCommentAndUpvoteCountsById(id);
 
@@ -97,7 +80,6 @@ public class PostService {
     }
 
     public PostDTO addPost(PostRequestDTO postDTO) {
-        System.out.println("ADDPOST!!!!");
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Set<Category> categories = postDTO.getCategories().stream().map(category -> {
@@ -225,43 +207,6 @@ public class PostService {
             }
         }
         return mentionedUsers;
-    }
-
-    public List<PostDTO> findTop5MostPopularPosts(int page, int size, Integer days) {
-        LocalDateTime startDate = (days != null) ? LocalDateTime.now().minusDays(days) : null;
-        PageRequest pageable = PageRequest.of(page - 1, size);
-        List<Object[]> results;
-
-        if (startDate != null) {
-            results = postRepository.findMostPopularPosts(startDate, pageable);
-        } else {
-            results = postRepository.findMostPopularPosts(null, pageable);
-        }
-
-        return results.stream()
-                .map(result -> {
-                    Post post = (Post) result[0];
-                    Long commentCount = (Long) result[1];
-                    Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
-                            totalVote(post.getId()));
-                })
-                .collect(Collectors.toList());
-    }
-
-    public List<PostDTO> findTopPosts(int page, int size) {
-        PageRequest pageable = PageRequest.of(page - 1, size);
-        List<Object[]> results = postRepository.findTopPosts(pageable);
-
-        return results.stream()
-                .map(result -> {
-                    Post post = (Post) result[0];
-                    Long commentCount = (Long) result[1];
-                    Long upVoteCount = (Long) result[2];
-                    return new PostDTO(post, commentCount, upVoteCount, voteType(post.getId()),
-                            totalVote(post.getId()));
-                })
-                .collect(Collectors.toList());
     }
 
     private String voteType(Long postId) {

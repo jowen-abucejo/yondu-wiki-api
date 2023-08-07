@@ -47,17 +47,6 @@ public class PostController {
                 pageNumber, pageSize, days, isAuthor, savedOnly, upVotedOnly, sortBy);
     }
 
-    @GetMapping("/posts/user")
-    public ResponseEntity<ApiResponse<PaginatedResponse<PostDTO>>> searchPostsByUser(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "") String searchKey,
-            @RequestParam(defaultValue = "true") Boolean active,
-            @RequestParam(defaultValue = "false") Boolean deleted) {
-        return ResponseEntity.status(HttpStatus.OK).body(
-                ApiResponse.success(postService.searchPostsByUser(page, size, searchKey, active, deleted), "success"));
-    }
-
     @GetMapping("/posts/{id}")
     public ResponseEntity<ApiResponse<PostDTO>> getPostById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(postService.getPostById(id), "success"));
@@ -96,22 +85,6 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDTO>> disallowComment(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(postService.allowComment(id, false), "Comments are turned off in this post"));
-    }
-
-    @GetMapping("/posts/popular")
-    public ResponseEntity<ApiResponse<List<PostDTO>>> findTop5MostPopularPosts(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "") Integer days) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(postService.findTop5MostPopularPosts(page, size, days), "success"));
-    }
-
-    @GetMapping("/posts/top")
-    public ResponseEntity<ApiResponse<List<PostDTO>>> findTopPosts(@RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(ApiResponse.success(postService.findTopPosts(page, size), "success"));
     }
 
 }
