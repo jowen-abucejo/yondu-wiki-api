@@ -207,7 +207,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                         (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
                                             WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                     )
-                                    GROUP BY pv.page_id
+                                    GROUP BY pv.page_id, pv.id
                                 )
                             )
                             AND (
@@ -438,7 +438,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                             (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
                                                 WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                         )
-                                        GROUP BY pv.page_id
+                                        GROUP BY pv.page_id, pv.id
                                     )
                                 )
                                 AND (
