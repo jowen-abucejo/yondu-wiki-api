@@ -174,7 +174,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     FIND_IN_SET(p.page_type, :pageTypeFilter)>0
                     AND p.is_deleted = 0
                     AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                    AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
+                    AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN p.author = :author ELSE TRUE END
                     AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                     AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0 ELSE TRUE END
@@ -330,7 +330,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
                     AND p.is_deleted = 0
                     AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                    AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
+                    AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN p.author = :author ELSE TRUE END
                     AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                     AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
@@ -405,7 +405,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         FIND_IN_SET(p.page_type, :pageTypeFilter)>0
                         AND p.is_deleted = 0
                         AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                        AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
+                        AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN p.author = :author ELSE TRUE END
                         AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                         AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0 ELSE TRUE END
@@ -512,7 +512,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
                         AND p.is_deleted = 0
                         AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                        AND CASE WHEN :authorOnly THEN p.author = :userId ELSE TRUE END
+                        AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN p.author = :author ELSE TRUE END
                         AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                         AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
@@ -551,7 +551,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("pendingOnly") Boolean pendingOnly,
             @Param("draftOnly") Boolean draftOnly,
             @Param("fromDate") LocalDateTime fromDate,
-            @Param("authorOnly") Boolean userIsAuthor,
+            @Param("author") Long author,
             @Param("savedOnly") Boolean savedOnly,
             @Param("upVotedOnly") Boolean upVotedOnly,
             Pageable pageable);

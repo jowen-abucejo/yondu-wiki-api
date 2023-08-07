@@ -53,13 +53,13 @@ public class AnnouncementController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
             @RequestParam(defaultValue = "", name = "days") Long days,
-            @RequestParam(defaultValue = "0", name = "isAuthor") Boolean isAuthor,
+            @RequestParam(defaultValue = "", name = "author") Long author,
             @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
             @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly) {
 
         return pageService.searchAll(new String[] { pageType.getCode() }, searchKey, primaryKeys,
                 categories, tags, archived, published, exactSearch,
-                pageNumber, pageSize, days, isAuthor, savedOnly, upVotedOnly, sortBy);
+                pageNumber, pageSize, days, author, savedOnly, upVotedOnly, sortBy);
     }
 
     @GetMapping(path = "announcements/{id}/versions")

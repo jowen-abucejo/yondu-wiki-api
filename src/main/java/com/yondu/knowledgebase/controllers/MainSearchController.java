@@ -31,12 +31,12 @@ public class MainSearchController {
             @RequestParam(defaultValue = "", name = "sortBy") String[] sortBy,
             @RequestParam(defaultValue = "", name = "ids") Long[] primaryKeys,
             @RequestParam(defaultValue = "", name = "days") Long days,
-            @RequestParam(defaultValue = "0", name = "owned") Boolean userIsAuthor,
+            @RequestParam(defaultValue = "", name = "author") Long author,
             @RequestParam(defaultValue = "0", name = "saved") Boolean savedOnly,
             @RequestParam(defaultValue = "0", name = "upVoted") Boolean upVotedOnly,
             @RequestParam(defaultValue = "announcement,wiki,discussion", name = "contentTypes") String[] pageTypes) {
 
         return pageService.searchAll(pageTypes, searchKey, primaryKeys, categories, tags, archived,
-                published, exactSearch, pageNumber, pageSize, days, userIsAuthor, savedOnly, upVotedOnly, sortBy);
+                published, exactSearch, pageNumber, pageSize, days, author, savedOnly, upVotedOnly, sortBy);
     }
 }

@@ -44,7 +44,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 	private final Boolean INCLUDE_ALL_VERSIONS = true;
 	private final Boolean INCLUDE_PENDING = true;
 	private final Boolean INCLUDE_DRAFT = true;
-	private final Boolean USER_IS_AUTHOR = true;
+	private final Long AUTHOR_ID = null;
 	private final Boolean IS_SAVED_ONLY = true;
 	private final Boolean IS_UP_VOTED_ONLY = true;
 
@@ -260,7 +260,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						null, !IS_PUBLISHED_ONLY, INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] { id }), null, INCLUDE_PENDING,
-						INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
+						INCLUDE_DRAFT, null, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
 				.orElse(null);
 
 		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty())
@@ -295,7 +295,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						isArchived, isPublished, !INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] {}), directoryId, !INCLUDE_PENDING,
-						!INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
+						!INCLUDE_DRAFT, null, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
 				.orElse(null);
 
 		var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -326,7 +326,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] {}), null, INCLUDE_PENDING,
-						!INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
+						!INCLUDE_DRAFT, null, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
 				.orElse(null);
 
 		var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -357,7 +357,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId,
 						arrayToSqlStringList(new Long[] {}), null, !INCLUDE_PENDING, INCLUDE_DRAFT,
-						null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
+						null, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
 				.orElse(null);
 
 		var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
@@ -414,7 +414,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 				.searchAll(arrayToSqlStringList(new String[] { pageType.getCode() }), "", IS_EXACT_MATCH_ONLY, null,
 						IS_PUBLISHED_ONLY, INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
 						arrayToSqlStringList(new String[] {}), userId, arrayToSqlStringList(new Long[] { pageId }),
-						null, INCLUDE_PENDING, INCLUDE_DRAFT, null, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY,
+						null, INCLUDE_PENDING, INCLUDE_DRAFT, null, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY,
 						paging)
 				.orElse(null);
 
@@ -456,7 +456,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 		var pages = searchAll(new String[] { pageType.getCode() }, "", new Long[] {},
 				new String[] {}, new String[] {}, !IS_ARCHIVED_ONLY, IS_PUBLISHED_ONLY, !IS_EXACT_MATCH_ONLY,
-				1, 100, 0L, !USER_IS_AUTHOR, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, new String[] { DATE_MODIFIED });
+				1, 100, 0L, AUTHOR_ID, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, new String[] { DATE_MODIFIED });
 		var readPages = readPageRepository.findAllPageIdByUserIdAndPageType(userId, pageType.getCode());
 
 		return pages.getData().stream().filter(page -> !readPages.contains(page.getId())).toList();
@@ -465,7 +465,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 	@Override
 	public PaginatedResponse<PageDTO> searchAll(String[] pageTypeFilter, String searchKey, Long[] primaryKeys,
 			String[] categories, String[] tags, Boolean isArchived, Boolean isPublished, Boolean exactSearch,
-			Integer pageNumber, Integer pageSize, Long days, Boolean userIsAuthor, Boolean savedOnly,
+			Integer pageNumber, Integer pageSize, Long days, Long author, Boolean savedOnly,
 			Boolean upVotedOnly, String[] sortBy) {
 		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 		searchKey = searchKey.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -489,7 +489,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						arrayToSqlStringList(tags), userId,
 						arrayToSqlStringList(primaryKeys),
 						null, INCLUDE_PENDING, INCLUDE_DRAFT,
-						fromDate, userIsAuthor, savedOnly, upVotedOnly, paging)
+						fromDate, author, savedOnly, upVotedOnly, paging)
 				.orElse(null);
 
 		var pageList = optionalPageVersions.getContent().stream().map(pageVersion -> {
