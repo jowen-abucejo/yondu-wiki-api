@@ -58,6 +58,10 @@ public class PageDTO {
     private Long totalComments;
 
     @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_parent_comments")
+    private Long totalParentComments;
+
+    @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "total_ratings")
     private Long totalRatings;
 
@@ -128,6 +132,7 @@ public class PageDTO {
         this.pagePermissions = builder.pagePermissions;
         this.dateSaved = builder.dateSaved;
         this.totalDownRatings = builder.totalDownRatings;
+        this.totalParentComments = builder.totalParentComments;
     }
 
     /**
@@ -226,6 +231,13 @@ public class PageDTO {
     }
 
     /**
+     * @return the totalParentComments
+     */
+    public Long getTotalParentComments() {
+        return totalParentComments;
+    }
+
+    /**
      * @return the totalRatings
      */
     public Long getTotalRatings() {
@@ -285,6 +297,7 @@ public class PageDTO {
         private long[] pagePermissions;
         private LocalDateTime dateSaved;
         private Long totalDownRatings;
+        private Long totalParentComments;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -351,6 +364,11 @@ public class PageDTO {
 
         public PageDTOBuilder totalComments(Long totalComments) {
             this.totalComments = totalComments;
+            return this;
+        }
+
+        public PageDTOBuilder totalParentComments(Long totalParentComments) {
+            this.totalParentComments = totalParentComments;
             return this;
         }
 

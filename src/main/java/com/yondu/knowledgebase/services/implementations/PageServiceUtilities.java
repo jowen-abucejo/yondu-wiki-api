@@ -131,6 +131,7 @@ class PageServiceUtilities {
                 .id((Long) pageVersion.getOrDefault("pageId", 0L))
                 .dateCreated(parseAndFormat(dateCreated))
                 .totalComments((Long) pageVersion.getOrDefault("totalComments", 0L))
+                .totalParentComments((Long) pageVersion.getOrDefault("totalParentComments", 0L))
                 .totalRatings((Long) pageVersion.getOrDefault("totalRatings", 0L))
                 .totalDownRatings((Long) pageVersion.getOrDefault("totalDownRatings", 0L))
                 .relevance(BigDecimal.valueOf((Double) pageVersion.getOrDefault("relevance", 0.0)))
