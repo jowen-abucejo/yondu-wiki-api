@@ -97,7 +97,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     directory dr ON dr.id = p.directory_id LEFT JOIN
                     workflow w ON w.directory_id=dr.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
                     (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
@@ -286,7 +286,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     post p LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
                     (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
@@ -334,7 +334,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         directory dr ON dr.id = p.directory_id LEFT JOIN
                         workflow w ON w.directory_id=dr.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0  GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON c.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
                         (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
@@ -472,7 +472,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         post p LEFT JOIN
                         users a ON p.author = a.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON c.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
                         (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
