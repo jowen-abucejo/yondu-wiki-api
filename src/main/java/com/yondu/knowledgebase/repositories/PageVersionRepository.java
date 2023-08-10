@@ -165,7 +165,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         THEN (
                             ((v.page_id , v.id) IN
                                 (
-                                    SELECT pv.page_id, CASE WHEN NOT :allVersions THEN MAX(pv.id) ELSE pv.id END
+                                    SELECT pv.page_id, CASE WHEN NOT :allVersions THEN ANY_VALUE(MAX(pv.id)) ELSE ANY_VALUE(pv.id) END
                                     FROM page_version pv
                                     WHERE EXISTS(
                                         SELECT 1
@@ -394,7 +394,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             THEN (
                                 ((v.page_id , v.id) IN
                                     (
-                                        SELECT pv.page_id, CASE WHEN NOT :allVersions THEN MAX(pv.id) ELSE pv.id END
+                                        SELECT pv.page_id, CASE WHEN NOT :allVersions THEN ANY_VALUE(MAX(pv.id)) ELSE ANY_VALUE(pv.id) END
                                         FROM page_version pv
                                         WHERE EXISTS(
                                             SELECT 1
