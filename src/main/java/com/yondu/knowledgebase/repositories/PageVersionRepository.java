@@ -164,13 +164,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         WHEN :isPublished OR :allVersions
                         THEN (
                             ((v.page_id , v.id) IN
-                                (SELECT pv.page_id, CASE WHEN :allVersions THEN MAX(pv.id) ELSE pv.id END
+                                (
+                                    SELECT pv.page_id, CASE WHEN NOT :allVersions THEN MAX(pv.id) ELSE pv.id END
                                     FROM page_version pv
-                                    WHERE EXISTS(SELECT 1 FROM
-                                        (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                    WHERE EXISTS(
+                                        SELECT 1
+                                        FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
                                             WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                     )
-                                    GROUP BY pv.page_id, pv.id
+                                    GROUP BY pv.page_id
                                 )
                             )
                             AND (
@@ -190,17 +192,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         CASE
                         WHEN NOT :isPublished OR :allVersions
                         THEN (
-                            (v.page_id , v.id) IN
-                            (
-                                SELECT pv.page_id, pv.id
-                                FROM page_version pv
-                                WHERE NOT EXISTS(
-                                    SELECT 1
-                                    FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
-                                    WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
-                                )
-                                GROUP BY pv.page_id
-                            )
+                            rv.totalApprovedReviews < w3.totalRequiredApproval
                             AND (
                                 (
                                     :pendingOnly
@@ -401,13 +393,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             WHEN :isPublished OR :allVersions
                             THEN (
                                 ((v.page_id , v.id) IN
-                                    (SELECT pv.page_id, CASE WHEN :allVersions THEN MAX(pv.id) ELSE pv.id END
+                                    (
+                                        SELECT pv.page_id, CASE WHEN NOT :allVersions THEN MAX(pv.id) ELSE pv.id END
                                         FROM page_version pv
-                                        WHERE EXISTS(SELECT 1 FROM
-                                            (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                        WHERE EXISTS(
+                                            SELECT 1
+                                            FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
                                                 WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                         )
-                                        GROUP BY pv.page_id, pv.id
+                                        GROUP BY pv.page_id
                                     )
                                 )
                                 AND (
@@ -427,17 +421,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             CASE
                             WHEN NOT :isPublished OR :allVersions
                             THEN (
-                                (v.page_id , v.id) IN
-                                (
-                                    SELECT pv.page_id, pv.id
-                                    FROM page_version pv
-                                    WHERE NOT EXISTS(
-                                        SELECT 1
-                                        FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
-                                        WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
-                                    )
-                                    GROUP BY pv.page_id
-                                )
+                                rv.totalApprovedReviews < w3.totalRequiredApproval
                                 AND (
                                     (
                                         :pendingOnly
