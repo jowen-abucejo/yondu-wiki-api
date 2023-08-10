@@ -8,17 +8,19 @@ import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.config.WebSocketHandler;
 import com.yondu.knowledgebase.entities.Notification;
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.exceptions.MissingFieldException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.NotificationRepository;
+import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.NotificationService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +40,9 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationRepository notificationRepository;
     private UserRepository userRepository;
     private EmailServiceImpl emailService;
+
+    @Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
 
     @Autowired
     private WebSocketHandler webSocketHandler;
@@ -50,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Override
-    public NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification) {
+    public  NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification, String[] content) {
         log.info("NotificationServiceImpl.createNotification()");
         log.info("notification : " + notification);
 
@@ -78,8 +84,10 @@ public class NotificationServiceImpl implements NotificationService {
             newNotification.setType(NotificationType.GENERAL.getCode());
         }
 
-        Map <String,String> links = getLinksForEmailNotificationTemplate(newNotification);
-        EmailDTO.GeneralRequest email = new EmailDTO.GeneralRequest(user.getEmail(),fromUser.getEmail(),links.get("fromUserLink"),newNotification.getNotificationType(),newNotification.getType(),links.get("contentLink"));
+        Map<String, String> links = getLinksForEmailNotificationTemplate(content);
+        EmailDTO.GeneralRequest email = new EmailDTO.GeneralRequest(user.getEmail(), fromUser.getEmail(),
+                links.get("fromUserLink"), newNotification.getNotificationType(), content[0],
+                links.get("contentLink"));
         emailService.sendEmail(email);
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
@@ -153,18 +161,13 @@ public class NotificationServiceImpl implements NotificationService {
         return response;
     }
 
-    private Map <String,String> getLinksForEmailNotificationTemplate (Notification notification){
-        Map <String,String> data = new HashMap<>();
-        if (notification.getType().equals(ContentType.REPLY.getCode())){
-            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
-            data.put("contentLink",String.format("http://localhost:8080/comments/%d",notification.getTypeId()));
-        } else if (notification.getType().equals(ContentType.PAGE.getCode())) {
-            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
-            data.put("contentLink",String.format("http://localhost:8080/pages/%d",notification.getTypeId()));
-        } else if (notification.getType().equals(ContentType.POST.getCode())) {
-            data.put("fromUserLink",String.format("http://localhost:8080/user/%d", notification.getFromUser().getId()));
-            data.put("contentLink",String.format("http://localhost:8080/posts/%d",notification.getTypeId()));
-        }
+    private Map<String, String> getLinksForEmailNotificationTemplate(String[] link) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
+        data.put("contentLink", String.format("%s/posts/%ss/%s", FRONTEND_LINK, link[0], link[1]));
+
         return data;
     }
 

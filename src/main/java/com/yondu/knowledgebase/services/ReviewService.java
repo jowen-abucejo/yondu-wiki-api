@@ -172,7 +172,7 @@ public class ReviewService {
                                 String.format("%s `%s` is waiting for your approval.",
                                         capitalizedPageType, pageVersion.getTitle()),
                                 NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),
-                                pageVersion.getPage().getId()));
+                                pageVersion.getPage().getId()), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
                     }
                 }
             }
@@ -258,17 +258,17 @@ public class ReviewService {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                         String.format("%s `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
                                 pageVersion.getTitle()),
-                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
             } else {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                         String.format("%s `%s` has been approved by %s. (%s out of %s approvers)", capitalizedPageType,
                                 pageVersion.getTitle(), userFullName, currentStepCount, totalSteps),
-                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
             }
         } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())) {
             notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                     String.format("%s `%s` has been disapproved by %s!", capitalizedPageType, pageVersion.getTitle(), userFullName),
-                    NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId));
+                    NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
         }
 
         // Implement audit log
@@ -295,10 +295,6 @@ public class ReviewService {
                     reviewRepository.save(newReview);
                 }
             }
-        }
-
-        for (Map.Entry<String, Long> entry : test.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
         }
 
         return ReviewDTOMapper.mapToUpdatedResponse(updatedReview);

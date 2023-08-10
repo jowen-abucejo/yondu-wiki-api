@@ -5,7 +5,7 @@ import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 
 public interface NotificationService {
 
-    public NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification);
+    public NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification, String[] link);
     public PaginatedResponse<NotificationDTO.BaseResponse> getUserNotifications(int page, int size);
     public PaginatedResponse<NotificationDTO.BaseResponse> getUserUnreadNotifications(int page, int size); 
     public NotificationDTO.Base readNotification(long notificationId);

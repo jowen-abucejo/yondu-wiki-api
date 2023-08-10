@@ -5,6 +5,7 @@ import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CommentRepository;
@@ -18,8 +19,6 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalUpvoteDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
-import com.yondu.knowledgebase.entities.Rating;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
 import com.yondu.knowledgebase.repositories.RatingRepository;
@@ -127,6 +126,7 @@ public class RatingServiceImpl implements RatingService {
 		Long authorId = null;
 		String fromUser = rating.getUser().getFirstName() + " " + rating.getUser().getLastName();
 		String entityMsg = null;
+		Long parentComment = null;
 
 		if(rating.getEntity_type().toUpperCase().equals(ContentType.PAGE.getCode())){
 			PageDTO page = pageService.findById(rating.getEntity_id());
@@ -140,7 +140,7 @@ public class RatingServiceImpl implements RatingService {
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.REPLY.getCode())) {
 			Comment comment = commentRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", rating.getEntity_id())));
 			authorId = comment.getUser().getId();
-
+			parentComment = comment.getParentCommentId()==null?comment.getEntityId():comment.getParentCommentId();
 			Object entity = getEntity(comment.getEntityType(), comment.getEntityId(), Object.class);
 			entityMsg = getEntityTitle(entity);
 		}
@@ -154,7 +154,7 @@ public class RatingServiceImpl implements RatingService {
 				(rating.getEntity_type().toLowerCase().equals("comment")) ? "answer in post" : rating.getEntity_type().toLowerCase(),
 				entityMsg);
 
-		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()));
+		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()), getLinksForEmailNotificationTemplate(rating.getEntity_type() , parentComment==null?rating.getEntity_id():parentComment));
 	}
 
 	@Override
@@ -187,4 +187,19 @@ public class RatingServiceImpl implements RatingService {
 			throw new RequestValidationException("Invalid Entity Type");
 		}
 	}
+
+	private String[] getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        String[] pageType = new String[2];
+
+        if (contentType.toUpperCase().equals(ContentType.POST.getCode())||contentType.toUpperCase().equals(ContentType.REPLY.getCode())) {
+            pageType[0] = PageType.DISCUSSION.getCode().toLowerCase();
+            pageType[1] = Long.toString(entityId);
+        } else if (contentType.toUpperCase().equals(ContentType.PAGE.getCode())) {
+            com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
+            pageType[0] = page.getType().toLowerCase();
+            pageType[1] = Long.toString(entityId);
+        }
+
+        return pageType;
+    }
 }

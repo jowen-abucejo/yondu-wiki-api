@@ -147,6 +147,9 @@ public class EmailServiceImpl implements EmailService {
         }else if(notificationType.equals("FORGOT-PASSWORD")){
             templateDetails.put("templateName", "ForgotPassword");
             templateDetails.put("subjectText", "[FORGOT PASSWORD] You forgot password!");
+        }else if(notificationType.equals("APPROVAL")){
+            templateDetails.put("templateName", "Approval");
+            templateDetails.put("subjectText", "[APPROVAL] Page for approval!");
         }else {
             throw new InvalidNotificationTypeException("Invalid Notification Type");
         }

@@ -25,7 +25,7 @@ public class NotificationController {
         log.info("NotificationController.createNewNotification()");
         log.info("notification : " + notification.toString());
 
-        NotificationDTO.BaseResponse newNotification = notificationService.createNotification(notification);
+        NotificationDTO.BaseResponse newNotification = notificationService.createNotification(notification, new String[]{notification.notificationType(), Long.toString(notification.typeId())});
 
         ApiResponse apiResponse = ApiResponse.success(newNotification, "success");
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);

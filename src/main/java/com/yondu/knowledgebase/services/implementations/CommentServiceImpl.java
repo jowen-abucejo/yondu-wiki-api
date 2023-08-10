@@ -9,6 +9,7 @@ import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
 import com.yondu.knowledgebase.entities.*;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.NotificationType;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.exceptions.CommentIsNotAllowed;
 import com.yondu.knowledgebase.exceptions.InvalidNotificationTypeException;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
@@ -58,7 +59,6 @@ public class CommentServiceImpl implements CommentService {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (entityType.equals(ContentType.PAGE.getCode())) {
             PageDTO page = pageService.findById(entityId);
-            System.out.println(page);
             if (page != null && !page.getAllowComment())
                 throw new CommentIsNotAllowed("Comments are turned off in this page");
             else {
@@ -114,7 +114,7 @@ public class CommentServiceImpl implements CommentService {
                         .createNotification(new NotificationDTO.BaseRequest(parentCommentUser.getId(), user.getId(),
                                 String.format("%s replied \"%s\" on your comment ", fromUser,
                                         formatStringForNotification(comment.getComment())),
-                                NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId));
+                                NotificationType.COMMENT.getCode(), ContentType.REPLY.getCode(), parentCommentId), getLinksForEmailNotificationTemplate(parentComment.getEntityType(), parentComment.getEntityId()));
             } else {
                 throw new ResourceNotFoundException(String.format("Comment ID not found: %d", parentCommentId));
             }
@@ -124,7 +124,7 @@ public class CommentServiceImpl implements CommentService {
                     String.format("%s added a comment \"%s\" on your %s \"%s\"", fromUser,
                             formatStringForNotification(comment.getComment()), contentType.toLowerCase(),
                             data.get("contentTitle".toString())),
-                    NotificationType.COMMENT.getCode(), contentType, contentId));
+                    NotificationType.COMMENT.getCode(), contentType, contentId), getLinksForEmailNotificationTemplate(contentType, contentId));
         }
         commentRepository.save(comment);
 
@@ -132,7 +132,7 @@ public class CommentServiceImpl implements CommentService {
             // Notify all mentioned users in the created comment
             notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(), user.getId(),
                     String.format("%s mentioned you in a comment", fromUser), NotificationType.MENTION.getCode(),
-                    contentType, comment.getId()));
+                    contentType, comment.getId()), getLinksForEmailNotificationTemplate(contentType, contentId));
         }
 
         if (parentCommentId != null) {
@@ -273,6 +273,24 @@ public class CommentServiceImpl implements CommentService {
         TotalVoteDTO vote = ratingService.totalVote(id, "Comment");
         /* upvote + downvote */
         return vote.getTotal_vote();
+    }
+
+    private String[] getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        String[] pageType = new String[2];
+
+        if (contentType.toUpperCase().equals(ContentType.POST.getCode())) {
+            pageType[0] = PageType.DISCUSSION.getCode().toLowerCase();
+            pageType[1] = Long.toString(entityId);
+        } else if (contentType.toUpperCase().equals(ContentType.ANNOUNCEMENT.getCode())
+                || contentType.toUpperCase().equals(ContentType.WIKI.getCode())) {
+            pageType[0] = contentType.toLowerCase();
+            pageType[1] = Long.toString(entityId);
+        } else {
+            com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
+            pageType[0] = page.getType().toLowerCase();
+            pageType[1] = Long.toString(entityId);
+        }
+        return pageType;
     }
 
 }

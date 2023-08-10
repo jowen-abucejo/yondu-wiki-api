@@ -1,14 +1,10 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
-import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.post.PostDTO;
 import com.yondu.knowledgebase.DTO.post.PostRequestDTO;
-import com.yondu.knowledgebase.DTO.post.PostSearchResult;
 import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
-import com.yondu.knowledgebase.Utils.MultipleSort;
-import com.yondu.knowledgebase.Utils.NativeQueryUtils;
 import com.yondu.knowledgebase.entities.Category;
 import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Tag;
@@ -16,26 +12,19 @@ import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.enums.EntityType;
 import com.yondu.knowledgebase.enums.NotificationType;
+import com.yondu.knowledgebase.enums.PageType;
 import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.CategoryRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -110,7 +99,7 @@ public class PostService {
             String fromUser = post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
             notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),
                     post.getAuthor().getId(), String.format("%s mentioned you in their post", fromUser),
-                    NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()));
+                    NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()), new String[] {PageType.DISCUSSION.getCode(), Long.toString(post.getId())});
         }
         chatbaseService.updateChatbot(post);
         return new PostDTO(post, 0L, 0L, null, 0);
@@ -199,7 +188,6 @@ public class PostService {
     private Set<User> getMentionedUsers(Long[] userIds) {
         Set<User> mentionedUsers = new HashSet<>();
         for (Long userId : userIds) {
-            System.out.println(userId);
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException(String.format("User ID not found: %d", userId)));
             if (user != null) {

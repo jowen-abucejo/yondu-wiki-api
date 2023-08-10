@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class PasswordRepeatException extends RuntimeException{
 
     public PasswordRepeatException() {
-        super("We're sorry, but the password you entered has already been used for your account. To maintain the security of your account, please choose a new password that you haven't used before.");
+        super("The password you entered has already been used for your account. To maintain the security of your account, please choose a new password that you haven't used before.");
     }
 }
