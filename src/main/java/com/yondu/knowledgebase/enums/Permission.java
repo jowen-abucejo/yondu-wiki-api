@@ -16,7 +16,8 @@ public enum Permission {
     UPDATE_COMMENT(12, "Comment", "Allows user to update comment in a page", "UPDATE_COMMENT"),
     DELETE_COMMENT(13, "Comment", "Allows user to delete their own comment", "DELETE_COMMENT"),
     VIEW_COMMENTS(14, "Comment", "Allows user to view comments in the page", "VIEW_COMMENTS"),
-    UPDATE_PAGE_EDITOR(15, "Page Editor", "Allow user to add/remove page editors in a page", "UPDATE_PAGE_EDITOR"),
+    // UPDATE_PAGE_EDITOR(15, "Page Editor", "Allow user to add/remove page editors
+    // in a page", "UPDATE_PAGE_EDITOR"),
     CREATE_DIRECTORY(16, "Directory", "Allow user to create directory", "CREATE_DIRECTORY"),
     UPDATE_DIRECTORY(17, "Directory", "Allow user to update directory", "UPDATE_DIRECTORY"),
     DELETE_DIRECTORY(18, "Directory", "Allow user to delete directory", "DELETE_DIRECTORY"),
@@ -24,7 +25,7 @@ public enum Permission {
     CREATE_ROLES(20, "Roles", "Allow user to create new roles", "CREATE_ROLES"),
     UPDATE_ROLES(21, "Roles", "Allow user to update roles", "UPDATE_ROLES"),
     DELETE_ROLES(22, "Roles", "Allow user to delete roles", "DELETE_ROLES"),
-    MANAGE_ROLES(23, "Roles", "Allow user to manage roles", "MANAGE_ROLES"),
+    // MANAGE_ROLES(23, "Roles", "Allow user to manage roles", "MANAGE_ROLES"),
     READ_ROLES(24, "Roles", "Allow user to view roles", "READ_ROLES"),
     MANAGE_DIRECTORY_PERMISSIONS(25, "Directory", "Allow user to manage the directory permissions",
             "MANAGE_DIRECTORY_PERMISSIONS"),
