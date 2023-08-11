@@ -1,5 +1,6 @@
 package com.yondu.knowledgebase.controllers;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -108,6 +109,7 @@ public class CategoryController {
         List<CategoryDTO> categoryDTOs = categories.stream()
                 .filter(category -> !category.getDeleted())
                 .map(categoryMapper::toDto)
+                .sorted(Comparator.comparing(CategoryDTO::getName))
                 .collect(Collectors.toList());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success(categoryDTOs, "Success retrieving all categories"));
