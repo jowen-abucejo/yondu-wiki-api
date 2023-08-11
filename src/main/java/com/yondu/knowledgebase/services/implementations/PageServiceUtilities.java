@@ -164,7 +164,7 @@ class PageServiceUtilities {
                 .saved(((Long) pageVersion.getOrDefault("isSaved", 0L)) > 0L)
                 .myRating((String) pageVersion.getOrDefault("myRating", ""))
                 .pagePermissions(
-                        userPagePermissions.isBlank() ? new long[] {}
+                        userPagePermissions == null || userPagePermissions.isBlank() ? new long[] {}
                                 : Arrays.stream((userPagePermissions).split(",")).mapToLong(Long::parseLong).toArray())
                 .dateSaved(parseAndFormat(dateSaved));
     }

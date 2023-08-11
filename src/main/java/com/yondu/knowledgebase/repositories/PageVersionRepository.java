@@ -96,7 +96,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     users lb ON p.locked_by = lb.id LEFT JOIN
                     directory dr ON dr.id = p.directory_id LEFT JOIN
                     workflow w ON w.directory_id=dr.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalComments
+                        FROM comment c10 LEFT JOIN
+                        (SELECT id AS parentComment FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                        ON c10.parent_comment_id = c11.parentComment
+                        WHERE c10.entity_type = 'PAGE'
+                            AND c10.is_deleted = 0
+                            AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                        GROUP BY c10.entity_id
+                    ) c ON c.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
@@ -113,7 +121,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
                         GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
                     FROM
-                        (SELECT *FROM users WHERE id = :userId) u20 LEFT JOIN
+                        (SELECT * FROM users WHERE id = :userId) u20 LEFT JOIN
                         user_page_access upa20 ON u20.id = upa20.user_id LEFT JOIN
                         directory_user_access dua20 ON u20.id = dua20.user_id LEFT JOIN
                         group_users gu20 ON u20.id = gu20.user_id LEFT JOIN
@@ -277,7 +285,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 FROM
                     post p LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
-                    (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalComments
+                        FROM comment c10 LEFT JOIN
+                        (SELECT id AS parentComment FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                        ON c10.parent_comment_id = c11.parentComment
+                        WHERE c10.entity_type = 'POST'
+                            AND c10.is_deleted = 0
+                            AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                        GROUP BY c10.entity_id
+                    ) c ON c.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
@@ -325,7 +341,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         users lb ON p.locked_by = lb.id LEFT JOIN
                         directory dr ON dr.id = p.directory_id LEFT JOIN
                         workflow w ON w.directory_id=dr.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0  GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalComments
+                            FROM comment c10 LEFT JOIN
+                            (SELECT id AS parentComment FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                            ON c10.parent_comment_id = c11.parentComment
+                            WHERE c10.entity_type = 'PAGE'
+                                AND c10.is_deleted = 0
+                                AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                            GROUP BY c10.entity_id
+                        ) c ON c.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
@@ -342,7 +366,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
                             GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
                         FROM
-                            (SELECT *FROM users WHERE id = :userId) u20 LEFT JOIN
+                            (SELECT * FROM users WHERE id = :userId) u20 LEFT JOIN
                             user_page_access upa20 ON u20.id = upa20.user_id LEFT JOIN
                             directory_user_access dua20 ON u20.id = dua20.user_id LEFT JOIN
                             group_users gu20 ON u20.id = gu20.user_id LEFT JOIN
@@ -455,7 +479,15 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     FROM
                         post p LEFT JOIN
                         users a ON p.author = a.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
+                        (SELECT entity_id, COUNT(*) AS totalComments
+                            FROM comment c10 LEFT JOIN
+                            (SELECT id AS parentComment FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                            ON c10.parent_comment_id = c11.parentComment
+                            WHERE c10.entity_type = 'POST'
+                                AND c10.is_deleted = 0
+                                AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                            GROUP BY c10.entity_id
+                        ) c ON c.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
                         (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
