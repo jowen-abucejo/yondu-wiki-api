@@ -66,7 +66,7 @@ public class PostController {
     }
 
     @PostMapping("/posts/{id}")
-    public ResponseEntity<ApiResponse<PostDTO>> editPost(@RequestBody PostDTO postDTO, @PathVariable Long id) {
+    public ResponseEntity<ApiResponse<PostDTO>> editPost(@RequestBody PostRequestDTO postDTO, @PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(postService.editPost(postDTO, id), "Post successfully edited!"));
     }

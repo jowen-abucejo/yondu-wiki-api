@@ -105,7 +105,7 @@ public class PostService {
         return new PostDTO(post, 0L, 0L, null, 0);
     }
 
-    public PostDTO editPost(PostDTO postDTO, Long id) {
+    public PostDTO editPost(PostRequestDTO postDTO, Long id) {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         Post post = postRepository.findById(id)
@@ -125,12 +125,15 @@ public class PostService {
             }
         }).collect(Collectors.toSet());
 
+        Set<User> mentions = getMentionedUsers(postDTO.getPostMentions());
+
         post.setTitle(postDTO.getTitle());
         post.setContent(postDTO.getContent());
         post.setModifiedContent(postDTO.getContent().replaceAll("<[^>]+>", ""));
         post.setCategories(categories);
         post.setTags(tags);
         post.setDateModified(LocalDateTime.now());
+        post.setPostMentions(mentions);
 
         postRepository.save(post);
 
