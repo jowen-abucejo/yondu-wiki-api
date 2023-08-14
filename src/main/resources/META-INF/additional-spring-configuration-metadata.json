@@ -34,6 +34,11 @@
 			"name": "jwt.secret",
 			"type": "java.lang.String",
 			"description": "The secret key use to encrypt and decrypt json web token"
+		},
+		{
+			"name": "fe.frontend-link",
+			"type": "java.lang.String",
+			"description": "The url of frontend client application"
 		}
 	]
 }
