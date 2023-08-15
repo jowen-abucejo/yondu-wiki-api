@@ -12,6 +12,11 @@ import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.services.NotificationService;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +32,10 @@ import com.yondu.knowledgebase.services.RatingService;
 
 @Service
 public class RatingServiceImpl implements RatingService {
+
+	@Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
+
 	private final RatingRepository ratingRepository;
 	private final CommentRepository commentRepository;
 	private final PageRepository pageRepository;
@@ -154,7 +163,8 @@ public class RatingServiceImpl implements RatingService {
 				(rating.getEntity_type().toLowerCase().equals("comment")) ? "answer in post" : rating.getEntity_type().toLowerCase(),
 				entityMsg);
 
-		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()), getLinksForEmailNotificationTemplate(rating.getEntity_type() , parentComment==null?rating.getEntity_id():parentComment));
+		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()), 
+		getLinksForEmailNotificationTemplate(rating.getEntity_type() , parentComment==null?rating.getEntity_id():parentComment));
 	}
 
 	@Override
@@ -188,18 +198,20 @@ public class RatingServiceImpl implements RatingService {
 		}
 	}
 
-	private String[] getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
-        String[] pageType = new String[2];
+	private Map<String, String> getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
 
-        if (contentType.toUpperCase().equals(ContentType.POST.getCode())||contentType.toUpperCase().equals(ContentType.REPLY.getCode())) {
-            pageType[0] = PageType.DISCUSSION.getCode().toLowerCase();
-            pageType[1] = Long.toString(entityId);
-        } else if (contentType.toUpperCase().equals(ContentType.PAGE.getCode())) {
-            com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
-            pageType[0] = page.getType().toLowerCase();
-            pageType[1] = Long.toString(entityId);
+		if (contentType.toUpperCase().equals(ContentType.REPLY.getCode()) || contentType.toUpperCase().equals(ContentType.POST.getCode())) {
+           data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, PageType.DISCUSSION.getCode().toLowerCase(), entityId));
+		   data.put("contentType", PageType.DISCUSSION.getCode().toLowerCase());
+		} else if (contentType.toUpperCase().equals(ContentType.PAGE.getCode())) {
+           com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
+           data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, page.getType().toLowerCase(), entityId));
+		   data.put("contentType", page.getType().toLowerCase());
         }
 
-        return pageType;
+        return data;
     }
 }

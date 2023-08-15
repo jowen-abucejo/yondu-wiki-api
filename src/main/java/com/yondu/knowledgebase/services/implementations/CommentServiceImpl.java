@@ -21,6 +21,7 @@ import com.yondu.knowledgebase.services.AuditLogService;
 import com.yondu.knowledgebase.services.CommentService;
 import com.yondu.knowledgebase.services.RatingService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,9 @@ public class CommentServiceImpl implements CommentService {
     private final PageServiceImpl pageService;
     private final AuditLogService auditLogService;
     private final RatingService ratingService;
+
+    @Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
 
     public CommentServiceImpl(CommentRepository commentRepository, UserRepository userRepository,
             PostRepository postRepository, PageRepository pageRepository, NotificationServiceImpl notificationService,
@@ -275,22 +279,24 @@ public class CommentServiceImpl implements CommentService {
         return vote.getTotal_vote();
     }
 
-    private String[] getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
-        String[] pageType = new String[2];
+	private Map<String, String> getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
 
         if (contentType.toUpperCase().equals(ContentType.POST.getCode())) {
-            pageType[0] = PageType.DISCUSSION.getCode().toLowerCase();
-            pageType[1] = Long.toString(entityId);
+            data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, PageType.DISCUSSION.getCode().toLowerCase(), entityId));
+		    data.put("contentType", PageType.DISCUSSION.getCode().toLowerCase());
         } else if (contentType.toUpperCase().equals(ContentType.ANNOUNCEMENT.getCode())
                 || contentType.toUpperCase().equals(ContentType.WIKI.getCode())) {
-            pageType[0] = contentType.toLowerCase();
-            pageType[1] = Long.toString(entityId);
+            data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, contentType.toLowerCase(), entityId));
+		    data.put("contentType", contentType.toLowerCase());
         } else {
             com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
-            pageType[0] = page.getType().toLowerCase();
-            pageType[1] = Long.toString(entityId);
+            data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, page.getType().toLowerCase(), entityId));
+		    data.put("contentType", page.getType().toLowerCase());
         }
-        return pageType;
+        return data;
     }
 
 }

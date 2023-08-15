@@ -4,6 +4,9 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.notification.NotificationDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.NotificationService;
+
+import java.util.HashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +28,7 @@ public class NotificationController {
         log.info("NotificationController.createNewNotification()");
         log.info("notification : " + notification.toString());
 
-        NotificationDTO.BaseResponse newNotification = notificationService.createNotification(notification, new String[]{notification.notificationType(), Long.toString(notification.typeId())});
+        NotificationDTO.BaseResponse newNotification = notificationService.createNotification(notification, new HashMap<>());
 
         ApiResponse apiResponse = ApiResponse.success(newNotification, "success");
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);

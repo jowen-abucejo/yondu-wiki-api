@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,6 +48,9 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final UserPermissionValidatorService userPermissionValidatorService;
     private final AuditLogService auditLogService;
+
+    @Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
 
     @Autowired
     private ChatbaseService chatbaseService;
@@ -172,7 +176,8 @@ public class ReviewService {
                                 String.format("%s `%s` is waiting for your approval.",
                                         capitalizedPageType, pageVersion.getTitle()),
                                 NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(),
-                                pageVersion.getPage().getId()), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
+                                pageVersion.getPage().getId()), 
+                                        getLinksForEmailNotificationTemplate(pageVersion.getPage().getType(), new Long []{pageVersion.getPage().getId(), versionId}));
                     }
                 }
             }
@@ -258,17 +263,20 @@ public class ReviewService {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                         String.format("%s `%s` has been approved by all designated approvers and is now published!", capitalizedPageType,
                                 pageVersion.getTitle()),
-                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), 
+                                getLinksForEmailNotificationTemplate(pageVersion.getPage().getType(), new Long []{pageVersion.getPage().getId()}));
             } else {
                 notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                         String.format("%s `%s` has been approved by %s. (%s out of %s approvers)", capitalizedPageType,
                                 pageVersion.getTitle(), userFullName, currentStepCount, totalSteps),
-                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
+                        NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), 
+                                getLinksForEmailNotificationTemplate(pageVersion.getPage().getType(), new Long []{pageVersion.getPage().getId(), pId}));
             }
         } else if (request.status().equals(ReviewStatus.DISAPPROVED.getCode())) {
             notificationService.createNotification(new NotificationDTO.BaseRequest(pageAuthorId, currentUser.getId(),
                     String.format("%s `%s` has been disapproved by %s!", capitalizedPageType, pageVersion.getTitle(), userFullName),
-                    NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), new String[] {pageVersion.getPage().getType(), Long.toString(pageVersion.getPage().getId())});
+                    NotificationType.APPROVAL.getCode(), ContentType.PAGE.getCode(), pId), 
+                        getLinksForEmailNotificationTemplate(pageVersion.getPage().getType(), new Long []{pageVersion.getPage().getId(), pId}));
         }
 
         // Implement audit log
@@ -502,6 +510,21 @@ public class ReviewService {
         newMap.put("page_version_id", versionId);
         newMap.put("page_id", pageId);
         return newMap;
+    }
+
+    private Map<String, String> getLinksForEmailNotificationTemplate(String contentType, Long[] entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
+
+        if (entityId.length == 1) {
+            data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, contentType.toLowerCase(), entityId[0]));
+		    data.put("contentType", contentType.toLowerCase());
+        } else {
+            data.put("contentLink", String.format("%s/%ss/%d/version/%d/reviews", FRONTEND_LINK, contentType.toLowerCase(), entityId[0], entityId[1]));
+		    data.put("contentType", contentType.toLowerCase());
+        }
+        return data;
     }
 
 }

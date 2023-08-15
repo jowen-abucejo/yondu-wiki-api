@@ -1,20 +1,87 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Knowledge Base Notification</title>
-</head>
-<body>
-<h1>Your <span th:text="${contentType}"></span> has a new rating by <a th:href="${userProfileLink}" th:text="${fromUser}"></a></h1>
-<h3>Click the link below for more details:</h3>
-<a th:href="${contentLink}" th:text="${contentLink}"></a>
-<p>
-    Thank you for using our application. We hope that the notification we sent was helpful to you. If you have any further inquiries or need assistance, please feel free to reach out to us at <a href="mailto:knowledgebase0630@gmail.com">knowledgebase0630@gmail.com</a>.
-</p>
+    <head>
+        <meta charset="UTF-8">
+        <title>Knowledge Base Notification</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<p>
-    Best regards,<br>
-    The Yondu Knowledge Base Team
-</p>
-</body>
+        <style>
+            .body {
+                background-color: #F9F9F9; 
+                padding: 10px 60px;               
+            }
+            .card {
+                   max-width: 600px;
+                   margin: 0px auto;
+                   padding: 20px;
+                   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.2);
+                   background-color: #fff;
+                   color: #17193C;
+               }
+       
+               /* Heading style */
+               .card h1 {
+                   font-size: 22px;
+               }
+       
+               /* Color for the fromUser text */
+               .card b {
+                   font-weight: 600;
+                   font-size: 20px;
+               }
+
+               .card .message {
+                color: #17193C;
+                font-size: 18px;
+               }
+       
+               /* Content link style */
+               .card .button {
+                   text-align: center;
+                   font-weight: 500;
+                   font-size: 14px;
+                   display: block;
+                   padding: 10px 15px;
+                   text-decoration: none;
+                   border: 1px solid #8B41B8;
+                   border-radius: 4px;
+                   color: #fff;
+                   background-color: #8B41B8;
+               }
+
+               .card .button:hover {
+                   color: #8B41B8;
+                   background-color: #fff;
+               }
+       
+               .card hr {
+                background-color: #676885;
+                color: #676885;
+               }
+
+               /* Contact details style */
+               .card .footer{
+                   font-size: 14px;
+                   color: #676885;
+               }
+       </style>
+    </head>
+
+    <body class="body">
+        <div class="card">
+            <h1>Hi <span th:text="${toName}"></span>!</h1>
+            <b><a th:href="${userProfileLink}" th:text="${fromUser}"></a> rated your <span th:text="${contentType}"></span></b>
+            <p class="message" th:text="${message}"></p>
+            <a style="text-decoration: none;" th:href="${contentLink}">
+            <p class="button">View on Knowledge Base</p>
+            </a>
+            <hr>
+            <p class="footer">
+                Thank you for using our application. We hope that the notification we sent was helpful to you. If you have any further inquiries or need assistance, please feel free to reach out to us at <a href="mailto:noreplyknowledgebase1@gmail.com">noreplyknowledgebase1@gmail.com</a>.
+                <br> <br>
+                Best regards,<br>
+                The Yondu Knowledge Base Team
+            </p>
+        </div>
+    </body>
 </html>

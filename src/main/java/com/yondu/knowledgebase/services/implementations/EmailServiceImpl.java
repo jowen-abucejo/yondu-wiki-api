@@ -8,6 +8,8 @@ import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -25,6 +27,9 @@ public class EmailServiceImpl implements EmailService {
     private final TemplateEngine templateEngine;
     private final ThreadPoolTaskExecutor executor;
     private final UserRepository userRepository;
+
+    @Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
 
     public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine, ThreadPoolTaskExecutor executor, UserRepository userRepository) {
         this.mailSender = mailSender;
@@ -44,10 +49,12 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(email, "UTF-8");
 
             Context context = new Context();
+            context.setVariable("toName", toUser.getFirstName());
             context.setVariable("userProfileLink", request.fromProfile());
-            context.setVariable("fromUser", request.from());
+            context.setVariable("fromUser", String.format("%s %s", fromUser.getFirstName(), fromUser.getLastName()));
             context.setVariable("contentType", request.contentType().toLowerCase());
             context.setVariable("contentLink", request.contentLink().toLowerCase());
+            context.setVariable("message", request.message());
 
             Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
 
@@ -79,6 +86,7 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("toUser", toUser.getFirstName().toUpperCase());
             context.setVariable("temporaryPassword", request.temporaryPassword());
             context.setVariable("userName", toUser.getEmail());
+            context.setVariable("contentLink", FRONTEND_LINK);
 
             Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
 
@@ -109,6 +117,7 @@ public class EmailServiceImpl implements EmailService {
             Context context = new Context();
             context.setVariable("toUser", toUser.getFirstName().toUpperCase());
             context.setVariable("temporaryPassword", request.temporaryPassword());
+            context.setVariable("contentLink", FRONTEND_LINK);
 
             Map<String, String> templateDetails = getEmailTemplateDetails(request.notificationType());
 

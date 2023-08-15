@@ -56,7 +56,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final Logger log = LoggerFactory.getLogger(NotificationServiceImpl.class);
 
     @Override
-    public  NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification, String[] content) {
+    public  NotificationDTO.BaseResponse createNotification(NotificationDTO.BaseRequest notification, Map<String, String> links) {
         log.info("NotificationServiceImpl.createNotification()");
         log.info("notification : " + notification);
 
@@ -84,11 +84,10 @@ public class NotificationServiceImpl implements NotificationService {
             newNotification.setType(NotificationType.GENERAL.getCode());
         }
 
-        Map<String, String> links = getLinksForEmailNotificationTemplate(content);
         EmailDTO.GeneralRequest email = new EmailDTO.GeneralRequest(user.getEmail(), fromUser.getEmail(),
-                links.get("fromUserLink"), newNotification.getNotificationType(), content[0],
-                links.get("contentLink"));
-        emailService.sendEmail(email);
+            links.get("fromUserLink"), newNotification.getNotificationType(), links.get("contentType"),
+            links.get("contentLink"), newNotification.getMessage());
+            emailService.sendEmail(email);
 
         NotificationDTO.BaseResponse notificationBase = NotificationDTOMapper.mapEntityToBaseResponse(createdNotification);
         try {
@@ -159,16 +158,6 @@ public class NotificationServiceImpl implements NotificationService {
         Long totalUnreadNotification = notificationRepository.totalUnreadNotification(user);
         NotificationDTO.TotalUnreadNotification response =  NotificationDTOMapper.mapToTotalUnreadNotification(user,totalUnreadNotification);
         return response;
-    }
-
-    private Map<String, String> getLinksForEmailNotificationTemplate(String[] link) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Map<String, String> data = new HashMap<>();
-
-        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
-        data.put("contentLink", String.format("%s/posts/%ss/%s", FRONTEND_LINK, link[0], link[1]));
-
-        return data;
     }
 
     @Override

@@ -19,12 +19,15 @@ import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.repositories.TagRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,9 @@ public class PostService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
     private final RatingService ratingService;
+    
+    @Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
 
     @Autowired
     private ChatbaseService chatbaseService;
@@ -99,7 +105,8 @@ public class PostService {
             String fromUser = post.getAuthor().getFirstName() + " " + post.getAuthor().getLastName();
             notificationService.createNotification(new NotificationDTO.BaseRequest(mentionedUser.getId(),
                     post.getAuthor().getId(), String.format("%s mentioned you in their post", fromUser),
-                    NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()), new String[] {PageType.DISCUSSION.getCode(), Long.toString(post.getId())});
+                    NotificationType.MENTION.getCode(), ContentType.POST.getCode(), post.getId()),                     
+                    getLinksForEmailNotificationTemplate(PageType.DISCUSSION.getCode(), post.getId()));
         }
         chatbaseService.updateChatbot(post);
         return new PostDTO(post, 0L, 0L, null, 0);
@@ -208,5 +215,14 @@ public class PostService {
     private Integer totalVote(Long postId) {
         TotalVoteDTO vote = ratingService.totalVote(postId, "Post");
         return vote.getTotal_vote();
+    }
+
+    	private Map<String, String> getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
+        data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, contentType.toLowerCase(), entityId));
+		data.put("contentType", contentType.toLowerCase());
+        return data;
     }
 }
