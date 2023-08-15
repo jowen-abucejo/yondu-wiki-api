@@ -11,7 +11,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:5173", "https://ykb-react.netlify.app")
+                .allowedOrigins("http://localhost:5173", "http://35.154.188.15")
                 .allowedHeaders("*")
                 .allowedMethods("*")
                 .allowCredentials(true);
