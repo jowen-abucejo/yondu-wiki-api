@@ -88,9 +88,19 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     sp.date_created AS dateSaved,
                     COALESCE(rd.totalDownRatings, 0) AS totalDownRatings,
                     COALESCE(cpt.totalParentComments, 0) AS totalParentComments
-                 FROM
-                    page_version v JOIN
-                    page p ON v.page_id = p.id LEFT JOIN
+                FROM
+                    (
+                        SELECT *
+                        FROM page p
+                        WHERE
+                        FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                        AND p.is_deleted = 0
+                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                        AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                    ) p LEFT JOIN
+                    page_version v ON v.page_id = p.id LEFT JOIN
                     users mb ON v.modified_by = mb.id LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
                     users lb ON p.locked_by = lb.id LEFT JOIN
@@ -140,22 +150,16 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                         group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
                         directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
                         permission pr20 ON (
-                            (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
-                            OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
-                            OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
-                            OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                            (pr20.id = upa20.permission_id)
+                            OR (pr20.id = dua20.permission_id)
+                            OR (pr20.id = gpa20.permission_id)
+                            OR (pr20.id = dga20.permission_id)
                         )
                     GROUP BY p20.id) upp ON upp.pageId=v.page_id
                 WHERE
-                    FIND_IN_SET(p.page_type, :pageTypeFilter)>0
-                    AND p.is_deleted = 0
-                    AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                    AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                    CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
                     AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
-                    AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0 ELSE TRUE END
-                    AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
-                    AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
                     AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
                         THEN (v.page_id IN (SELECT pcat2.page_id FROM page_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
                         ELSE TRUE
@@ -277,7 +281,16 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     COALESCE(rd.totalDownRatings, 0) AS totalDownRatings,
                     COALESCE(cpt.totalParentComments, 0) AS totalParentComments
                 FROM
-                    post p LEFT JOIN
+                    (
+                        SELECT *
+                        FROM post p
+                        WHERE
+                        (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
+                        AND p.is_deleted = 0
+                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                    ) p LEFT JOIN
                     users a ON p.author = a.id LEFT JOIN
                     (SELECT entity_id, COUNT(*) AS totalComments
                         FROM comment c10 LEFT JOIN
@@ -296,14 +309,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=p.id LEFT JOIN
                     (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=p.id
                 WHERE
-                    (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
-                    AND p.is_deleted = 0
-                    AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                    AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                    CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
                     AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
                     AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
-                    AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
-                    AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
                     AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
                         THEN (p.id IN (SELECT pcat2.post_id FROM post_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
                         ELSE TRUE
@@ -327,32 +335,28 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                 (
                     (SELECT
                         COUNT(*) AS searchCount
-                     FROM
-                        page_version v JOIN
-                        page p ON v.page_id = p.id LEFT JOIN
+                    FROM
+                        (
+                            SELECT *
+                            FROM page p
+                            WHERE
+                            FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                            AND p.is_deleted = 0
+                            AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                            AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                            AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                            AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        ) p LEFT JOIN
+                        page_version v ON v.page_id = p.id LEFT JOIN
                         users mb ON v.modified_by = mb.id LEFT JOIN
                         users a ON p.author = a.id LEFT JOIN
                         users lb ON p.locked_by = lb.id LEFT JOIN
                         directory dr ON dr.id = p.directory_id LEFT JOIN
                         workflow w ON w.directory_id=dr.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalComments
-                            FROM comment c10 LEFT JOIN
-                            (SELECT id AS parentComment FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
-                            ON c10.parent_comment_id = c11.parentComment
-                            WHERE c10.entity_type = 'PAGE'
-                                AND c10.is_deleted = 0
-                                AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
-                            GROUP BY c10.entity_id
-                        ) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
                         (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
                         (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
                         (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
                         (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
-                        (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
-                        (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
                         (SELECT entity_id,author,date_created FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=v.page_id LEFT JOIN
                         (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=v.page_id LEFT JOIN
                         (SELECT
@@ -379,22 +383,16 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
                             directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
                             permission pr20 ON (
-                                (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
-                                OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
-                                OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
-                                OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                                (pr20.id = upa20.permission_id)
+                                OR (pr20.id = dua20.permission_id)
+                                OR (pr20.id = gpa20.permission_id)
+                                OR (pr20.id = dga20.permission_id)
                             )
                         GROUP BY p20.id) upp ON upp.pageId=v.page_id
                     WHERE
-                        FIND_IN_SET(p.page_type, :pageTypeFilter)>0
-                        AND p.is_deleted = 0
-                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                        AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                        CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
                         AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
-                    AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
-                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0 ELSE TRUE END
-                        AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
-                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                         AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
                             THEN (v.page_id IN (SELECT pcat2.page_id FROM page_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
                             ELSE TRUE
@@ -443,7 +441,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             OR
                             CASE
                             WHEN NOT :isPublished OR :allVersions
-                            THEN(
+                            THEN (
                                 COALESCE(rv.totalApprovedReviews, 0) < COALESCE(w3.totalRequiredApproval, 1)
                                 AND (
                                     (
@@ -476,33 +474,23 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                     (SELECT
                         COUNT(*) AS searchCount
                     FROM
-                        post p LEFT JOIN
+                        (
+                            SELECT *
+                            FROM post p
+                            WHERE
+                            (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
+                            AND p.is_deleted = 0
+                            AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                            AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                            AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        ) p LEFT JOIN
                         users a ON p.author = a.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalComments
-                            FROM comment c10 LEFT JOIN
-                            (SELECT id AS parentComment FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
-                            ON c10.parent_comment_id = c11.parentComment
-                            WHERE c10.entity_type = 'POST'
-                                AND c10.is_deleted = 0
-                                AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
-                            GROUP BY c10.entity_id
-                        ) c ON c.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                        (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
-                        (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
-                        (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
                         (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=p.id LEFT JOIN
                         (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=p.id
                     WHERE
-                        (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
-                        AND p.is_deleted = 0
-                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
-                        AND CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                        CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
                         AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
-                    AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
-                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
-                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
                         AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
                             THEN (p.id IN (SELECT pcat2.post_id FROM post_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
                             ELSE TRUE
