@@ -39,73 +39,51 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Set<User> findUsersWithContentApprovalPermission();
 
     @Query(nativeQuery = true, value = """
-            SELECT
-                (EXISTS(SELECT
-                            p.id
-                        FROM
-                            users u
-                        LEFT JOIN user_role ur ON u.id = ur.user_id
-                        LEFT JOIN role_permission rp ON rp.role_id = ur.role_id
-                        LEFT JOIN permission p ON rp.permission_id = p.id
+            SELECT EXISTS(
+                SELECT
+                    pr20.name
+                FROM
+                    (
+                        SELECT p.id, p.directory_id
+                        FROM page p
                         WHERE
-                            p.name = :permission AND u.id = :userId)
-                    AND (EXISTS( SELECT
-                            p.id
-                        FROM
-                            users u
-                        LEFT JOIN user_page_access upa ON u.id = upa.user_id
-                        LEFT JOIN permission p ON upa.permission_id = p.id
-                        WHERE
-                            p.name = :permission AND u.id = :userId
-                                AND upa.page_id = :pageId)
-                    OR EXISTS(SELECT
-                            p.id
-                        FROM
-                            users u
-                        LEFT JOIN group_users gu ON u.id = gu.user_id
-                        LEFT JOIN group_page_access gpa ON gu.group_id = gpa.group_id
-                        LEFT JOIN permission p ON gpa.permission_id = p.id
-                        WHERE
-                            p.name = :permission AND u.id = :userId
-                                AND gpa.page_id = :pageId)
-                    OR EXISTS(SELECT
-                            p.id
-                        FROM
-                            users u
-                        LEFT JOIN group_users gu ON u.id = gu.user_id
-                        LEFT JOIN directory_group_access dga ON gu.group_id = dga.group_id
-                        LEFT JOIN page pa ON dga.directory_id=pa.directory_id
-                        LEFT JOIN permission p ON dga.permission_id = p.id
-                        WHERE
-                            p.name = :permission AND u.id = :userId
-                                AND pa.id = :pageId))) AS isGranted
-                                                        """)
+                        p.id = :pageId
+                    ) p20 LEFT JOIN
+                    (SELECT * FROM user_page_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) upa20 ON p20.id = upa20.page_id LEFT JOIN
+                    (SELECT * FROM directory_user_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
+                    (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON dua20.user_id = gu20.user_id LEFT JOIN
+                    (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                    group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                    group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
+                    directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
+                    permission pr20 ON (
+                        (pr20.id = upa20.permission_id)
+                        OR (pr20.id = dua20.permission_id)
+                        OR (pr20.id = gpa20.permission_id)
+                        OR (pr20.id = dga20.permission_id)
+                    )
+                WHERE pr20.name=:permission
+                GROUP BY pr20.name) isGranted
+                                                                """)
     public Long userHasPagePermission(Long userId, Long pageId, String permission);
 
     @Query(nativeQuery = true, value = """
-            SELECT
-                (EXISTS(SELECT
-                        p.id
-                    FROM
-                        users u
-                        LEFT JOIN user_role ur ON u.id = ur.user_id
-                        LEFT JOIN role_permission rp ON rp.role_id = ur.role_id
-                        LEFT JOIN permission p ON rp.permission_id = p.id
-                    WHERE
-                        p.name = :permission AND u.id = :userId))
-                AND EXISTS(SELECT DISTINCT
-                        pr.id
-                    FROM
-                        users u
-                        LEFT JOIN directory_user_access dua ON u.id = dua.user_id
-                        LEFT JOIN group_users gu ON u.id = gu.user_id
-                        LEFT JOIN directory_group_access dga ON gu.group_id = dga.group_id
-                        LEFT JOIN permission pr ON (pr.id = dua.permission_id OR pr.id = dga.permission_id)
-                    WHERE
-                        u.id = :userId AND pr.name = :permission
-                        AND (dua.directory_id = :directoryId OR dga.directory_id = :directoryId)
-                ) AS isGranted
-                                                        """)
+            SELECT EXISTS(
+                SELECT
+                    pr20.name
+                FROM
+                    (SELECT * FROM directory_user_access WHERE user_id=:userId AND directory_id = :directoryId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 LEFT JOIN
+                    (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON dua20.user_id = gu20.user_id LEFT JOIN
+                    (SELECT id, is_active FROM cluster WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                    group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                    directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=dua20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
+                    permission pr20 ON (
+                        (pr20.id = dua20.permission_id)
+                        OR (pr20.id = dga20.permission_id)
+                    )
+                WHERE pr20.name=:permission
+                GROUP BY pr20.name) isGranted
+                                                                """)
     public Long userHasDirectoryPermission(Long userId, Long directoryId, String permission);
 
     @Query("SELECT u FROM users u JOIN u.role r WHERE (CONCAT(u.firstName, ' ', u.lastName) LIKE %:searchKey% OR u.email LIKE %:searchKey%) AND u.status = :statusFilter AND r.roleName = :roleFilter")

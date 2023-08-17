@@ -132,9 +132,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 						pageNotFoundPhrase(pageId, versionId, pageType)));
 
 		String requiredPermission = Permission.UPDATE_CONTENT.getCode();
-		if (pagePermissionGranted(pageId, requiredPermission)
-				|| directoryPermissionGranted(pageDraft.getPage().getDirectory().getId(),
-						requiredPermission)) {
+		if (pagePermissionGranted(pageId, requiredPermission)) {
 			// lock the page
 			checkLock(pageDraft.getPage(), true);
 
@@ -173,8 +171,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		var page = pageVersion.getPage();
 
 		String requiredPermission = Permission.DELETE_CONTENT.getCode();
-		if (pagePermissionGranted(pageId, requiredPermission)
-				|| directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+		if (pagePermissionGranted(pageId, requiredPermission)) {
 
 			// check if page is locked
 			checkLock(page, false);
@@ -208,8 +205,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		var page = pageVersion.getPage();
 
 		String requiredPermission = Permission.DELETE_CONTENT.getCode();
-		if (pagePermissionGranted(pageId, requiredPermission)
-				|| directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+		if (pagePermissionGranted(pageId, requiredPermission)) {
 
 			checkLock(page, false);
 
@@ -230,8 +226,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 				.orElseThrow(() -> new ResourceNotFoundException(pageNotFoundPhrase(pageId, pageType)));
 		var page = pageVersion.getPage();
 		String requiredPermission = Permission.COMMENT_AVAILABILITY.getCode();
-		if (pagePermissionGranted(pageId, requiredPermission)
-				|| directoryPermissionGranted(page.getDirectory().getId(), requiredPermission)) {
+		if (pagePermissionGranted(pageId, requiredPermission)) {
 
 			checkLock(page, false);
 

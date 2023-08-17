@@ -142,17 +142,18 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
                             AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
                         ) p20 LEFT JOIN
-                        (SELECT * FROM user_page_access WHERE user_id=:userId) upa20 ON p20.id = upa20.page_id LEFT JOIN
-                        (SELECT * FROM directory_user_access WHERE user_id=:userId) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
+                        (SELECT * FROM user_page_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) upa20 ON p20.id = upa20.page_id LEFT JOIN
+                        (SELECT * FROM directory_user_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
                         (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON dua20.user_id = gu20.user_id LEFT JOIN
                         (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
-                        group_page_access gpa20 ON ct20.id = gpa20.group_id AND gpa20.page_id=p20.id LEFT JOIN
-                        directory_group_access dga20 ON ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id LEFT JOIN
+                        group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                        group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
+                        directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
                         permission pr20 ON (
-                            (pr20.id = upa20.permission_id)
-                            OR (pr20.id = dua20.permission_id)
-                            OR (pr20.id = gpa20.permission_id)
-                            OR (pr20.id = dga20.permission_id)
+                            (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                            OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                            OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                            OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
                         )
                     GROUP BY p20.id) upp ON upp.pageId=v.page_id
                 WHERE
@@ -193,13 +194,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             )
                             AND (
                                 EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                OR (
-                                    (
-                                        EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active)
-                                    )
-                                    AND FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
-                                )
+                                OR FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
                             )
                         )
                         ELSE :isPublished
@@ -223,11 +218,6 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 )
                                 OR (
                                     :draftOnly
-                                    AND (
-                                        EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId)
-                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId AND c10.is_active)
-                                    )
                                     AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
                                 )
                             )
@@ -385,17 +375,18 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
                                 AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
                             ) p20 LEFT JOIN
-                            (SELECT * FROM user_page_access WHERE user_id=:userId) upa20 ON p20.id = upa20.page_id LEFT JOIN
-                            (SELECT * FROM directory_user_access WHERE user_id=:userId) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
+                           (SELECT * FROM user_page_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) upa20 ON p20.id = upa20.page_id LEFT JOIN
+                            (SELECT * FROM directory_user_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
                             (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON dua20.user_id = gu20.user_id LEFT JOIN
                             (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
-                            group_page_access gpa20 ON ct20.id = gpa20.group_id AND gpa20.page_id=p20.id LEFT JOIN
-                            directory_group_access dga20 ON ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id LEFT JOIN
+                            group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                            group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
+                            directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
                             permission pr20 ON (
-                                (pr20.id = upa20.permission_id)
-                                OR (pr20.id = dua20.permission_id)
-                                OR (pr20.id = gpa20.permission_id)
-                                OR (pr20.id = dga20.permission_id)
+                                (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                                OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                                OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                                OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
                             )
                         GROUP BY p20.id) upp ON upp.pageId=v.page_id
                     WHERE
@@ -436,13 +427,7 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                 )
                                 AND (
                                     EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR (
-                                        (
-                                            EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active)
-                                        )
-                                        AND FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
-                                    )
+                                    OR  FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
                                 )
                             )
                             ELSE :isPublished
@@ -466,11 +451,6 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                                     )
                                     OR (
                                         :draftOnly
-                                        AND (
-                                            EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                            OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId)
-                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'UPDATE_CONTENT' AND u10.id = :userId AND c10.is_active)
-                                        )
                                         AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
                                     )
                                 )
