@@ -11,6 +11,14 @@ public interface PageService {
 
     public PageDTO findById(Long id);
 
+    /**
+     * Get the latest published version of page
+     * 
+     * @param pageType The type of page to retrieve
+     * @param id       The id of page
+     * @return A page dto with the 'body' property set to be the latest published
+     *         version of page that match the given type and id
+     */
     public PageDTO findById(PageType pageType, Long id);
 
     public PageDTO createNewPage(PageType pageType, Long directoryId, PageVersionDTO page);

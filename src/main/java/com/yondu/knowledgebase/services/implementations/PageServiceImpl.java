@@ -112,15 +112,14 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		newPage.setType(pageType.getCode());
 		newPage.setLockEnd(LocalDateTime.now().plusHours(1));
 
-		var categories = setCategories(pageDTO.getCategories(), newPage);
-		var tags = setTags(pageDTO.getTags(), newPage);
+		setCategories(pageDTO.getCategories(), newPage);
+		setTags(pageDTO.getTags(), newPage);
 
 		newPage = pageRepository.save(newPage);
 
 		pageRightsService.createPageRights(newPage);
 
-		return pageDTODefault(newPageVersion, new Long[] { 0L, 0L, 0L }).categories(categories).tags(tags)
-				.build();
+		return findByIdWithVersions(pageType, newPage.getId());
 
 	}
 
@@ -131,31 +130,38 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 				.orElseThrow(() -> new ResourceNotFoundException(
 						pageNotFoundPhrase(pageId, versionId, pageType)));
 
+		if (pageDraft.getPage().getDeleted())
+			throw new ResourceNotFoundException(
+					pageNotFoundPhrase(pageId, versionId, pageType));
+
 		String requiredPermission = Permission.UPDATE_CONTENT.getCode();
 		if (pagePermissionGranted(pageId, requiredPermission)) {
 			// lock the page
 			checkLock(pageDraft.getPage(), true);
 
-			var categories = setCategories(pageDTO.getCategories(), pageDraft.getPage());
-			var tags = setTags(pageDTO.getTags(), pageDraft.getPage());
+			setCategories(pageDTO.getCategories(), pageDraft.getPage());
+			setTags(pageDTO.getTags(), pageDraft.getPage());
 
-			var reviewsCount = getReviewsCountByStatus(pageDraft);
-			var pageVersionIsApproved = reviewsCount[0] > 0;
-			var pageVersionIsDisapproved = reviewsCount[1] > 0;
-			var pageVersionIsPendingApproval = reviewsCount[2] > 0;
+			// check if title or content si modified
+			if (!pageDTO.getContent().equals(pageDraft.getOriginalContent())
+					|| !pageDTO.getTitle().equals(pageDraft.getTitle())) {
+				var reviewsCount = getReviewsCountByStatus(pageDraft);
+				var pageVersionIsApproved = reviewsCount[0] > 0;
+				var pageVersionIsDisapproved = reviewsCount[1] > 0;
+				var pageVersionIsPendingApproval = reviewsCount[2] > 0;
 
-			// save new page version if the version provided is already submitted
-			if (pageVersionIsApproved || pageVersionIsDisapproved || pageVersionIsPendingApproval) {
-				var newVersion = copyApprovedPageVersion(pageDraft);
-				pageDraft = newVersion;
-				reviewsCount = new Long[] { 0L, 0L, 0L };
+				// create new page version if the version provided is already submitted
+				if (pageVersionIsApproved || pageVersionIsDisapproved || pageVersionIsPendingApproval) {
+					var newVersion = copyApprovedPageVersion(pageDraft);
+					pageDraft = newVersion;
+				}
 			}
 
 			setTitleAndContents(pageDTO, pageDraft);
 
 			pageDraft = pageVersionRepository.save(pageDraft);
 
-			return pageDTODefault(pageDraft, reviewsCount).categories(categories).tags(tags).build();
+			return findVersion(pageType, pageId, versionId);
 
 		}
 
@@ -212,7 +218,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 			page.setActive(isActive);
 			pageVersion.setPage(pageRepository.save(page));
 
-			return pageDTODefault(pageVersion).build();
+			return findByIdWithVersions(pageType, pageId);
 		}
 
 		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
@@ -233,7 +239,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 			page.setAllowComment(allowCommenting);
 			pageVersion.setPage(pageRepository.save(page));
 
-			return pageDTODefault(pageVersion).build();
+			return findByIdWithVersions(pageType, pageId);
 		}
 
 		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
@@ -274,7 +280,35 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 	@Override
 	public PageDTO findById(PageType pageType, Long id) {
-		return findByIdWithVersions(pageType, id);
+		boolean isNotPost = !pageType.equals(PageType.DISCUSSION);
+		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
+
+		if (isNotPost && !pageRepository.existsByIdAndTypeAndDeleted(id, pageType.getCode(), false))
+			throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
+
+		var nativeSort = nativeSort(new String[] { DATE_MODIFIED }, new String[] {});
+		Pageable paging = PageRequest.of(0, 100, Sort.by(nativeSort));
+		paging = sortByAliases(paging);
+
+		var optionalPageVersions = pageVersionRepository
+				.searchAll(arrayToSqlStringList(new String[] { pageType.getCode() }), "", !IS_EXACT_MATCH_ONLY,
+						null, IS_PUBLISHED_ONLY, !INCLUDE_ALL_VERSIONS, arrayToSqlStringList(new String[] {}),
+						arrayToSqlStringList(new String[] {}), userId,
+						arrayToSqlStringList(new Long[] { id }), null, INCLUDE_PENDING,
+						INCLUDE_DRAFT, null, AUTHOR_EMAIL, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, paging)
+				.orElse(null);
+
+		if (optionalPageVersions == null || optionalPageVersions.getContent().isEmpty()) {
+			if (isNotPost) {
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
+			} else {
+				throw new ResourceNotFoundException(pageNotFoundPhrase(id, pageType));
+			}
+		}
+
+		var pageList = optionalPageVersions.getContent();
+
+		return convertMapToPageDTO(pageList.get(0), pageList);
 	}
 
 	@Override
@@ -387,7 +421,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 
 		var page = pageRepository.findByIdAndTypeAndDeleted(pageId, pageType.getCode(), false).orElse(null);
 
-		if (!page.getAuthor().getId().equals(userId))
+		if (page == null || !page.getAuthor().getId().equals(userId))
 			throw new ResponseStatusException(HttpStatus.FORBIDDEN,
 					"Only page author is allowed to moved content to different directory");
 
@@ -432,7 +466,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		}).collect(Collectors.toList());
 
 		if (versionAsPageBody.size() == 0)
-			throw new ResourceNotFoundException(pageNotFoundPhrase(pageId, versionId, pageType));
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Missing required permission");
 
 		return convertMapToPageDTO(versionAsPageBody.get(0), pageList);
 	}
@@ -457,7 +491,7 @@ public class PageServiceImpl extends PageServiceUtilities implements PageService
 		Long userId = auditorAware.getCurrentAuditor().orElse(new User()).getId();
 		var pages = searchAll(new String[] { pageType.getCode() }, "", new Long[] {},
 				new String[] {}, new String[] {}, !IS_ARCHIVED_ONLY, IS_PUBLISHED_ONLY, !IS_EXACT_MATCH_ONLY,
-				1, 100, 0L, AUTHOR_EMAIL, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, new String[] { DATE_MODIFIED });
+				1, 100, 30L, AUTHOR_EMAIL, !IS_SAVED_ONLY, !IS_UP_VOTED_ONLY, new String[] { DATE_MODIFIED });
 		var readPages = readPageRepository.findAllPageIdByUserIdAndPageType(userId, pageType.getCode());
 
 		return pages.getData().stream().filter(page -> !readPages.contains(page.getId())).toList();

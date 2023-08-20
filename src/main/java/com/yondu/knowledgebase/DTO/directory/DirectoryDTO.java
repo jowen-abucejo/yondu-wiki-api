@@ -50,7 +50,8 @@ public class DirectoryDTO {
             Set<GetResponse> subdirectories,
             Set<DirectoryDTO.WorkflowStep> workflow,
             Set<UserAccess> userAccess,
-            Set<GroupAccess> groupAccess) {
+            Set<GroupAccess> groupAccess,
+            Boolean canUpdateWorkflow) {
     }
 
     public record ShortResponse(Long id,
