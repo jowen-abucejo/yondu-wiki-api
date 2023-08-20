@@ -36,7 +36,7 @@ public class DirectoryDTOMapper {
                         .collect(Collectors.toSet()),
                 directory.getDirectoryGroupAccesses().stream().map(DirectoryDTOMapper::mapToGroupAccess)
                         .collect(Collectors.toSet()),
-                directory.getPages().stream().anyMatch(page -> !page.getDeleted()));
+                !directory.getPages().stream().anyMatch(page -> !page.getDeleted()));
     }
 
     public static DirectoryDTO.ShortResponse mapToShortResponse(Directory directory) {
