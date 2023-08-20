@@ -1,7 +1,6 @@
 package com.yondu.knowledgebase.config;
 
 import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.UserService;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtException;
@@ -31,7 +30,8 @@ public class RequestFilter extends OncePerRequestFilter {
     private final Logger log = LoggerFactory.getLogger(RequestFilter.class);
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         log.info("RequestFilter.doFilterInternal()");
 
         final String requestTokenHeader = request.getHeader("Authorization");
@@ -41,30 +41,31 @@ public class RequestFilter extends OncePerRequestFilter {
 
         log.info("requestTokenHeader : " + requestTokenHeader);
 
-        if(requestTokenHeader != null && requestTokenHeader.startsWith("Bearer")){
+        if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer")) {
             token = requestTokenHeader.substring("Bearer ".length());
 
-            try{
+            try {
                 Jwt builtToken = tokenUtil.readJwt(token);
-                email = (String)builtToken.getHeader().get("email");
-            }catch (JwtException jwtException){
+                email = (String) builtToken.getHeader().get("email");
+            } catch (JwtException jwtException) {
                 log.error(jwtException.getMessage());
                 log.error("JWT Token must be expired.");
             }
-        }else{
+        } else {
             log.info("JWT token does not begin with bearer string.");
         }
 
-        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             User user = null;
-            try{
+            try {
                 user = userService.loadUserByUsername(email);
-            }catch (Exception ex){
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
 
-            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+            UsernamePasswordAuthenticationToken userToken = new UsernamePasswordAuthenticationToken(user, null,
+                    user.getAuthorities());
             userToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(userToken);
         }
