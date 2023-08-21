@@ -321,10 +321,13 @@ public class DirectoryService {
         directory.setDateModified(LocalDate.now());
         directory.setModifiedBy(currentUser);
 
-        // Update the workflow if there are no submitted pages using the old workflow.
-        if (!directory.getPages().stream().anyMatch(page -> !page.getDeleted())) {
-            Workflow workflow = directory.getWorkflow();
+        Workflow workflow = directory.getWorkflow();
 
+        var workflowNotUsedByAnyPage = !directory.getPages().stream().anyMatch(page -> !page.getDeleted());
+
+        // Delete unused workflow steps only if there are no page using the old
+        // workflow.
+        if (workflowNotUsedByAnyPage) {
             List<WorkflowStep> toRemoveSteps = workflow.getSteps()
                     .stream()
                     .filter(existingStep -> request.workflow()
@@ -334,45 +337,46 @@ public class DirectoryService {
 
             toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
             workflowStepRepository.deleteAll(toRemoveSteps);
-
-            request.workflow().forEach(step -> {
-                WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndId(workflow, step.id())
-                        .orElse(null);
-
-                if (workflowStep == null) {
-                    WorkflowStep newWorkflowStep = workflowStepRepository
-                            .save(new WorkflowStep(workflow, step.name(), step.step()));
-                    List<WorkflowStepApprover> workflowStepApprovers = step
-                            .approvers().stream().map(
-                                    (approver) -> new WorkflowStepApprover(newWorkflowStep,
-                                            userRepository.findById(approver.id())
-                                                    .orElseThrow(() -> new ResourceNotFoundException(
-                                                            "User not found"))))
-                            .toList();
-                    workflowStepApproverRepository.saveAll(workflowStepApprovers);
-                } else {
-                    workflowStep.setName(step.name());
-                    workflowStep.setStep(step.step());
-                    workflowStepApproverRepository
-                            .deleteAll(workflowStepApproverRepository
-                                    .findAllByWorkflowStep(workflowStep));
-
-                    step.approvers().forEach(approver -> {
-                        User user = userRepository.findById(approver.id())
-                                .orElseThrow(() -> new ResourceNotFoundException(
-                                        "User not found"));
-                        WorkflowStepApprover workflowStepApprover = workflowStepApproverRepository
-                                .findByApproverAndWorkflowStep(user, workflowStep).orElse(null);
-                        if (workflowStepApprover == null) {
-                            workflowStepApproverRepository
-                                    .save(new WorkflowStepApprover(workflowStep, user));
-                        }
-                    });
-
-                    workflowStepRepository.save(workflowStep);
-                }
-            });
         }
+
+        request.workflow().forEach(step -> {
+            WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndId(workflow, step.id())
+                    .orElse(null);
+
+            // Add new workflow step only if there are no page using the old workflow.
+            if (workflowStep == null && workflowNotUsedByAnyPage) {
+                WorkflowStep newWorkflowStep = workflowStepRepository
+                        .save(new WorkflowStep(workflow, step.name(), step.step()));
+                List<WorkflowStepApprover> workflowStepApprovers = step
+                        .approvers().stream().map(
+                                (approver) -> new WorkflowStepApprover(newWorkflowStep,
+                                        userRepository.findById(approver.id())
+                                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                        "User not found"))))
+                        .toList();
+                workflowStepApproverRepository.saveAll(workflowStepApprovers);
+            } else {
+                workflowStep.setName(step.name());
+                workflowStep.setStep(step.step());
+                workflowStepApproverRepository
+                        .deleteAll(workflowStepApproverRepository
+                                .findAllByWorkflowStep(workflowStep));
+
+                step.approvers().forEach(approver -> {
+                    User user = userRepository.findById(approver.id())
+                            .orElseThrow(() -> new ResourceNotFoundException(
+                                    "User not found"));
+                    WorkflowStepApprover workflowStepApprover = workflowStepApproverRepository
+                            .findByApproverAndWorkflowStep(user, workflowStep).orElse(null);
+                    if (workflowStepApprover == null) {
+                        workflowStepApproverRepository
+                                .save(new WorkflowStepApprover(workflowStep, user));
+                    }
+                });
+
+                workflowStepRepository.save(workflowStep);
+            }
+        });
 
         List<DirectoryUserAccess> newUserAccesses = request.userAccess().stream().map(userAccess -> {
             Permission permission1 = permissionRepository.findById(userAccess.permissionId())
