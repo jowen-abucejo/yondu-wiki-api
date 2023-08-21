@@ -344,17 +344,19 @@ public class DirectoryService {
                     .orElse(null);
 
             // Add new workflow step only if there are no page using the old workflow.
-            if (workflowStep == null && workflowNotUsedByAnyPage) {
-                WorkflowStep newWorkflowStep = workflowStepRepository
-                        .save(new WorkflowStep(workflow, step.name(), step.step()));
-                List<WorkflowStepApprover> workflowStepApprovers = step
-                        .approvers().stream().map(
-                                (approver) -> new WorkflowStepApprover(newWorkflowStep,
-                                        userRepository.findById(approver.id())
-                                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                        "User not found"))))
-                        .toList();
-                workflowStepApproverRepository.saveAll(workflowStepApprovers);
+            if (workflowStep == null) {
+                if (workflowNotUsedByAnyPage) {
+                    WorkflowStep newWorkflowStep = workflowStepRepository
+                            .save(new WorkflowStep(workflow, step.name(), step.step()));
+                    List<WorkflowStepApprover> workflowStepApprovers = step
+                            .approvers().stream().map(
+                                    (approver) -> new WorkflowStepApprover(newWorkflowStep,
+                                            userRepository.findById(approver.id())
+                                                    .orElseThrow(() -> new ResourceNotFoundException(
+                                                            "User not found"))))
+                            .toList();
+                    workflowStepApproverRepository.saveAll(workflowStepApprovers);
+                }
             } else {
                 workflowStep.setName(step.name());
                 workflowStep.setStep(step.step());
