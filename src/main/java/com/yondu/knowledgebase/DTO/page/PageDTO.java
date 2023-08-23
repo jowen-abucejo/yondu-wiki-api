@@ -19,7 +19,6 @@ public class PageDTO {
 
     @JsonInclude(Include.ALWAYS)
     @JsonProperty(value = "created_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateCreated;
 
     @JsonInclude(Include.ALWAYS)
@@ -38,12 +37,10 @@ public class PageDTO {
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "locked_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockStart;
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "unlocked_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockEnd;
 
     @JsonInclude(Include.NON_NULL)
@@ -99,7 +96,6 @@ public class PageDTO {
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "saved_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateSaved;
 
     @JsonProperty(value = "vote")
