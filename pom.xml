@@ -9,8 +9,8 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.yondu</groupId>
-	<artifactId>knowledgebase</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>yondukb</artifactId>
+	<version>0.0.1</version>
 	<name>Yondu Knowledgebase API</name>
 	<description>Yondu Knowledgebase API</description>
 	<properties>
