@@ -30,7 +30,7 @@ public class JacksonConfig {
         builder.serializers(new LocalDateSerializer(
                 DateTimeFormatter.ofPattern(dateFormat)));
         builder.serializers(new LocalDateTimeSerializer(
-                DateTimeFormatter.ofPattern(String.format("%s %s", dateTimeFormat, systemDefaultOffset.getId()))));
+                DateTimeFormatter.ofPattern(String.format("%s '%s'", dateTimeFormat, systemDefaultOffset.getId()))));
         return builder;
     }
 }
