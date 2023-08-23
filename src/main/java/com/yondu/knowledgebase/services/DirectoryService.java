@@ -202,55 +202,8 @@ public class DirectoryService {
                 .toList();
         directoryGroupAccessRepository.saveAll(newGroupAccess);
 
-        return DirectoryDTOMapper.mapToGetResponse(savedDirectory);
+        return getDirectory(savedDirectory.getId());
     }
-
-    // public List<DirectoryDTO.GetResponse>
-    // moveDirectories(DirectoryDTO.MoveRequest request) {
-    // if (request.ids() == null || request.parentId() == null ||
-    // request.newParentId() == null) {
-    // throw new RequestValidationException("Invalid request parameters");
-    // }
-    //
-    // Long permissionId = 17L;
-    // Permission permission =
-    // permissionRepository.findById(permissionId).orElseThrow(()->new
-    // ResourceNotFoundException(String.format("Directory permission id '%d' not
-    // found", permissionId)));
-    //
-    // User currentUser =
-    // (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    //
-    // List<DirectoryDTO.GetResponse> data = new ArrayList<>();
-    // for (Long id: request.ids()) {
-    // Directory directory = directoryRepository.findById(id).orElseThrow(() -> new
-    // ResourceNotFoundException(String.format("Directory id '%d' not found", id)));
-    // Directory newParentDirectory =
-    // directoryRepository.findById(request.newParentId()).orElseThrow(()-> new
-    // ResourceNotFoundException(String.format("New parent directory id '%d' not
-    // found", request.newParentId())));
-    //
-    // if (!directory.getParent().getId().equals(request.parentId())) {
-    // throw new ResourceNotFoundException(String.format("Directory '%s' with parent
-    // id '%d' does not exists", directory.getName(), request.parentId()));
-    // }
-    //
-    // if (!hasPermission(currentUser, directory, permission)) {
-    // throw new AccessDeniedException();
-    // }
-    //
-    // if (isDirectoryNameDuplicate(directory.getName(),
-    // newParentDirectory.getSubDirectories())){
-    // throw new DuplicateResourceException(String.format("Directory with same name
-    // '%s' already exists in new parent's subdirectories", directory.getName()));
-    // }
-    //
-    // directory.setParent(newParentDirectory);
-    // Directory savedDirectory = directoryRepository.save(directory);
-    // data.add(DirectoryDTOMapper.mapToGetResponse(savedDirectory));
-    // }
-    // return data;
-    // }
 
     public DirectoryDTO.GetResponse moveDirectory(Long id, Long parentId, Long newParentId) {
 
@@ -370,31 +323,40 @@ public class DirectoryService {
 
         Workflow workflow = directory.getWorkflow();
 
-        List<WorkflowStep> toRemoveSteps = workflow.getSteps()
-                .stream()
-                .filter(existingStep -> request.workflow()
-                        .stream().filter(step->step.id()!=null)
-                        .noneMatch(step -> step.id().equals(existingStep.getId())))
-                .toList();
+        var workflowNotUsedByAnyPage = !directory.getPages().stream().anyMatch(page -> !page.getDeleted());
 
-        toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
-        workflowStepRepository.deleteAll(toRemoveSteps);
+        // Delete unused workflow steps only if there are no page using the old
+        // workflow.
+        if (workflowNotUsedByAnyPage) {
+            List<WorkflowStep> toRemoveSteps = workflow.getSteps()
+                    .stream()
+                    .filter(existingStep -> request.workflow()
+                            .stream().filter(step -> step.id() != null)
+                            .noneMatch(step -> step.id().equals(existingStep.getId())))
+                    .toList();
+
+            toRemoveSteps.forEach(removeSteps -> workflow.getSteps().remove(removeSteps));
+            workflowStepRepository.deleteAll(toRemoveSteps);
+        }
 
         request.workflow().forEach(step -> {
             WorkflowStep workflowStep = workflowStepRepository.findByWorkflowAndId(workflow, step.id())
                     .orElse(null);
 
+            // Add new workflow step only if there are no page using the old workflow.
             if (workflowStep == null) {
-                WorkflowStep newWorkflowStep = workflowStepRepository
-                        .save(new WorkflowStep(workflow, step.name(), step.step()));
-                List<WorkflowStepApprover> workflowStepApprovers = step
-                        .approvers().stream().map(
-                                (approver) -> new WorkflowStepApprover(newWorkflowStep,
-                                        userRepository.findById(approver.id())
-                                                .orElseThrow(() -> new ResourceNotFoundException(
-                                                        "User not found"))))
-                        .toList();
-                workflowStepApproverRepository.saveAll(workflowStepApprovers);
+                if (workflowNotUsedByAnyPage) {
+                    WorkflowStep newWorkflowStep = workflowStepRepository
+                            .save(new WorkflowStep(workflow, step.name(), step.step()));
+                    List<WorkflowStepApprover> workflowStepApprovers = step
+                            .approvers().stream().map(
+                                    (approver) -> new WorkflowStepApprover(newWorkflowStep,
+                                            userRepository.findById(approver.id())
+                                                    .orElseThrow(() -> new ResourceNotFoundException(
+                                                            "User not found"))))
+                            .toList();
+                    workflowStepApproverRepository.saveAll(workflowStepApprovers);
+                }
             } else {
                 workflowStep.setName(step.name());
                 workflowStep.setStep(step.step());
@@ -500,7 +462,8 @@ public class DirectoryService {
     }
 
     public boolean isNotEmptyDirectory(Directory directory) {
-        return directory.getPages().stream().anyMatch(page->!page.getDeleted() || !directory.getSubDirectories().isEmpty());
+        return directory.getPages().stream()
+                .anyMatch(page -> !page.getDeleted() || !directory.getSubDirectories().isEmpty());
     }
 
     private Directory traverseByLevel(Directory directory, Permission permission, User user) {
@@ -650,25 +613,13 @@ public class DirectoryService {
 
         List<Permission> permissionsToBeAddedToCreator = new ArrayList<>();
         permissionsToBeAddedToCreator
-                .add(new Permission(com.yondu.knowledgebase.enums.Permission.CREATE_DIRECTORY.getId()));
-        permissionsToBeAddedToCreator
-                .add(new Permission(com.yondu.knowledgebase.enums.Permission.UPDATE_DIRECTORY.getId()));
-        permissionsToBeAddedToCreator
-                .add(new Permission(com.yondu.knowledgebase.enums.Permission.DELETE_DIRECTORY.getId()));
-        permissionsToBeAddedToCreator
                 .add(new Permission(com.yondu.knowledgebase.enums.Permission.VIEW_DIRECTORY.getId()));
-        permissionsToBeAddedToCreator.add(new Permission(
-                com.yondu.knowledgebase.enums.Permission.MANAGE_DIRECTORY_PERMISSIONS.getId()));
         permissionsToBeAddedToCreator
                 .add(new Permission(com.yondu.knowledgebase.enums.Permission.CREATE_CONTENT.getId()));
         permissionsToBeAddedToCreator
                 .add(new Permission(com.yondu.knowledgebase.enums.Permission.UPDATE_CONTENT.getId()));
         permissionsToBeAddedToCreator
-                .add(new Permission(com.yondu.knowledgebase.enums.Permission.DELETE_CONTENT.getId()));
-        permissionsToBeAddedToCreator
                 .add(new Permission(com.yondu.knowledgebase.enums.Permission.READ_CONTENT.getId()));
-        permissionsToBeAddedToCreator
-                .add(new Permission(com.yondu.knowledgebase.enums.Permission.CONTENT_APPROVAL.getId()));
 
         return permissionsToBeAddedToCreator.stream()
                 .map(permission -> new DirectoryUserAccess(directory, permission, user))

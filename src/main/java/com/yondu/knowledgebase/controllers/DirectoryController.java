@@ -3,7 +3,6 @@ package com.yondu.knowledgebase.controllers;
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.directory.DirectoryDTO;
 import com.yondu.knowledgebase.DTO.directory.user_access.DirectoryUserAccessDTO;
-import com.yondu.knowledgebase.DTO.page.PageDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.services.DirectoryService;
 import com.yondu.knowledgebase.services.DirectoryUserAccessService;
@@ -13,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/directories")
@@ -84,24 +81,6 @@ public class DirectoryController {
     public ResponseEntity<ApiResponse<?>> deleteDirectory(@PathVariable("id") Long id) {
         directoryService.removeDirectory(id);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(null, "Directory deleted successfully"));
-    }
-
-    @GetMapping("/{id}/pages")
-    public ResponseEntity<ApiResponse<PaginatedResponse<PageDTO>>> getPages(@PathVariable("id") Long directoryId,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "WIKI") String type) {
-        log.info("DirectoryController.getPages()");
-        log.info("directoryId : " + directoryId);
-        log.info("page : " + page);
-        log.info("size : " + size);
-        log.info("type : " + type);
-
-        PaginatedResponse<PageDTO> pages = directoryService.getPages(directoryId, page, size, type);
-        if (pages == null) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(ApiResponse.success(pages, "success"));
     }
 
     /**

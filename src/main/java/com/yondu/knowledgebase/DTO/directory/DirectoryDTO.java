@@ -3,8 +3,6 @@ package com.yondu.knowledgebase.DTO.directory;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.entities.Workflow;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +50,8 @@ public class DirectoryDTO {
             Set<GetResponse> subdirectories,
             Set<DirectoryDTO.WorkflowStep> workflow,
             Set<UserAccess> userAccess,
-            Set<GroupAccess> groupAccess) {
+            Set<GroupAccess> groupAccess,
+            Boolean canUpdateWorkflow) {
     }
 
     public record ShortResponse(Long id,

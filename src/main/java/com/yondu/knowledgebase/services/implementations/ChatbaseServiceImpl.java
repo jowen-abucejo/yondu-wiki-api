@@ -53,36 +53,41 @@ public class ChatbaseServiceImpl implements ChatbaseService {
     public void updateChatbot(PageVersion pageVersion) {
         log.info("ChatbaseServiceImpl.updateChatbot()");
 
-        try {
-            String newContent = formatNewPage(pageVersion);
-            String updatedContent = writeChatbaseSourceText(newContent, CHATBASE_SOURCE_TEXT);
+        if (CHATBOT_ID != null && !CHATBOT_ID.isBlank()) {
+            try {
+                String newContent = formatNewPage(pageVersion);
+                String updatedContent = writeChatbaseSourceText(newContent, CHATBASE_SOURCE_TEXT);
 
-            if (updatedContent.length() > 500) {
-                WebClient.ResponseSpec responseSpec = getResponseSpec(CHATBOT_ID, CHATBOT_NAME, updatedContent);
+                if (updatedContent.length() > 500) {
+                    WebClient.ResponseSpec responseSpec = getResponseSpec(CHATBOT_ID, CHATBOT_NAME, updatedContent);
 
-                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
-                responseBodyMono.subscribe(response -> {
-                    log.info("API RESPONSE: " + response);
-                });
+                    Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+                    responseBodyMono.subscribe(response -> {
+                        log.info("API RESPONSE: " + response);
+                    });
+                }
+            } catch (Exception ex) {
+                log.info("ex : " + ex.getMessage());
             }
-        } catch (Exception ex) {
-            log.info("ex : " + ex.getMessage());
         }
 
-        try {
-            String newContent = formatNewPageAsJsonString(pageVersion);
-            String updatedContent = writeChatbaseSourceText(newContent, VUE_CHATBOT_SOURCE_TEXT);
+        if (VUE_CHATBOT_ID != null && !VUE_CHATBOT_ID.isBlank()) {
+            try {
+                String newContent = formatNewPageAsJsonString(pageVersion);
+                String updatedContent = writeChatbaseSourceText(newContent, VUE_CHATBOT_SOURCE_TEXT);
 
-            if (updatedContent.length() > 500) {
-                WebClient.ResponseSpec responseSpec = getResponseSpec(VUE_CHATBOT_ID, VUE_CHATBOT_NAME, updatedContent);
+                if (updatedContent.length() > 500) {
+                    WebClient.ResponseSpec responseSpec = getResponseSpec(VUE_CHATBOT_ID, VUE_CHATBOT_NAME,
+                            updatedContent);
 
-                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
-                responseBodyMono.subscribe(response -> {
-                    log.info("API RESPONSE: " + response);
-                });
+                    Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+                    responseBodyMono.subscribe(response -> {
+                        log.info("API RESPONSE: " + response);
+                    });
+                }
+            } catch (Exception ex) {
+                log.info("ex : " + ex.getMessage());
             }
-        } catch (Exception ex) {
-            log.info("ex : " + ex.getMessage());
         }
     }
 
@@ -90,34 +95,38 @@ public class ChatbaseServiceImpl implements ChatbaseService {
     public void updateChatbot(Post post) {
         log.info("ChatbaseServiceImpl.updateChatbot()");
 
-        try {
-            String newContent = formatNewPage(post);
-            String updatedContent = writeChatbaseSourceText(newContent, CHATBASE_SOURCE_TEXT);
+        if (CHATBOT_ID != null && !CHATBOT_ID.isBlank()) {
+            try {
+                String newContent = formatNewPage(post);
+                String updatedContent = writeChatbaseSourceText(newContent, CHATBASE_SOURCE_TEXT);
 
-            WebClient.ResponseSpec responseSpec = getResponseSpec(CHATBOT_ID, CHATBOT_NAME, updatedContent);
+                WebClient.ResponseSpec responseSpec = getResponseSpec(CHATBOT_ID, CHATBOT_NAME, updatedContent);
 
-            Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
-            responseBodyMono.subscribe(response -> {
-                log.info("API RESPONSE: " + response);
-            });
+                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+                responseBodyMono.subscribe(response -> {
+                    log.info("API RESPONSE: " + response);
+                });
 
-        } catch (Exception ex) {
-            log.info("ex : " + ex.getMessage());
+            } catch (Exception ex) {
+                log.info("ex : " + ex.getMessage());
+            }
         }
 
-        try {
-            String newContent = formatNewPageAsJsonString(post);
-            String updatedContent = writeChatbaseSourceText(newContent, VUE_CHATBOT_SOURCE_TEXT);
+        if (VUE_CHATBOT_ID != null && !VUE_CHATBOT_ID.isBlank()) {
+            try {
+                String newContent = formatNewPageAsJsonString(post);
+                String updatedContent = writeChatbaseSourceText(newContent, VUE_CHATBOT_SOURCE_TEXT);
 
-            WebClient.ResponseSpec responseSpec = getResponseSpec(VUE_CHATBOT_ID, VUE_CHATBOT_NAME, updatedContent);
+                WebClient.ResponseSpec responseSpec = getResponseSpec(VUE_CHATBOT_ID, VUE_CHATBOT_NAME, updatedContent);
 
-            Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
-            responseBodyMono.subscribe(response -> {
-                log.info("API RESPONSE: " + response);
-            });
+                Mono<String> responseBodyMono = responseSpec.bodyToMono(String.class);
+                responseBodyMono.subscribe(response -> {
+                    log.info("API RESPONSE: " + response);
+                });
 
-        } catch (Exception ex) {
-            log.info("ex : " + ex.getMessage());
+            } catch (Exception ex) {
+                log.info("ex : " + ex.getMessage());
+            }
         }
     }
 

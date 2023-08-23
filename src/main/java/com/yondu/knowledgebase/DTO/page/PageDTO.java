@@ -19,7 +19,6 @@ public class PageDTO {
 
     @JsonInclude(Include.ALWAYS)
     @JsonProperty(value = "created_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateCreated;
 
     @JsonInclude(Include.ALWAYS)
@@ -38,12 +37,10 @@ public class PageDTO {
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "locked_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockStart;
 
     @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "unlocked_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lockEnd;
 
     @JsonInclude(Include.NON_NULL)
@@ -58,8 +55,16 @@ public class PageDTO {
     private Long totalComments;
 
     @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_parent_comments")
+    private Long totalParentComments;
+
+    @JsonInclude(Include.NON_NULL)
     @JsonProperty(value = "total_ratings")
     private Long totalRatings;
+
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "total_down_ratings")
+    private Long totalDownRatings;
 
     @JsonInclude(Include.NON_EMPTY)
     @JsonProperty(value = "categories")
@@ -68,6 +73,10 @@ public class PageDTO {
     @JsonInclude(Include.NON_EMPTY)
     @JsonProperty(value = "tags")
     private String[] tags;
+
+    @JsonInclude(Include.NON_EMPTY)
+    @JsonProperty(value = "user_page_permissions")
+    private long[] pagePermissions;
 
     @JsonInclude(Include.NON_EMPTY)
     private List<PageVersionDTO> versions = new ArrayList<>();
@@ -82,6 +91,15 @@ public class PageDTO {
     private String directoryName;
     private Long directoryWorkflowId;
     private Long directoryWorkflowStepCount;
+
+    private Boolean saved;
+
+    @JsonInclude(Include.NON_NULL)
+    @JsonProperty(value = "saved_at")
+    private LocalDateTime dateSaved;
+
+    @JsonProperty(value = "vote")
+    private String myRating;
 
     private PageDTO(PageDTOBuilder builder) {
         this.id = builder.id;
@@ -105,6 +123,12 @@ public class PageDTO {
         this.directoryName = builder.directoryName;
         this.directoryWorkflowId = builder.directoryWorkflowId;
         this.directoryWorkflowStepCount = builder.directoryWorkflowStepCount;
+        this.saved = builder.saved;
+        this.myRating = builder.myRating;
+        this.pagePermissions = builder.pagePermissions;
+        this.dateSaved = builder.dateSaved;
+        this.totalDownRatings = builder.totalDownRatings;
+        this.totalParentComments = builder.totalParentComments;
     }
 
     /**
@@ -203,10 +227,24 @@ public class PageDTO {
     }
 
     /**
+     * @return the totalParentComments
+     */
+    public Long getTotalParentComments() {
+        return totalParentComments;
+    }
+
+    /**
      * @return the totalRatings
      */
     public Long getTotalRatings() {
         return totalRatings;
+    }
+
+    /**
+     * @return the totalDownRatings
+     */
+    public Long getTotalDownRatings() {
+        return totalDownRatings;
     }
 
     /**
@@ -221,6 +259,13 @@ public class PageDTO {
      */
     public String[] getTags() {
         return tags;
+    }
+
+    /**
+     * @return the pagePermissions
+     */
+    public long[] getPagePermissions() {
+        return pagePermissions;
     }
 
     public static class PageDTOBuilder {
@@ -243,6 +288,12 @@ public class PageDTO {
         private Long directoryWorkflowId;
         private Long directoryWorkflowStepCount;
         private String directoryName;
+        private Boolean saved;
+        private String myRating;
+        private long[] pagePermissions;
+        private LocalDateTime dateSaved;
+        private Long totalDownRatings;
+        private Long totalParentComments;
 
         private List<PageVersionDTO> versions = new ArrayList<>();
         PageVersionDTO body;
@@ -312,8 +363,18 @@ public class PageDTO {
             return this;
         }
 
+        public PageDTOBuilder totalParentComments(Long totalParentComments) {
+            this.totalParentComments = totalParentComments;
+            return this;
+        }
+
         public PageDTOBuilder totalRatings(Long totalRatings) {
             this.totalRatings = totalRatings;
+            return this;
+        }
+
+        public PageDTOBuilder totalDownRatings(Long totalDownRatings) {
+            this.totalDownRatings = totalDownRatings;
             return this;
         }
 
@@ -349,6 +410,26 @@ public class PageDTO {
 
         public PageDTOBuilder directoryWorkflowStepCount(Long directoryWorkflowStepCount) {
             this.directoryWorkflowStepCount = directoryWorkflowStepCount;
+            return this;
+        }
+
+        public PageDTOBuilder saved(Boolean saved) {
+            this.saved = saved;
+            return this;
+        }
+
+        public PageDTOBuilder myRating(String myRating) {
+            this.myRating = myRating;
+            return this;
+        }
+
+        public PageDTOBuilder pagePermissions(long[] pagePermissions) {
+            this.pagePermissions = pagePermissions;
+            return this;
+        }
+
+        public PageDTOBuilder dateSaved(LocalDateTime dateSaved) {
+            this.dateSaved = dateSaved;
             return this;
         }
 
@@ -391,4 +472,26 @@ public class PageDTO {
     public Long getDirectoryWorkflowStepCount() {
         return directoryWorkflowStepCount;
     }
+
+    /**
+     * @return the saved
+     */
+    public Boolean getSaved() {
+        return saved;
+    }
+
+    /**
+     * @return the myRating
+     */
+    public String getMyRating() {
+        return myRating;
+    }
+
+    /**
+     * @return the dateSaved
+     */
+    public LocalDateTime getDateSaved() {
+        return dateSaved;
+    }
+
 }

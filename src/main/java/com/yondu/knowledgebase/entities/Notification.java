@@ -2,8 +2,6 @@ package com.yondu.knowledgebase.entities;
 
 import com.yondu.knowledgebase.enums.NotificationType;
 import jakarta.persistence.*;
-import org.hibernate.annotations.ColumnDefault;
-
 import java.time.LocalDateTime;
 
 @Entity(name="notifications")

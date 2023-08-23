@@ -1,8 +1,17 @@
 package com.yondu.knowledgebase.services;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
@@ -10,18 +19,6 @@ import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
 import com.yondu.knowledgebase.repositories.PermissionRepository;
 import com.yondu.knowledgebase.repositories.RoleRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class RoleService {
@@ -31,9 +28,6 @@ public class RoleService {
     private final PermissionRepository permissionRepository;
 
     private final UserRepository userRepository;
-
-    private final Logger log = LoggerFactory.getLogger(UserService.class);
-
 
     public RoleService(RoleRepository roleRepository, PermissionRepository permissionRepository, UserRepository userRepository) {
         this.roleRepository = roleRepository;
@@ -47,7 +41,6 @@ public class RoleService {
 
         Pageable pageable = PageRequest.of(adjustedPage, size);
         Page<Role> roles;
-        log.info(searchKey + "QWEQWE" + searchKey.isBlank() + "ASDASD" + searchKey.isEmpty());
         if (!searchKey.isBlank()) {
             roles = roleRepository.findByRoleNameStartingWithIgnoreCase(searchKey, pageable);
         } else {

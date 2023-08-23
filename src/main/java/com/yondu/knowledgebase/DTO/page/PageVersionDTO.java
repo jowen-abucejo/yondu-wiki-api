@@ -23,7 +23,6 @@ public class PageVersionDTO {
 
     @JsonInclude(Include.ALWAYS)
     @JsonProperty(value = "last_edited_at")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateModified;
 
     @JsonInclude(Include.NON_EMPTY)

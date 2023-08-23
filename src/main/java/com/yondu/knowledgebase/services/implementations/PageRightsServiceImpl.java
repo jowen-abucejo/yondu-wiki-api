@@ -1,8 +1,6 @@
 package com.yondu.knowledgebase.services.implementations;
 
 import com.yondu.knowledgebase.DTO.group.GroupDTO;
-import com.yondu.knowledgebase.DTO.page_rights.PageDTO;
-import com.yondu.knowledgebase.DTO.page_rights.PageDTOMapper;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTO;
 import com.yondu.knowledgebase.DTO.page_rights.user_access.PageRightsDTOMapper;
 import com.yondu.knowledgebase.DTO.permission.PermissionDTO;

@@ -4,9 +4,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,6 +46,7 @@ public class AttachmentController {
             if (imageResource.exists()) {
                 String contentType = Files.probeContentType(imagePath);
                 return ResponseEntity.ok()
+                        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
                         .contentType(MediaType.parseMediaType(contentType))
                         .body(imageResource);
             } else {

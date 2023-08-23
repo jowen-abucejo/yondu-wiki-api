@@ -2,7 +2,6 @@ package com.yondu.knowledgebase.controllers;
 
 import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.comment.*;
-import com.yondu.knowledgebase.DTO.comment.CommentDTO.BaseRatedResponse;
 import com.yondu.knowledgebase.enums.ContentType;
 import com.yondu.knowledgebase.services.CommentService;
 import jakarta.validation.Valid;

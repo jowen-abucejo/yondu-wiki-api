@@ -70,7 +70,7 @@
 <body class="body">
     <div class="card">
         <h1>Hi <span th:text="${toName}"></span>!</h1>
-        <b><a th:href="${userProfileLink}" th:text="${fromUser}"></a> has interacted with your <span th:text="${contentType}"></span></b>
+        <b>New updates for <span th:text="${contentType}"></span> pending approval</a></b>
         <p class="message" th:text="${message}"></p>
         <a style="text-decoration: none;" th:href="${contentLink}">
             <p class="button">View on Knowledge Base</p>

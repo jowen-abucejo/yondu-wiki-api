@@ -2,7 +2,8 @@ package com.yondu.knowledgebase.enums;
 
 public enum PageType {
     WIKI("WIKI"),
-    ANNOUNCEMENT("ANNOUNCEMENT");
+    ANNOUNCEMENT("ANNOUNCEMENT"),
+    DISCUSSION("DISCUSSION");
 
     String code;
 

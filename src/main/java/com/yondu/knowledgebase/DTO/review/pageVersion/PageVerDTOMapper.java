@@ -1,10 +1,7 @@
 package com.yondu.knowledgebase.DTO.review.pageVersion;
 
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
-import com.yondu.knowledgebase.entities.Page;
 import com.yondu.knowledgebase.entities.PageVersion;
-
-import java.time.LocalDateTime;
 
 public class PageVerDTOMapper {
 

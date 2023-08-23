@@ -1,14 +1,7 @@
 package com.yondu.knowledgebase.DTO.tag;
 
-import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.post.PostDTO;
-import com.yondu.knowledgebase.entities.Page;
-import com.yondu.knowledgebase.entities.Post;
 import com.yondu.knowledgebase.entities.Tag;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class TagMapper {

@@ -1,12 +1,5 @@
 package com.yondu.knowledgebase.DTO.tag;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.yondu.knowledgebase.DTO.page.PageDTO;
-import com.yondu.knowledgebase.DTO.post.PostDTO;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class TagDTO {
 
     private Long id;

@@ -1,7 +1,6 @@
 package com.yondu.knowledgebase.services;
 
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
-import com.yondu.knowledgebase.DTO.group.GroupDTO;
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
@@ -45,8 +44,6 @@ public class UserService implements UserDetailsService {
     private EmailServiceImpl emailService;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
-    @Autowired
-    private GroupService groupService;
 
     @Autowired
     private GroupRepository groupRepository;

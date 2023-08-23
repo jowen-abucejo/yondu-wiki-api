@@ -12,6 +12,11 @@ import com.yondu.knowledgebase.repositories.CommentRepository;
 import com.yondu.knowledgebase.repositories.PageRepository;
 import com.yondu.knowledgebase.repositories.PostRepository;
 import com.yondu.knowledgebase.services.NotificationService;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,19 +24,19 @@ import com.yondu.knowledgebase.DTO.ApiResponse;
 import com.yondu.knowledgebase.DTO.rating.RatingDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalUpvoteDTO;
 import com.yondu.knowledgebase.DTO.rating.TotalVoteDTO;
-import com.yondu.knowledgebase.entities.Rating;
-import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.exceptions.DuplicateResourceException;
 import com.yondu.knowledgebase.exceptions.NoContentException;
-import com.yondu.knowledgebase.repositories.NotificationRepository;
 import com.yondu.knowledgebase.repositories.RatingRepository;
 import com.yondu.knowledgebase.services.RatingService;
 
 
 @Service
 public class RatingServiceImpl implements RatingService {
+
+	@Value("${fe.frontend-link}")
+    private String FRONTEND_LINK;
+
 	private final RatingRepository ratingRepository;
-	private final NotificationRepository notificationRepository;
 	private final CommentRepository commentRepository;
 	private final PageRepository pageRepository;
 	private final PostRepository postRepository;
@@ -39,9 +44,8 @@ public class RatingServiceImpl implements RatingService {
 	private final NotificationService notificationService;
 
 
-	public RatingServiceImpl(RatingRepository ratingRepository, NotificationRepository notificationRepository, CommentRepository commentRepository, PageRepository pageRepository, PostRepository postRepository, PageServiceImpl pageService, NotificationService notificationService) {
+	public RatingServiceImpl(RatingRepository ratingRepository, CommentRepository commentRepository, PageRepository pageRepository, PostRepository postRepository, PageServiceImpl pageService, NotificationService notificationService) {
 		this.ratingRepository = ratingRepository;
-		this.notificationRepository = notificationRepository;
 		this.pageService = pageService;
 		this.pageRepository = pageRepository;
 		this.commentRepository = commentRepository;
@@ -131,6 +135,7 @@ public class RatingServiceImpl implements RatingService {
 		Long authorId = null;
 		String fromUser = rating.getUser().getFirstName() + " " + rating.getUser().getLastName();
 		String entityMsg = null;
+		Long parentComment = null;
 
 		if(rating.getEntity_type().toUpperCase().equals(ContentType.PAGE.getCode())){
 			PageDTO page = pageService.findById(rating.getEntity_id());
@@ -144,7 +149,7 @@ public class RatingServiceImpl implements RatingService {
 		} else if (rating.getEntity_type().toUpperCase().equals(ContentType.REPLY.getCode())) {
 			Comment comment = commentRepository.findById(rating.getEntity_id()).orElseThrow(()->new ResourceNotFoundException(String.format("Comment ID not found: %d", rating.getEntity_id())));
 			authorId = comment.getUser().getId();
-
+			parentComment = comment.getParentCommentId()==null?comment.getEntityId():comment.getParentCommentId();
 			Object entity = getEntity(comment.getEntityType(), comment.getEntityId(), Object.class);
 			entityMsg = getEntityTitle(entity);
 		}
@@ -158,7 +163,8 @@ public class RatingServiceImpl implements RatingService {
 				(rating.getEntity_type().toLowerCase().equals("comment")) ? "answer in post" : rating.getEntity_type().toLowerCase(),
 				entityMsg);
 
-		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()));
+		notificationService.createNotification(new NotificationDTO.BaseRequest(authorId,rating.getUser().getId(), message, NotificationType.RATE.getCode(), rating.getEntity_type().toUpperCase(), rating.getEntity_id()), 
+		getLinksForEmailNotificationTemplate(rating.getEntity_type() , parentComment==null?rating.getEntity_id():parentComment));
 	}
 
 	@Override
@@ -191,4 +197,21 @@ public class RatingServiceImpl implements RatingService {
 			throw new RequestValidationException("Invalid Entity Type");
 		}
 	}
+
+	private Map<String, String> getLinksForEmailNotificationTemplate(String contentType, Long entityId) {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map<String, String> data = new HashMap<>();
+        data.put("fromUserLink", String.format("%s/profile?author=%s", FRONTEND_LINK, user.getEmail()));
+
+		if (contentType.toUpperCase().equals(ContentType.REPLY.getCode()) || contentType.toUpperCase().equals(ContentType.POST.getCode())) {
+           data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, PageType.DISCUSSION.getCode().toLowerCase(), entityId));
+		   data.put("contentType", PageType.DISCUSSION.getCode().toLowerCase());
+		} else if (contentType.toUpperCase().equals(ContentType.PAGE.getCode())) {
+           com.yondu.knowledgebase.entities.Page page = pageRepository.findById(entityId).orElse(null);
+           data.put("contentLink", String.format("%s/posts/%ss/%d", FRONTEND_LINK, page.getType().toLowerCase(), entityId));
+		   data.put("contentType", page.getType().toLowerCase());
+        }
+
+        return data;
+    }
 }

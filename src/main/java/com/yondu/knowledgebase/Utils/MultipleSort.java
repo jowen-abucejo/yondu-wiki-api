@@ -12,6 +12,15 @@ import org.springframework.data.domain.Sort.Order;
 import org.springframework.data.jpa.domain.JpaSort;
 
 public class MultipleSort {
+    public static final String DATE_CREATED = "dateCreated";
+    public static final String DATE_MODIFIED = "dateModified";
+    public static final String RELEVANCE = "relevance";
+    public static final String TOTAL_COMMENTS = "totalComments";
+    public static final String TOTAL_RATINGS = "totalRatings";
+    public static final String PAGE_TITLE = "versionTitle";
+    public static final Set<String> VALID_SORT_ALIASES = Set.of(DATE_CREATED, DATE_MODIFIED, RELEVANCE,
+            TOTAL_COMMENTS, TOTAL_RATINGS, PAGE_TITLE);
+
     public static List<Order> sortWithOrders(String[] sort, String[] defaultSorting) {
         List<Order> orders = new ArrayList<Order>();
 
@@ -24,6 +33,9 @@ public class MultipleSort {
 
     public static List<Order> sortWithOrders(String[] sort, String[] defaultSorting,
             Set<String> validAliases) {
+        if (validAliases.isEmpty())
+            validAliases = VALID_SORT_ALIASES;
+
         List<Order> orders = new ArrayList<Order>();
 
         populateSortOrders(orders, sort, validAliases);
@@ -34,6 +46,9 @@ public class MultipleSort {
     }
 
     private static void populateSortOrders(List<Order> orders, String[] sort, Set<String> validAliases) {
+        if (validAliases.isEmpty())
+            validAliases = VALID_SORT_ALIASES;
+
         if (sort.length == 0)
             return;
         if (sort[0].contains(",")) {

@@ -26,10 +26,18 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             Long id, String pageType, boolean isDeleted);
 
     @Query(nativeQuery = true, value = """
-            SELECT
-                p.date_created AS dateCreated,
-                v.date_modified AS dateModified,
-                CASE
+            SELECT COUNT(*) FROM page_version pv LEFT JOIN
+            (SELECT page_version_id,COUNT(*) AS reviewCount FROM review GROUP BY page_version_id) a ON pv.id=a.page_version_id
+            WHERE a.reviewCount > 0 AND pv.original_content REGEXP CONCAT('<img[^>]*src=\"', :imageUrl, '[^\"]*')
+            """)
+    Long countByContentWithImageSrc(String imageUrl);
+
+    @Query(nativeQuery = true, value = """
+            (
+                (SELECT
+                    p.date_created AS dateCreated,
+                    v.date_modified AS dateModified,
+                    CASE
                     WHEN
                         NOT :isExactMatch OR NOT :searchKey=''
                     THEN
@@ -38,517 +46,463 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
                             (MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.2) +
                             (MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.8)),3)
                     ELSE 1.0
-                END AS relevance,
-                COALESCE(c.totalComments, 0) AS totalComments,
-                COALESCE(r.totalRatings, 0) AS totalRatings,
-                COALESCE(rv.totalApprovedReviews, 0) AS totalApprovedReviews,
-                COALESCE(rv2.totalDisapprovedReviews, 0) AS totalDisapprovedReviews,
-                COALESCE(rv3.totalPendingReviews, 0) AS totalPendingReviews,
-                v.id AS versionId,
-                v.title AS versionTitle,
-                v.original_content AS versionContent,
-                a.first_name AS authorFirstName,
-                a.last_name AS authorLastName,
-                a.email AS authorEmail,
-                a.profile_photo AS authorProfilePhoto,
-                a.position AS authorPosition,
-                mb.first_name AS modifiedByFirstName,
-                mb.last_name AS modifiedByLastName,
-                mb.email AS modifiedByEmail,
-                mb.profile_photo AS modifiedByProfilePhoto,
-                mb.position AS modifiedByPosition,
-                lb.first_name AS lockedByFirstName,
-                lb.last_name AS lockedByLastName,
-                lb.email AS lockedByEmail,
-                lb.profile_photo AS lockedByProfilePhoto,
-                lb.position AS lockedByPosition,
-                p.id AS pageId,
-                p.is_active AS isActive,
-                p.allow_comment AS allowComment,
-                p.lock_start AS lockStart,
-                p.lock_end AS lockEnd,
-                p.page_type AS pageType,
-                dr.id as directoryId,
-                dr.name as directoryName,
-                w3.workflow_id as workflowId,
-                w3.totalRequiredApproval as workflowStepCount,
-                allTags.pTags AS pageTags,
-                allCats.pCats AS pageCategories
-             FROM
-                page_version v JOIN
-                page p ON v.page_id = p.id LEFT JOIN
-                users mb ON v.modified_by = mb.id LEFT JOIN
-                users a ON p.author = a.id LEFT JOIN
-                users lb ON p.locked_by = lb.id LEFT JOIN
-                directory dr ON dr.id = p.directory_id LEFT JOIN
-                workflow w ON w.directory_id=dr.id LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
-                (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
-                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
-                (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
-                (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id
-            WHERE
-                p.page_type = :pageTypeFilter
-                AND CASE
-                    WHEN :parentDirectory IS NOT NULL
-                    THEN
-                        p.directory_id = :parentDirectory
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
-                    THEN
-                        FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :fromDate IS NOT NULL AND :fromDate <> ''
-                    THEN
-                        DATE(p.date_created) >= :fromDate
-                    ELSE TRUE
-                    END
-                AND p.is_deleted = 0
-                AND (
-                        CASE WHEN :isPublished OR :allVersions
-                            THEN (
+                    END AS relevance,
+                    COALESCE(c.totalComments, 0) AS totalComments,
+                    COALESCE(r.totalRatings, 0) AS totalRatings,
+                    COALESCE(rv.totalApprovedReviews, 0) AS totalApprovedReviews,
+                    COALESCE(rv2.totalDisapprovedReviews, 0) AS totalDisapprovedReviews,
+                    COALESCE(rv3.totalPendingReviews, 0) AS totalPendingReviews,
+                    v.id AS versionId,
+                    v.title AS versionTitle,
+                    v.original_content AS versionContent,
+                    a.first_name AS authorFirstName,
+                    a.last_name AS authorLastName,
+                    a.email AS authorEmail,
+                    a.profile_photo AS authorProfilePhoto,
+                    a.position AS authorPosition,
+                    mb.first_name AS modifiedByFirstName,
+                    mb.last_name AS modifiedByLastName,
+                    mb.email AS modifiedByEmail,
+                    mb.profile_photo AS modifiedByProfilePhoto,
+                    mb.position AS modifiedByPosition,
+                    lb.first_name AS lockedByFirstName,
+                    lb.last_name AS lockedByLastName,
+                    lb.email AS lockedByEmail,
+                    lb.profile_photo AS lockedByProfilePhoto,
+                    lb.position AS lockedByPosition,
+                    p.id AS pageId,
+                    p.is_active AS isActive,
+                    p.allow_comment AS allowComment,
+                    p.lock_start AS lockStart,
+                    p.lock_end AS lockEnd,
+                    p.page_type AS pageType,
+                    dr.id as directoryId,
+                    dr.name as directoryName,
+                    w3.workflow_id as workflowId,
+                    w3.totalRequiredApproval as workflowStepCount,
+                    allTags.pTags AS pageTags,
+                    allCats.pCats AS pageCategories,
+                    COALESCE(sp.entity_id, 0) AS isSaved,
+                    rrp.rating AS myRating,
+                    upp.userPermissions AS userPagePermissions,
+                    sp.date_created AS dateSaved,
+                    COALESCE(rd.totalDownRatings, 0) AS totalDownRatings,
+                    COALESCE(cpt.totalParentComments, 0) AS totalParentComments
+                FROM
+                    (
+                        SELECT *
+                        FROM page p
+                        WHERE
+                        FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                        AND p.is_deleted = 0
+                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                        AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                    ) p LEFT JOIN
+                    page_version v ON v.page_id = p.id LEFT JOIN
+                    users mb ON v.modified_by = mb.id LEFT JOIN
+                    users a ON p.author = a.id LEFT JOIN
+                    users lb ON p.locked_by = lb.id LEFT JOIN
+                    directory dr ON dr.id = p.directory_id LEFT JOIN
+                    workflow w ON w.directory_id=dr.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalComments
+                        FROM comment c10 LEFT JOIN
+                        (SELECT id AS parentComment FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                        ON c10.parent_comment_id = c11.parentComment
+                        WHERE c10.entity_type = 'PAGE'
+                            AND c10.is_deleted = 0
+                            AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                        GROUP BY c10.entity_id
+                    ) c ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'PAGE' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
+                    (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
+                    (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
+                    (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
+                    (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
+                    (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
+                    (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id LEFT JOIN
+                    (SELECT entity_id,author,date_created FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=v.page_id LEFT JOIN
+                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=v.page_id LEFT JOIN
+                    (SELECT
+                        p20.id AS pageId,
+                        GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
+                        GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
+                    FROM
+                        (
+                            SELECT p.id, p.directory_id
+                            FROM page p
+                            WHERE
+                            FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                            AND p.is_deleted = 0
+                            AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                            AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                            AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                            AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        ) p20 CROSS JOIN
+                        (SELECT id FROM users WHERE id=:userId) u20 LEFT JOIN
+                        (SELECT * FROM user_page_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) upa20 ON p20.id = upa20.page_id LEFT JOIN
+                        (SELECT * FROM directory_user_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
+                        (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON u20.id = gu20.user_id LEFT JOIN
+                        (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                        group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                        group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
+                        directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
+                        permission pr20 ON (
+                            (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                            OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                            OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                            OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                        )
+                    GROUP BY p20.id) upp ON upp.pageId=v.page_id
+                WHERE
+                    CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                    AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
+                    AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
+                    AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
+                        THEN (v.page_id IN (SELECT pcat2.page_id FROM page_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
+                        ELSE TRUE
+                        END
+                    AND CASE
+                        WHEN :tags IS NOT NULL AND :tags <> ''
+                        THEN (v.page_id IN (SELECT ptag.page_id FROM page_tag ptag LEFT JOIN tag tag2 ON ptag.tag_id = tag2.id WHERE FIND_IN_SET(tag2.name, :tags)>0) )
+                        ELSE TRUE
+                        END
+                    AND (
+                        CASE
+                        WHEN :isExactMatch OR :searchKey=''
+                        THEN (a.first_name LIKE CONCAT('%', :searchKey, '%') OR a.last_name LIKE CONCAT('%', :searchKey, '%')  OR v.title LIKE CONCAT('%', :searchKey, '%') OR v.content LIKE CONCAT('%', :searchKey, '%'))
+                        ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
+                        END
+                    )
+                    AND (
+                        CASE
+                        WHEN :isPublished OR :allVersions
+                        THEN (
+                            ((v.page_id , v.id) IN
                                 (
-                                    (:allVersions AND (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                        GROUP BY pv.page_id)
-                                        )
-                                    OR (v.page_id , v.id) IN
-                                    (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                    GROUP BY pv.page_id)
+                                    SELECT ANY_VALUE(pv.page_id), CASE WHEN NOT :allVersions THEN ANY_VALUE(MAX(pv.id)) ELSE ANY_VALUE(pv.id) END
+                                    FROM page_version pv
+                                    WHERE EXISTS(
+                                        SELECT 1
+                                        FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                     )
-                                AND (
-                                    EXISTS(SELECT r10.id FROM users u10
-                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                        permission p10 ON rp10.permission_id = p10.id
-                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
-                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
-                                        permission p10 ON gp10.permission_id = p10.id
-                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
+                                    GROUP BY CASE WHEN NOT :allVersions THEN pv.page_id ELSE pv.id END
+                                )
+                            )
+                            AND (
+                                EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                OR FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
+                            )
+                        )
+                        ELSE :isPublished
+                        END
+                        OR
+                        CASE
+                        WHEN NOT :isPublished OR :allVersions
+                        THEN (
+                            COALESCE(rv.totalApprovedReviews, 0) < COALESCE(w3.totalRequiredApproval, 1)
+                            AND (
+                                (
+                                    :pendingOnly
+                                    AND
+                                    COALESCE(rv3.totalPendingReviews, 0) > 0
                                     AND (
-                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
-                                                user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
-                                                permission p10 ON upa10.permission_id = p10.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                            directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
+                                        EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId)
+                                        OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId AND c10.is_active)
+                                    )
+                                    AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                )
+                                OR (
+                                    :draftOnly
+                                    AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
+                                )
+                            )
+                        )
+                        ELSE NOT :isPublished
+                        END
+                    )
+                )
+                UNION ALL
+                (SELECT
+                    p.date_created AS dateCreated,
+                    p.date_modified AS dateModified,
+                    CASE
+                    WHEN
+                        NOT :isExactMatch OR NOT :searchKey=''
+                    THEN
+                        ROUND((
+                            (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.4) +
+                            (MATCH (p.title , p.modified_content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) * 0.8)),3)
+                    ELSE 1.0
+                    END AS relevance,
+                    COALESCE(c.totalComments, 0) AS totalComments,
+                    COALESCE(r.totalRatings, 0) AS totalRatings,
+                    0 AS totalApprovedReviews,
+                    0 AS totalDisapprovedReviews,
+                    0 AS totalPendingReviews,
+                    p.id AS versionId,
+                    p.title AS versionTitle,
+                    p.content AS versionContent,
+                    a.first_name AS authorFirstName,
+                    a.last_name AS authorLastName,
+                    a.email AS authorEmail,
+                    a.profile_photo AS authorProfilePhoto,
+                    a.position AS authorPosition,
+                    a.first_name AS modifiedByFirstName,
+                    a.last_name AS modifiedByLastName,
+                    a.email AS modifiedByEmail,
+                    a.profile_photo AS modifiedByProfilePhoto,
+                    a.position AS modifiedByPosition,
+                    '' AS lockedByFirstName,
+                    '' AS lockedByLastName,
+                    '' AS lockedByEmail,
+                    '' AS lockedByProfilePhoto,
+                    '' AS lockedByPosition,
+                    p.id AS pageId,
+                    p.is_active AS isActive,
+                    p.allow_comment AS allowComment,
+                    CURRENT_TIMESTAMP AS lockStart,
+                    CURRENT_TIMESTAMP AS lockEnd,
+                    'DISCUSSION' AS pageType,
+                    0 as directoryId,
+                    '' as directoryName,
+                    0 as workflowId,
+                    0 as workflowStepCount,
+                    allTags.pTags AS pageTags,
+                    allCats.pCats AS pageCategories,
+                    COALESCE(sp.entity_id, 0) AS isSaved,
+                    rrp.rating AS myRating,
+                    '' AS userPagePermissions,
+                    sp.date_created AS dateSaved,
+                    COALESCE(rd.totalDownRatings, 0) AS totalDownRatings,
+                    COALESCE(cpt.totalParentComments, 0) AS totalParentComments
+                FROM
+                    (
+                        SELECT *
+                        FROM post p
+                        WHERE
+                        (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
+                        AND p.is_deleted = 0
+                        AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                        AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                        AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                    ) p LEFT JOIN
+                    users a ON p.author = a.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalComments
+                        FROM comment c10 LEFT JOIN
+                        (SELECT id AS parentComment FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL) c11
+                        ON c10.parent_comment_id = c11.parentComment
+                        WHERE c10.entity_type = 'POST'
+                            AND c10.is_deleted = 0
+                            AND (c10.parent_comment_id IS NULL OR c11.parentComment IS NOT NULL)
+                        GROUP BY c10.entity_id
+                    ) c ON c.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalParentComments FROM comment WHERE entity_type = 'POST' AND is_deleted = 0 AND parent_comment_id IS NULL GROUP BY entity_id) cpt ON cpt.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'POST' AND rating = 'UP' AND is_active GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
+                    (SELECT entity_id, COUNT(*) AS totalDownRatings FROM rating WHERE entity_type = 'POST' AND rating = 'DOWN' AND is_active GROUP BY entity_id) rd ON rd.entity_id = p.id LEFT JOIN
+                    (SELECT pt.post_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM post_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.post_id) allTags ON allTags.post_id=p.id LEFT JOIN
+                    (SELECT pcat.post_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM post_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.post_id) allCats ON allCats.post_id=p.id LEFT JOIN
+                    (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=p.id LEFT JOIN
+                    (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=p.id
+                WHERE
+                    CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                    AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
+                    AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
+                    AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
+                        THEN (p.id IN (SELECT pcat2.post_id FROM post_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
+                        ELSE TRUE
+                        END
+                    AND CASE
+                        WHEN :tags IS NOT NULL AND :tags <> ''
+                        THEN (p.id IN (SELECT ptag.post_id FROM post_tag ptag LEFT JOIN tag tag2 ON ptag.tag_id = tag2.id WHERE FIND_IN_SET(tag2.name, :tags)>0) )
+                        ELSE TRUE
+                        END
+                    AND (
+                        CASE
+                        WHEN :isExactMatch OR :searchKey=''
+                        THEN (a.first_name LIKE CONCAT('%', :searchKey, '%') OR a.last_name LIKE CONCAT('%', :searchKey, '%')  OR p.title LIKE CONCAT('%', :searchKey, '%') OR p.modified_content LIKE CONCAT('%', :searchKey, '%'))
+                        ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (p.title , p.modified_content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
+                        END
+                    )
+                )
+            )
+            """, countQuery = """
+            SELECT SUM(searchCount) FROM
+                (
+                    (SELECT
+                        COUNT(*) AS searchCount
+                    FROM
+                        (
+                            SELECT *
+                            FROM page p
+                            WHERE
+                            FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                            AND p.is_deleted = 0
+                            AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                            AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                            AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                            AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        ) p LEFT JOIN
+                        page_version v ON v.page_id = p.id LEFT JOIN
+                        users mb ON v.modified_by = mb.id LEFT JOIN
+                        users a ON p.author = a.id LEFT JOIN
+                        users lb ON p.locked_by = lb.id LEFT JOIN
+                        directory dr ON dr.id = p.directory_id LEFT JOIN
+                        workflow w ON w.directory_id=dr.id LEFT JOIN
+                        (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
+                        (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
+                        (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
+                        (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
+                        (SELECT entity_id,author,date_created FROM save WHERE entity_type='PAGE' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=v.page_id LEFT JOIN
+                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'PAGE' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=v.page_id LEFT JOIN
+                        (SELECT
+                            p20.id AS pageId,
+                            GROUP_CONCAT(DISTINCT pr20.id) AS userPermissions,
+                            GROUP_CONCAT(DISTINCT pr20.name) AS userPermissionNames
+                        FROM
+                            (
+                                SELECT p.id, p.directory_id
+                                FROM page p
+                                WHERE
+                                FIND_IN_SET(p.page_type, :pageTypeFilter)>0
+                                AND p.is_deleted = 0
+                                AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                                AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                                AND CASE WHEN :parentDirectory IS NOT NULL THEN p.directory_id = :parentDirectory ELSE TRUE END
+                                AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                            ) p20 CROSS JOIN
+                            (SELECT id FROM users WHERE id=:userId) u20 LEFT JOIN
+                            (SELECT * FROM user_page_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) upa20 ON p20.id = upa20.page_id LEFT JOIN
+                            (SELECT * FROM directory_user_access WHERE user_id=:userId AND permission_id IN (SELECT DISTINCT rp.permission_id FROM user_role ur LEFT JOIN role_permission rp ON rp.role_id=ur.role_id WHERE ur.user_id=:userId)) dua20 ON p20.directory_id = dua20.directory_id LEFT JOIN
+                            (SELECT * FROM group_users WHERE user_id=:userId) gu20 ON u20.id = gu20.user_id LEFT JOIN
+                            (SELECT id, is_active FROM cluster  WHERE is_active) ct20 ON ct20.id = gu20.group_id LEFT JOIN
+                            group_permissions gp20 ON gp20.group_id = ct20.id LEFT JOIN
+                            group_page_access gpa20 ON (ct20.id = gpa20.group_id AND gpa20.page_id=p20.id AND gp20.permission_id=gpa20.permission_id) LEFT JOIN
+                            directory_group_access dga20 ON (ct20.id = dga20.group_id AND dga20.directory_id=p20.directory_id AND gp20.permission_id=dga20.permission_id) LEFT JOIN
+                            permission pr20 ON (
+                                (pr20.id = upa20.permission_id AND upa20.page_id = p20.id)
+                                OR (pr20.id = dua20.permission_id AND dua20.directory_id = p20.directory_id)
+                                OR (pr20.id = gpa20.permission_id AND gpa20.page_id = p20.id)
+                                OR (pr20.id = dga20.permission_id AND dga20.directory_id = p20.directory_id)
+                            )
+                        GROUP BY p20.id) upp ON upp.pageId=v.page_id
+                    WHERE
+                        CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                        AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
+                        AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
+                        AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
+                            THEN (v.page_id IN (SELECT pcat2.page_id FROM page_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
+                            ELSE TRUE
+                            END
+                        AND CASE
+                            WHEN :tags IS NOT NULL AND :tags <> ''
+                            THEN (v.page_id IN (SELECT ptag.page_id FROM page_tag ptag LEFT JOIN tag tag2 ON ptag.tag_id = tag2.id WHERE FIND_IN_SET(tag2.name, :tags)>0) )
+                            ELSE TRUE
+                            END
+                        AND (
+                            CASE
+                            WHEN :isExactMatch OR :searchKey=''
+                            THEN (a.first_name LIKE CONCAT('%', :searchKey, '%') OR a.last_name LIKE CONCAT('%', :searchKey, '%')  OR v.title LIKE CONCAT('%', :searchKey, '%') OR v.content LIKE CONCAT('%', :searchKey, '%'))
+                            ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
+                            END
+                        )
+                        AND (
+                            CASE
+                            WHEN :isPublished OR :allVersions
+                            THEN (
+                                ((v.page_id , v.id) IN
+                                    (
+                                        SELECT ANY_VALUE(pv.page_id), CASE WHEN NOT :allVersions THEN ANY_VALUE(MAX(pv.id)) ELSE ANY_VALUE(pv.id) END
+                                        FROM page_version pv
+                                        WHERE EXISTS(
+                                            SELECT 1
+                                            FROM(SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id) rCheck
+                                                WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id)
                                         )
+                                        GROUP BY CASE WHEN NOT :allVersions THEN pv.page_id ELSE pv.id END
                                     )
                                 )
+                                AND (
+                                    EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                    OR  FIND_IN_SET('READ_CONTENT', upp.userPermissionNames) > 0
+                                )
+                            )
                             ELSE :isPublished
                             END
-                        OR
-                        CASE WHEN NOT :isPublished OR :allVersions
+                            OR
+                            CASE
+                            WHEN NOT :isPublished OR :allVersions
                             THEN (
-                                (
-                                    (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
-                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                                WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                        GROUP BY pv.page_id)
-                                    AND (
-                                            (NOT :pendingOnly AND NOT :draftOnly)
-                                            OR (
-                                                :pendingOnly
-                                                AND
-                                                (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                                    (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                        WHERE rCheck2.totalPendingReviews > 0)
-                                                GROUP BY pv.page_id)
-                                                )
-                                            OR (
-                                                :draftOnly
-                                                AND
-                                                (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                                    (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                        WHERE rCheck3.totalPendingReviews = 0)
-                                                GROUP BY pv.page_id)
-                                                )
-                                        )
-                                    )
+                                COALESCE(rv.totalApprovedReviews, 0) < COALESCE(w3.totalRequiredApproval, 1)
                                 AND (
-                                    EXISTS(SELECT r10.id FROM users u10
-                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                        permission p10 ON rp10.permission_id = p10.id
-                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                        AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
-                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
-                                        permission p10 ON gp10.permission_id = p10.id
-                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
-                                    AND (
-                                        (NOT :approverOnly AND p.author = :userId)
-                                        OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
-                                            user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
-                                            permission p10 ON upa10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                        OR EXISTS(SELECT p10.id FROM users u10
-                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
-                                        OR (:pendingOnly AND NOT :draftOnly AND EXISTS(SELECT u10.id FROM users u10
-                                            LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
-                                            workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
-                                            workflow w10 ON ws10.workflow_id = w10.id
-                                            WHERE u10.id = :userId AND w10.directory_id = p.directory_id))
+                                    (
+                                        :pendingOnly
+                                        AND
+                                        COALESCE(rv3.totalPendingReviews, 0) > 0
+                                        AND (
+                                            EXISTS(SELECT r10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role r10 ON ur10.role_id = r10.id WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
+                                            OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN user_role ur10 ON u10.id = ur10.user_id LEFT JOIN role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN permission p10 ON rp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId)
+                                            OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN group_users gu10 ON u10.id = gu10.user_id LEFT JOIN cluster c10 ON c10.id = gu10.group_id LEFT JOIN group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN permission p10 ON gp10.permission_id = p10.id WHERE p10.name = 'CONTENT_APPROVAL' AND u10.id = :userId AND c10.is_active)
                                         )
+                                        AND EXISTS(SELECT u10.id FROM users u10 LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN workflow w10 ON ws10.workflow_id = w10.id WHERE u10.id = :userId AND w10.directory_id = p.directory_id)
+                                    )
+                                    OR (
+                                        :draftOnly
+                                        AND FIND_IN_SET('UPDATE_CONTENT', upp.userPermissionNames) > 0
                                     )
                                 )
+                            )
                             ELSE NOT :isPublished
                             END
+                        )
                     )
-                AND p.is_active <> :isArchived
-                AND CASE
-                    WHEN :categories IS NOT NULL AND :categories <> ''
-                    THEN
-                        (v.page_id IN
-                            (SELECT pcat2.page_id FROM page_category pcat2
-                                LEFT JOIN category cat2 ON pcat2.category_id = cat2.id
-                                WHERE FIND_IN_SET(cat2.name, :categories)>0)
-                            )
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :tags IS NOT NULL AND :tags <> ''
-                    THEN
-                        (v.page_id IN (SELECT ptag.page_id FROM
-                            page_tag ptag LEFT JOIN
-                            tag tag2 ON ptag.tag_id = tag2.id
-                            WHERE FIND_IN_SET(tag2.name, :tags)>0)
-                            )
-                    ELSE TRUE
-                    END
-                AND (
-                    CASE
-                    WHEN :isExactMatch OR :searchKey=''
-                    THEN
-                        (a.first_name LIKE CONCAT('%', :searchKey, '%')
-                            OR a.last_name LIKE CONCAT('%', :searchKey, '%')
-                            OR v.title LIKE CONCAT('%', :searchKey, '%')
-                            OR v.content LIKE CONCAT('%', :searchKey, '%'))
-                    ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
-                        OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
-                        OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
-                    END
-                )
-                """, countQuery = """
-            SELECT COUNT(*)
-            FROM
-                page_version v JOIN
-                page p ON v.page_id = p.id LEFT JOIN
-                users mb ON v.modified_by = mb.id LEFT JOIN
-                users a ON p.author = a.id LEFT JOIN
-                users lb ON p.locked_by = lb.id LEFT JOIN
-                directory dr ON dr.id = p.directory_id LEFT JOIN
-                workflow w ON w.directory_id=dr.id LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalComments FROM comment WHERE entity_type = 'PAGE' GROUP BY entity_id) c ON c.entity_id = p.id LEFT JOIN
-                (SELECT entity_id, COUNT(*) AS totalRatings FROM rating WHERE entity_type = 'PAGE' AND rating = 'UP' GROUP BY entity_id) r ON r.entity_id = p.id LEFT JOIN
-                (SELECT r2.page_version_id, ws2.workflow_id, COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' GROUP BY r2.page_version_id, ws2.workflow_id) rv ON rv.page_version_id = v.id AND rv.workflow_id=w.id LEFT JOIN
-                (SELECT r3.page_version_id, ws3.workflow_id, COUNT(*) AS totalDisapprovedReviews FROM review r3 LEFT JOIN workflow_step ws3 ON ws3.id=r3.workflow_step_id WHERE r3.status = 'DISAPPROVED' GROUP BY r3.page_version_id, ws3.workflow_id) rv2 ON rv2.page_version_id = v.id AND rv2.workflow_id=w.id LEFT JOIN
-                (SELECT page_version_id, COUNT(*) AS totalPendingReviews FROM review WHERE status = 'PENDING' GROUP BY page_version_id) rv3 ON rv3.page_version_id = v.id LEFT JOIN
-                (SELECT workflow_id, COUNT(*) AS totalRequiredApproval FROM workflow_step GROUP BY workflow_id) w3 ON w3.workflow_id = w.id LEFT JOIN
-                (SELECT pt.page_id, GROUP_CONCAT(t.name SEPARATOR '|') as pTags FROM page_tag pt LEFT JOIN tag t ON pt.tag_id = t.id GROUP BY pt.page_id) allTags ON allTags.page_id=v.page_id LEFT JOIN
-                (SELECT pcat.page_id, GROUP_CONCAT(ct.name SEPARATOR '|') as pCats FROM page_category pcat LEFT JOIN category ct ON pcat.category_id = ct.id GROUP BY pcat.page_id) allCats ON allCats.page_id=v.page_id
-            WHERE
-                p.page_type = :pageTypeFilter
-                AND CASE
-                    WHEN :parentDirectory IS NOT NULL
-                    THEN
-                        p.directory_id = :parentDirectory
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> ''
-                    THEN
-                        FIND_IN_SET(v.page_id, :pagePrimaryKeys)>0
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :fromDate IS NOT NULL AND :fromDate <> ''
-                    THEN
-                        DATE(p.date_created) >= :fromDate
-                    ELSE TRUE
-                    END
-                AND p.is_deleted = 0
-                AND (
-                        CASE WHEN :isPublished OR :allVersions
-                            THEN (
-                                (
-                                    (:allVersions AND (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                        GROUP BY pv.page_id)
-                                        )
-                                    OR (v.page_id , v.id) IN
-                                    (SELECT pv.page_id, MAX(pv.id) FROM page_version pv WHERE EXISTS
-                                        (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                            WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                    GROUP BY pv.page_id)
-                                    )
-                                AND (
-                                    EXISTS(SELECT r10.id FROM users u10
-                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                        permission p10 ON rp10.permission_id = p10.id
-                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
-                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
-                                        permission p10 ON gp10.permission_id = p10.id
-                                        WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND c10.is_active=1)
-                                    AND (
-                                        EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
-                                                user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
-                                                permission p10 ON upa10.permission_id = p10.id
-                                                WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                        OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                            directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p10.id
-                                            WHERE p10.name = 'READ_CONTENT' AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
-                                        )
-                                    )
-                                )
-                            ELSE :isPublished
+                    UNION ALL
+                    (SELECT
+                        COUNT(*) AS searchCount
+                    FROM
+                        (
+                            SELECT *
+                            FROM post p
+                            WHERE
+                            (FIND_IN_SET('DISCUSSION', :pageTypeFilter)>0 OR FIND_IN_SET('POST', :pageTypeFilter)>0)
+                            AND p.is_deleted = 0
+                            AND CASE WHEN :isArchived IS NOT NULL THEN p.is_active <> :isArchived ELSE TRUE END
+                            AND CASE WHEN :pagePrimaryKeys IS NOT NULL AND :pagePrimaryKeys <> '' THEN FIND_IN_SET(p.id, :pagePrimaryKeys)>0 ELSE TRUE END
+                            AND CASE WHEN :fromDate IS NOT NULL AND :fromDate <> '' THEN DATE(p.date_created) >= :fromDate ELSE TRUE END
+                        ) p LEFT JOIN
+                        users a ON p.author = a.id LEFT JOIN
+                        (SELECT entity_id,author,date_created FROM save WHERE entity_type='POST' AND author=:userId GROUP BY entity_id,author,date_created) sp ON sp.entity_id=p.id LEFT JOIN
+                        (SELECT entity_id,user_id,rating FROM rating WHERE entity_type = 'POST' AND user_id = :userId AND is_active GROUP BY entity_id,user_id,rating) rrp ON rrp.entity_id=p.id
+                    WHERE
+                        CASE WHEN :author IS NOT NULL AND :author <> '' THEN a.email = :author ELSE TRUE END
+                        AND CASE WHEN :savedOnly THEN sp.entity_id = p.id ELSE TRUE END
+                        AND CASE WHEN :upVotedOnly THEN rrp.rating = 'UP' ELSE TRUE END
+                        AND CASE WHEN :categories IS NOT NULL AND :categories <> ''
+                            THEN (p.id IN (SELECT pcat2.post_id FROM post_category pcat2 LEFT JOIN category cat2 ON pcat2.category_id = cat2.id WHERE FIND_IN_SET(cat2.name, :categories)>0))
+                            ELSE TRUE
                             END
-                        OR
-                        CASE WHEN NOT :isPublished OR :allVersions
-                            THEN (
-                                (
-                                    (v.page_id , v.id) IN
-                                        (SELECT pv.page_id, pv.id FROM page_version pv WHERE NOT EXISTS
-                                            (SELECT 1 FROM (SELECT COUNT(*) AS totalApprovedReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'APPROVED' AND r2.page_version_id = pv.id AND ws2.workflow_id = w.id ) rCheck
-                                                WHERE rCheck.totalApprovedReviews = (SELECT MAX(step) FROM workflow_step WHERE workflow_id=w.id))
-                                        GROUP BY pv.page_id)
-                                    AND (
-                                            (NOT :pendingOnly AND NOT :draftOnly)
-                                            OR (
-                                                :pendingOnly
-                                                AND
-                                                (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                                    (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck2
-                                                        WHERE rCheck2.totalPendingReviews > 0)
-                                                GROUP BY pv.page_id)
-                                                )
-                                            OR (
-                                                :draftOnly
-                                                AND
-                                                (v.page_id , v.id) IN
-                                                (SELECT pv.page_id, pv.id FROM page_version pv WHERE EXISTS
-                                                    (SELECT 1 FROM (SELECT COUNT(*) AS totalPendingReviews FROM review r2 LEFT JOIN workflow_step ws2 ON ws2.id=r2.workflow_step_id WHERE r2.status = 'PENDING' AND r2.page_version_id = pv.id) rCheck3
-                                                        WHERE rCheck3.totalPendingReviews = 0)
-                                                GROUP BY pv.page_id)
-                                                )
-                                        )
-                                    )
-                                AND (
-                                    EXISTS(SELECT r10.id FROM users u10
-                                        LEFT JOIN user_role ur10 ON u10.id = ur10.user_id
-                                        LEFT JOIN role r10 ON ur10.role_id = r10.id
-                                        WHERE r10.role_name = 'Administrator' AND u10.id = :userId)
-                                    OR EXISTS(SELECT p10.id FROM users u10 LEFT JOIN
-                                        user_role ur10 ON u10.id = ur10.user_id LEFT JOIN
-                                        role_permission rp10 ON ur10.role_id = rp10.role_id LEFT JOIN
-                                        permission p10 ON rp10.permission_id = p10.id
-                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT')
-                                        AND u10.id = :userId)
-                                    OR EXISTS(SELECT gp10.group_id FROM users u10 LEFT JOIN
-                                        group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                        cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                        group_permissions gp10 ON gu10.group_id = gp10.group_id LEFT JOIN
-                                        permission p10 ON gp10.permission_id = p10.id
-                                        WHERE (p10.name = 'CONTENT_APPROVAL' OR p10.name = 'UPDATE_CONTENT') AND u10.id = :userId AND c10.is_active=1)
-                                    AND (
-                                        (NOT :approverOnly AND p.author = :userId)
-                                        OR EXISTS(SELECT upa10.page_id FROM users u10 LEFT JOIN
-                                            user_page_access upa10 ON u10.id = upa10.user_id LEFT JOIN
-                                            permission p10 ON upa10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND upa10.page_id = p.id)
-                                        OR EXISTS(SELECT gpa10.page_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            group_page_access gpa10 ON gu10.group_id = gpa10.group_id LEFT JOIN
-                                            permission p10 ON gpa10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND gpa10.page_id = p.id AND c10.is_active=1)
-                                        OR EXISTS(SELECT p10.id FROM users u10
-                                            LEFT JOIN directory_user_access dua10 ON u10.id = dua10.user_id LEFT JOIN
-                                            permission p10 ON dua10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dua10.directory_id = p.directory_id)
-                                        OR EXISTS(SELECT dga10.directory_id FROM users u10 LEFT JOIN
-                                            group_users gu10 ON u10.id = gu10.user_id LEFT JOIN
-                                            cluster c10 ON c10.id = gu10.group_id LEFT JOIN
-                                            directory_group_access dga10 ON gu10.group_id = dga10.group_id LEFT JOIN
-                                            permission p10 ON dga10.permission_id = p10.id
-                                            WHERE ((NOT :pendingOnly AND NOT :draftOnly AND p10.name = 'UPDATE_CONTENT') OR (:pendingOnly AND NOT :draftOnly AND p10.name = 'CONTENT_APPROVAL') OR (:draftOnly AND p10.name = 'UPDATE_CONTENT'))
-                                            AND u10.id = :userId AND dga10.directory_id = p.directory_id AND c10.is_active=1)
-                                        OR (:pendingOnly AND NOT :draftOnly AND EXISTS(SELECT u10.id FROM users u10
-                                            LEFT JOIN workflow_step_approver wsa10 ON u10.id = wsa10.approver_id LEFT JOIN
-                                            workflow_step ws10 ON wsa10.workflow_step_id=ws10.id LEFT JOIN
-                                            workflow w10 ON ws10.workflow_id = w10.id
-                                            WHERE u10.id = :userId AND w10.directory_id = p.directory_id))
-                                        )
-                                    )
-                                )
-                            ELSE NOT :isPublished
+                        AND CASE
+                            WHEN :tags IS NOT NULL AND :tags <> ''
+                            THEN (p.id IN (SELECT ptag.post_id FROM post_tag ptag LEFT JOIN tag tag2 ON ptag.tag_id = tag2.id WHERE FIND_IN_SET(tag2.name, :tags)>0) )
+                            ELSE TRUE
                             END
+                        AND (
+                            CASE
+                            WHEN :isExactMatch OR :searchKey=''
+                            THEN (a.first_name LIKE CONCAT('%', :searchKey, '%') OR a.last_name LIKE CONCAT('%', :searchKey, '%')  OR p.title LIKE CONCAT('%', :searchKey, '%') OR p.modified_content LIKE CONCAT('%', :searchKey, '%'))
+                            ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0 OR MATCH (p.title , p.modified_content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
+                            END
+                        )
                     )
-                AND p.is_active <> :isArchived
-                AND CASE
-                    WHEN :categories IS NOT NULL AND :categories <> ''
-                    THEN
-                        (v.page_id IN
-                            (SELECT pcat2.page_id FROM page_category pcat2
-                                LEFT JOIN category cat2 ON pcat2.category_id = cat2.id
-                                WHERE FIND_IN_SET(cat2.name, :categories)>0)
-                            )
-                    ELSE TRUE
-                    END
-                AND CASE
-                    WHEN :tags IS NOT NULL AND :tags <> ''
-                    THEN
-                        (v.page_id IN (SELECT ptag.page_id FROM
-                            page_tag ptag LEFT JOIN
-                            tag tag2 ON ptag.tag_id = tag2.id
-                            WHERE FIND_IN_SET(tag2.name, :tags)>0)
-                            )
-                    ELSE TRUE
-                    END
-                AND (
-                    CASE
-                    WHEN :isExactMatch OR :searchKey=''
-                    THEN
-                        (a.first_name LIKE CONCAT('%', :searchKey, '%')
-                            OR a.last_name LIKE CONCAT('%', :searchKey, '%')
-                            OR v.title LIKE CONCAT('%', :searchKey, '%')
-                            OR v.content LIKE CONCAT('%', :searchKey, '%'))
-                    ELSE (MATCH (a.first_name , a.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
-                        OR MATCH (mb.first_name , mb.last_name) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0
-                        OR MATCH (v.title , v.content) AGAINST (:searchKey IN NATURAL LANGUAGE MODE) > 0)
-                    END
-                )
-            """)
-    /**
-     * Retrieves a paginated list of pages that meet all the specified filters.
-     * 
-     * @param pageType     The type of pages to retrieve. Possible values are 'WIKI'
-     *                     or 'ANNOUNCEMENT'.
-     * @param searchKey    The keyword(s) to look for in page contents, title, and
-     *                     author name.
-     * @param isExactMatch Set to true to use LIKE query, or false for FULL TEXT
-     *                     search.
-     * @param isArchived   Set to true to retrieve archived pages only, or false for
-     *                     active pages only.
-     * @param isPublished  Set to true to retrieve the latest published version of
-     *                     pages, or false for draft/pending/rejected pages only.
-     * @param allVersions  Set to true to retrieve all versions (including previous
-     *                     versions) of a page, regardless of the isPublished value.
-     * @param categories   If not empty, will only retrieve pages having at least
-     *                     one category from the comma-separated list of categories.
-     * @param tags         If not empty, will only retrieve pages having at least
-     *                     one tag from the comma-separated list of tags.
-     * @param userId       The ID of the user to check for permissions to determine
-     *                     if pages should be retrieved or not. (Pages with a
-     *                     matching author are automatically retrieved regardless of
-     *                     permissions.)
-     * @param pageIds      If not empty, will only retrieve pages having IDs from
-     *                     the comma-separated list of IDs.
-     * @param directoryId  If not null, will only retrieve pages that are under the
-     *                     directory that matches this ID.
-     * @param pendingOnly  If isPublished is false or allVersions is true and this
-     *                     is set to true, will retrieve pending pages.
-     * @param draftOnly    If isPublished is false or allVersions is true and this
-     *                     is set to true, will retrieve draft pages.
-     * @param approverOnly If isPublished is false or allVersions is true and this
-     *                     is set to true, will ignore the checking if userId and
-     *                     page author are the same.
-     * @param fromDate     If not null or empty, will only retrieve all pages that
-     *                     were created from the provided date.
-     * @param pageable     The configuration for sorting, ordering, page number, and
-     *                     page size of records to retrieve.
-     * @return A paginated response containing the pages that meet all the specified
-     *         filters.
-     */
-
-    Optional<Page<Map<String, Object>>> findByFullTextSearch(
-            @Param("pageTypeFilter") String pageType,
+                ) searchRecords
+                    """)
+    Optional<Page<Map<String, Object>>> searchAll(
+            @Param("pageTypeFilter") String pageTypeFilter,
             @Param("searchKey") String searchKey,
             @Param("isExactMatch") Boolean isExactMatch,
             @Param("isArchived") Boolean isArchived,
@@ -561,15 +515,9 @@ public interface PageVersionRepository extends JpaRepository<PageVersion, Long> 
             @Param("parentDirectory") Long directoryId,
             @Param("pendingOnly") Boolean pendingOnly,
             @Param("draftOnly") Boolean draftOnly,
-            @Param("approverOnly") Boolean approverOnly,
             @Param("fromDate") LocalDateTime fromDate,
+            @Param("author") String author,
+            @Param("savedOnly") Boolean savedOnly,
+            @Param("upVotedOnly") Boolean upVotedOnly,
             Pageable pageable);
-
-    @Query(nativeQuery = true, value = """
-            SELECT COUNT(*) FROM page_version pv LEFT JOIN
-            (SELECT page_version_id,COUNT(*) AS reviewCount FROM reviews GROUP BY page_version_id) a ON pv.id=a.page_version_id
-            WHERE a.reviewCount > 0 AND pv.original_content REGEXP CONCAT('<img[^>]*src=\"', :imageUrl, '[^\"]*')
-            """)
-    Long countByContentWithImageSrc(String imageUrl);
-
 }

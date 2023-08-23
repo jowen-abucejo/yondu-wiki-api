@@ -123,14 +123,20 @@ class PageServiceUtilities {
         var dateCreated = pageVersion.getOrDefault("dateCreated", "");
         var lockStart = pageVersion.getOrDefault("lockStart", "");
         var lockEnd = pageVersion.getOrDefault("lockEnd", "");
+        var isActive = pageVersion.get("isActive");
+        var allowComment = pageVersion.get("allowComment");
+        var userPagePermissions = (String) pageVersion.getOrDefault("userPagePermissions", "");
+        var dateSaved = pageVersion.getOrDefault("dateSaved", "");
         return PageDTO.builder()
                 .id((Long) pageVersion.getOrDefault("pageId", 0L))
                 .dateCreated(parseAndFormat(dateCreated))
                 .totalComments((Long) pageVersion.getOrDefault("totalComments", 0L))
+                .totalParentComments((Long) pageVersion.getOrDefault("totalParentComments", 0L))
                 .totalRatings((Long) pageVersion.getOrDefault("totalRatings", 0L))
+                .totalDownRatings((Long) pageVersion.getOrDefault("totalDownRatings", 0L))
                 .relevance(BigDecimal.valueOf((Double) pageVersion.getOrDefault("relevance", 0.0)))
-                .active((Boolean) pageVersion.get("isActive"))
-                .allowComment((Boolean) pageVersion.get("allowComment"))
+                .active(isActive instanceof Boolean ? (Boolean) isActive : (Byte) isActive > 0)
+                .allowComment(allowComment instanceof Boolean ? (Boolean) allowComment : (Byte) allowComment > 0)
                 .lockStart(parseAndFormat(lockStart))
                 .lockEnd(parseAndFormat(lockEnd))
                 .lockedBy(UserDTO.builder()
@@ -154,7 +160,13 @@ class PageServiceUtilities {
                 .directoryId((Long) pageVersion.getOrDefault("directoryId", 0L))
                 .directoryWorkflowId((Long) pageVersion.getOrDefault("workflowId", 0L))
                 .directoryWorkflowStepCount((Long) pageVersion.getOrDefault("workflowStepCount", 0L))
-                .directoryName((String) pageVersion.getOrDefault("directoryName", "-----"));
+                .directoryName((String) pageVersion.getOrDefault("directoryName", "-----"))
+                .saved(((Long) pageVersion.getOrDefault("isSaved", 0L)) > 0L)
+                .myRating((String) pageVersion.getOrDefault("myRating", ""))
+                .pagePermissions(
+                        userPagePermissions == null || userPagePermissions.isBlank() ? new long[] {}
+                                : Arrays.stream((userPagePermissions).split(",")).mapToLong(Long::parseLong).toArray())
+                .dateSaved(parseAndFormat(dateSaved));
     }
 
     protected PageVersionDTO convertMapToPageVersionDTO(Map<String, Object> pageVersion) {

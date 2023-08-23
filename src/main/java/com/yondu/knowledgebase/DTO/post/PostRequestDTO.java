@@ -1,19 +1,11 @@
 package com.yondu.knowledgebase.DTO.post;
 
 import com.yondu.knowledgebase.DTO.category.CategoryDTO;
-import com.yondu.knowledgebase.DTO.category.CategoryMapper;
 import com.yondu.knowledgebase.DTO.tag.TagDTO;
-import com.yondu.knowledgebase.DTO.tag.TagMapper;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
-import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
-import com.yondu.knowledgebase.entities.Post;
-import com.yondu.knowledgebase.entities.User;
-import com.yondu.knowledgebase.exceptions.ResourceNotFoundException;
-
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class PostRequestDTO {
 

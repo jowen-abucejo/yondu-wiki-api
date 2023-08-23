@@ -32,7 +32,7 @@ VALUES
 (13, 'DELETE_COMMENT', 'Allows user to delete their own comment', 'Comment'),
 (14, 'VIEW_COMMENTS', 'Allows user to view comments in the page', 'Comment'),
 -- PAGE EDITORS
-(15, 'UPDATE_PAGE_EDITOR', 'Allow user to add/remove page editors in a page', 'Page Editor'),
+-- (15, 'UPDATE_PAGE_EDITOR', 'Allow user to add/remove page editors in a page', 'Page Editor'),
 -- DIRECTORY ACCESS
 (16, 'CREATE_DIRECTORY', 'Allow user to create directory', 'Directory'),
 (17, 'UPDATE_DIRECTORY', 'Allow user to update directory', 'Directory'),
@@ -43,7 +43,7 @@ VALUES
 (20, 'CREATE_ROLES', 'Allow user to create new roles', 'Roles'),
 (21, 'UPDATE_ROLES', 'Allow user to update roles', 'Roles'),
 (22, 'DELETE_ROLES', 'Allow user to delete roles', 'Roles'),
-(23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
+-- (23, 'MANAGE_ROLES', 'Allow user to manage roles', 'Roles'),
 (24, 'READ_ROLES', 'Allow user to view roles', 'Roles');
 
 -- INITIALIZE ROLE PERMISSION
@@ -68,7 +68,7 @@ VALUES
  (1, 12),
  (1, 13),
  (1, 14),
- (1, 15),
+--  (1, 15),
  (1, 16),
  (1, 17),
  (1, 18),
@@ -76,7 +76,7 @@ VALUES
  (1, 20),
  (1, 21),
  (1, 22),
- (1, 23),
+--  (1, 23),
  (1, 24),
  (1, 25),
  (1, 26),
@@ -104,7 +104,7 @@ VALUES
  (3, 12),
  (3, 13),
  (3, 14),
- (3, 15),
+--  (3, 15),
  (3, 16),
  (3, 17),
  (3, 18),
@@ -124,12 +124,6 @@ VALUES
 
 -- INITIALIZE USER ROLE
 INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 1);
-INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(2, 2);
---INSERT IGNORE INTO USER_ROLE(user_id, role_id) VALUES(1, 2);
-
--- INITIALIZE DIRECTORY RIGHTS FOR ROOT
--- INSERT IGNORE INTO RIGHTS(id) VALUES(1), (2), (3), (4);
--- INSERT IGNORE INTO DIRECTORY_RIGHTS(id, directory_id, permission_id) VALUES(1, 1, 16), (2, 1, 19), (3, 1, 25), (4, 1, 5);
 INSERT IGNORE INTO directory_user_access VALUES
 (1,1,5,1),
 (2,1,6,1),
@@ -141,7 +135,17 @@ INSERT IGNORE INTO directory_user_access VALUES
 -- INSERT IGNORE INTO USER_RIGHTS(user_id, rights_id) VALUES(1, 1), (1, 2), (1, 3), (1, 4);
 
 INSERT IGNORE INTO CLUSTER(id, name, description, is_active, date_created) VALUES (1, "Yondu", "Group for all users", true, CURRENT_DATE);
-INSERT IGNORE INTO GROUP_PERMISSIONS VALUES (1, 19);
+INSERT IGNORE INTO GROUP_PERMISSIONS VALUES 
+(1, 5),
+(1, 6),
+(1, 7),
+(1, 8),
+(1, 11),
+(1, 12),
+(1, 13),
+(1, 14),
+(1, 19);
+
 INSERT IGNORE INTO DIRECTORY_GROUP_ACCESS(id, directory_id, group_id, permission_id) VALUES
 (1, 1, 1, 19);
 
@@ -155,16 +159,10 @@ INSERT IGNORE INTO category(id, is_deleted, name) VALUES
 ---- Add FULLTEXT index to the `first_name` and `last_name` columns in the `users` table
 ALTER TABLE users ADD FULLTEXT INDEX idx_users_name (first_name, last_name);
 --
----- Add FULLTEXT index to the `title` column in the `page_version` table
+---- Add FULLTEXT index to the `title` and `content` column in the `page_version` table
 ALTER TABLE page_version ADD FULLTEXT INDEX idx_page_version_title_content (title, content);
---
----- Add FULLTEXT index to the `name` column in the `category` table
---ALTER TABLE category ADD FULLTEXT INDEX idx_category_name (name);
---
----- Add FULLTEXT index to the `name` column in the `tag` table
---ALTER TABLE tag ADD FULLTEXT INDEX idx_tag_name (name);
 
--- Populate Users to test Workflows pass: adm1n1strat0r
+-- Populate Users to assign as Workflow Approvers pass: adm1n1strat0r
 
 INSERT IGNORE INTO USERS (id, email, password, username, first_name, last_name, status, created_at, password_expiration, position)
 VALUES
@@ -189,21 +187,21 @@ VALUES (1, 1);
 -- Populate workflow Step Entity
 INSERT IGNORE INTO workflow_step (id, step, name , workflow_id)
 VALUES
-    (1, 1,'ADMIN', 1),
-    (2, 2,'MODERATOR', 1),
-    (3, 3,"SME", 1);
+    (1, 1,'MODERATOR', 1);
 
 -- Populate workflow Step Approver
 INSERT IGNORE INTO workflow_step_approver (id, workflow_step_id, approver_id)
 VALUES
+    (1, 1, 1),
     (1, 1, 2),
     (2, 1, 3),
-    (3, 2, 4),
-    (4, 2, 5),
-    (5, 3, 6);
+    (3, 1, 4),
+    (4, 1, 5),
+    (5, 1, 6);
 
 UPDATE directory SET workflow_id = 1 WHERE id = 1;
----- Add FULLTEXT index to the `title` column in the `page_version` table
+
+---- Add FULLTEXT index to the `title` and `modified_content` column in the `post` table
 ALTER TABLE post ADD FULLTEXT INDEX idx_post_title_content (title, modified_content);
 
 INSERT IGNORE INTO group_users(group_id, user_id) VALUES
