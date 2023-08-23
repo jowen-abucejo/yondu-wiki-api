@@ -34,19 +34,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Autowired
     private UserService userService;
     private ObjectMapper objectMapper = new ObjectMapper();
-    private record WebSocketUser(long userId, WebSocketSession session){}
+
+    private record WebSocketUser(long userId, WebSocketSession session) {
+    }
+
     private List<WebSocketUser> sessions = new ArrayList<>();
     private Logger log = LoggerFactory.getLogger(WebSocketHandler.class);
 
     public WebSocketHandler() {
-        JavaTimeModule javaTimeModule = new JavaTimeModule();
-        SimpleModule simpleModule = new SimpleModule();
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        simpleModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(formatter));
-
-        objectMapper.registerModule(javaTimeModule);
-        objectMapper.registerModule(simpleModule);
     }
 
     @Override
@@ -85,9 +80,9 @@ public class WebSocketHandler extends TextWebSocketHandler {
         log.info("userId : " + userId);
         log.info("notification : " + notification);
 
-        for(WebSocketUser user : sessions) {
-            if(user.userId() == userId) {
-                if(user.session().isOpen()){
+        for (WebSocketUser user : sessions) {
+            if (user.userId() == userId) {
+                if (user.session().isOpen()) {
                     String data = objectMapper.writeValueAsString(notification);
                     user.session().sendMessage(new TextMessage(data));
                 }
