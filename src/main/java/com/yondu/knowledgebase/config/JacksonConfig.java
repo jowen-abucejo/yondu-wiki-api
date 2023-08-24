@@ -2,6 +2,7 @@ package com.yondu.knowledgebase.config;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 
@@ -30,6 +31,8 @@ public class JacksonConfig {
         builder.serializers(new LocalDateSerializer(
                 DateTimeFormatter.ofPattern(dateFormat)));
         builder.serializers(new LocalDateTimeSerializer(
+                DateTimeFormatter.ofPattern(String.format("%s '%s'", dateTimeFormat, systemDefaultOffset.getId()))));
+        builder.deserializers(new LocalDateTimeDeserializer(
                 DateTimeFormatter.ofPattern(String.format("%s '%s'", dateTimeFormat, systemDefaultOffset.getId()))));
         return builder;
     }
