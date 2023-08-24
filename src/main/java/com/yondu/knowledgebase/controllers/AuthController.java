@@ -6,6 +6,7 @@ import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTOMapper;
 import com.yondu.knowledgebase.config.TokenUtil;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.repositories.UserOtpRepository;
 import com.yondu.knowledgebase.services.AuthService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +26,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UserOtpRepository userOtpRepository;
 
     @Autowired
     private TokenUtil tokenUtil;
@@ -56,7 +61,7 @@ public class AuthController {
 
     /**
      * Let the user create and send a
-     * temporary password for the user's
+     * OTP for the user's
      * email.
      *
      *
@@ -69,8 +74,31 @@ public class AuthController {
         log.info("AuthController.forgotPassword()");
         log.info("request : " + request);
 
-        authService.forgotPassword(request);
+        authService.generateOTP(request);
 
-        return ResponseEntity.ok(ApiResponse.success(null, "An email with the temporary password has been sent to your email."));
+        return ResponseEntity.ok(ApiResponse.success(null, "An email with the OTP has been sent to your email."));
     }
+
+    @PostMapping("/validate-otp")
+    public ResponseEntity<ApiResponse<UserDTO.OtpRequest>> checkOtp(@RequestBody UserDTO.OtpRequest request) {
+        log.info("AuthController.checkEmail()");
+        log.info("request : " + request.toString());
+
+        boolean isValidOtp = authService.checkOtp(request);
+        return ResponseEntity.ok(ApiResponse.success(request, "OTP is Valid."));
+    }
+
+    @PostMapping("/forgot-password/change-password")
+    public ResponseEntity<ApiResponse<UserDTO.BaseResponse>> changePassword(
+            @RequestBody UserDTO.ChangePassRequestV2 request) {
+        log.info("UserController.updatePassword");
+        log.info("request : " + request);
+
+        User user = authService.updatePasswordWithOtp(request);
+        UserDTO.BaseResponse userResponse = UserDTOMapper.mapToBaseResponse(user);
+
+        ApiResponse apiResponse = ApiResponse.success(userResponse, "Successfully changed password");
+        return ResponseEntity.ok(apiResponse);
+    }
+
 }

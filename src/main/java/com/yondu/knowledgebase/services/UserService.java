@@ -8,10 +8,12 @@ import com.yondu.knowledgebase.Utils.Util;
 import com.yondu.knowledgebase.entities.Group;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.entities.User;
+import com.yondu.knowledgebase.entities.UserOtp;
 import com.yondu.knowledgebase.enums.NotificationType;
 import com.yondu.knowledgebase.enums.Status;
 import com.yondu.knowledgebase.exceptions.*;
 import com.yondu.knowledgebase.repositories.GroupRepository;
+import com.yondu.knowledgebase.repositories.UserOtpRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import com.yondu.knowledgebase.services.implementations.EmailServiceImpl;
 import org.slf4j.Logger;
@@ -42,6 +44,9 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     @Autowired
     private EmailServiceImpl emailService;
+
+    @Autowired
+    private UserOtpRepository userOtpRepository;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -320,5 +325,6 @@ public class UserService implements UserDetailsService {
 
         return updatedUser;
     }
+
 
 }
