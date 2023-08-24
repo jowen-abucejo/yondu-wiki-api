@@ -42,7 +42,7 @@ public class RoleService {
         Pageable pageable = PageRequest.of(adjustedPage, size);
         Page<Role> roles;
         if (!searchKey.isBlank()) {
-            roles = roleRepository.findByRoleNameStartingWithIgnoreCase(searchKey, pageable);
+            roles = roleRepository.findByRoleNameKey(searchKey, pageable);
         } else {
             roles = roleRepository.findAll(pageable);
         }

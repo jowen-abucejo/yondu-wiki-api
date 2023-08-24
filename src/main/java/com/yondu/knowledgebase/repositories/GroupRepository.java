@@ -33,7 +33,7 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     @Query("""
             SELECT g FROM cluster g
             JOIN g.permissions p
-            WHERE g.name LIKE ?1
+            WHERE g.name LIKE CONCAT('%', ?1, '%')
             AND p = ?2
             AND g.isActive = '1'
             """)
