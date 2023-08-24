@@ -50,5 +50,8 @@ public class RoleDTO {
         this.permission = permission;
     }
 
+    public record PaginatedResponse(Long id, @JsonProperty("role_name") String roleName,
+            Set<PermissionDTO.BaseResponse> permission, @JsonProperty("is_empty") Boolean isEmpty) {
+    }
 
 }

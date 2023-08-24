@@ -28,7 +28,7 @@ public class RoleController {
     }
 
     @GetMapping("/roles/paginated")
-    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO>>> getAllRolesPaginated(
+    public ResponseEntity<ApiResponse<PaginatedResponse<RoleDTO.PaginatedResponse>>> getAllRolesPaginated(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String searchKey
