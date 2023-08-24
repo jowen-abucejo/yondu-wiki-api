@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.yondu.knowledgebase.DTO.page.PaginatedResponse;
 import com.yondu.knowledgebase.DTO.role.RoleDTO;
+import com.yondu.knowledgebase.DTO.role.RoleDTOMapper;
 import com.yondu.knowledgebase.entities.Permission;
 import com.yondu.knowledgebase.entities.Role;
 import com.yondu.knowledgebase.exceptions.RequestValidationException;
@@ -35,7 +36,7 @@ public class RoleService {
         this.userRepository = userRepository;
     }
 
-    public PaginatedResponse<RoleDTO> getAllRolesPaginated(int page, int size, String searchKey) {
+    public PaginatedResponse<RoleDTO.PaginatedResponse> getAllRolesPaginated(int page, int size, String searchKey) {
         int adjustedPage = page - 1;
         int offset = adjustedPage * size + 1;
 
@@ -47,8 +48,11 @@ public class RoleService {
             roles = roleRepository.findAll(pageable);
         }
 
-        List<RoleDTO> roleDTOs = roles.getContent().stream()
-                .map(RoleDTO::new)
+        List<RoleDTO.PaginatedResponse> roleDTOs = roles.getContent().stream()
+                .map(role -> {
+                    return RoleDTOMapper.mapToPaginatedResponse(role,
+                            roleRepository.checkIfRoleHasUser(role.getId()) == 1 ? true : false);
+                })
                 .collect(Collectors.toList());
 
         return new PaginatedResponse<>(roleDTOs, offset, size, (long) roles.getTotalPages());
