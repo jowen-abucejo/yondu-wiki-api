@@ -36,6 +36,8 @@ public class SecurityConfig implements WebMvcConfigurer {
                         auth -> auth.requestMatchers("/auth/login",
                                 "/auth/check",
                                 "/auth/forgot-password",
+                                "/auth/validate-otp",
+                                "/auth/forgot-password/change-password",
                                 "/websocket",
                                 "/attachments",
                                 "/attachments/**").permitAll().anyRequest().authenticated())

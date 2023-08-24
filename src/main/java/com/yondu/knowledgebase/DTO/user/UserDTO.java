@@ -28,5 +28,7 @@ public class UserDTO {
 
     public record ApproverResponse (Long id, String email, String username,@JsonProperty("profile_photo") String profilePhoto, String position, @JsonProperty("first_name") String firstName, @JsonProperty("last_name") String lastName) {}
 
-    public record ChangePassRequestV2(@JsonProperty("new_password") String newPassword) {}
+    public record ChangePassRequestV2(@JsonProperty("new_password") String newPassword, String otp) {}
+
+    public record OtpRequest(String otp) {}
 }
