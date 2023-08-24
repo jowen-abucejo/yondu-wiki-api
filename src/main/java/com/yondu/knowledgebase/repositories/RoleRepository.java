@@ -19,4 +19,11 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
     @Query("SELECT r FROM Role r WHERE r.roleName LIKE %:searchKey%")
     Page<Role> findByRoleNameKey(String searchKey, Pageable pageable);
 
+    @Query(nativeQuery = true, value = """
+               SELECT CASE WHEN EXISTS (
+                    select 1 from user_role where role_id = :roleId
+               ) THEN TRUE ELSE FALSE END
+            """)
+    Long checkIfRoleHasUser(Long roleId);
+
 }
