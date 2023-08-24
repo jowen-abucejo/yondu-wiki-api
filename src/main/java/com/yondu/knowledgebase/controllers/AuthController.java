@@ -84,7 +84,7 @@ public class AuthController {
         log.info("AuthController.checkEmail()");
         log.info("request : " + request.toString());
 
-        boolean isValidOtp = userOtpRepository.existsByOtpAndIsValidIsTrueAndExpirationDateAfter(request.otp(), LocalDateTime.now());
+        boolean isValidOtp = authService.checkOtp(request);
         return ResponseEntity.ok(ApiResponse.success(request, "OTP is Valid."));
     }
 

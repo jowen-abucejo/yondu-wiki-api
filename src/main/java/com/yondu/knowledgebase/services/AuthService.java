@@ -94,7 +94,7 @@ public class AuthService {
 
         String encryptedOtp = passwordEncoder.encode(otp);
 
-        LocalDateTime expirationDate = LocalDateTime.now().plusHours(3); // Expiration set to 3 hours from now
+        LocalDateTime expirationDate = LocalDateTime.now().plusMinutes(15); // Expiration set to 15 minutes from now
 
         UserOtp userOTP = new UserOtp();
         userOTP.setUser(user);
@@ -151,5 +151,23 @@ public class AuthService {
         userOtpRepository.save(matchedOtp);
 
         return updatedUser;
+    }
+
+    public boolean checkOtp(UserDTO.OtpRequest request) {
+        List<UserOtp> validOtps = userOtpRepository.findByIsValidIsTrueAndExpirationDateAfter(LocalDateTime.now());
+
+        UserOtp matchedOtp = null;
+
+        for (UserOtp userOtp : validOtps) {
+            if (passwordEncoder.matches(request.otp(), userOtp.getOtp())) {
+                matchedOtp = userOtp;
+                break;
+            }
+        }
+        if (matchedOtp == null) {
+            throw new RequestValidationException("Invalid OTP");
+        } else {
+            return true;
+        }
     }
 }
