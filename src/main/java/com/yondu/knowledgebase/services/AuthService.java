@@ -3,9 +3,11 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.entities.LoginAttempt;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.entities.UserOtp;
 import com.yondu.knowledgebase.exceptions.*;
+import com.yondu.knowledgebase.repositories.LoginAttemptRepository;
 import com.yondu.knowledgebase.repositories.UserOtpRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -33,6 +35,10 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private PasswordChangesService passwordChangesService;
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+    @Autowired
+    private LoginAttemptRepository loginAttemptRepository;
 
     public User login(UserDTO.LoginRequest request) {
         log.info("AuthService.login()");
@@ -49,12 +55,23 @@ public class AuthService {
         if(fetchedUser == null){
             throw new InvalidCredentialsException();
         }
+        if(fetchedUser.getLoginAttempts() != null) {
+            if(fetchedUser.getLoginAttempts().isRestricted()) {
+                if(fetchedUser.getLoginAttempts().getRemoveRestriction().isAfter(LocalDateTime.now())){
+                    throw new LoginAttemptException("You are currently restricted due to multiple failed attempts of logging in come back after 30 minutes.");
+                } else {
+                    loginAttemptService.resetAttempts(fetchedUser);
+                }
+            }
+        }
 
         if(passwordEncoder.matches(request.password(), fetchedUser.getPassword())){
-            fetchedUser.setPassword("");
+            loginAttemptService.resetAttempts(fetchedUser);
             return fetchedUser;
         }else{
-            throw new InvalidCredentialsException();
+
+            loginAttemptService.logLoginAttempt(fetchedUser);
+            throw new LoginAttemptException("Invalid Password, you only have "+99+" attempts left.");
         }
     }
 
