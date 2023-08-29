@@ -72,6 +72,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private Set<DirectoryUserAccess> directoryUserAccesses;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private LoginAttempt loginAttempts;
+
     public User(long id) {
         this.id = id;
     }
@@ -141,9 +144,12 @@ public class User implements UserDetails {
         // this.rights = new HashSet<>(); // To delete
         this.userPageAccess = new HashSet<>();
     }
-
     public User() {
     }
+
+    public LoginAttempt getLoginAttempts() {return loginAttempts;}
+
+    public void setLoginAttempts(LoginAttempt loginAttempts) {this.loginAttempts = loginAttempts;}
 
     public Long getId() {
         return id;

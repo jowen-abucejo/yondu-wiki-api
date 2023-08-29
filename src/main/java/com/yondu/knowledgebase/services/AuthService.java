@@ -3,9 +3,11 @@ package com.yondu.knowledgebase.services;
 import com.yondu.knowledgebase.DTO.email.EmailDTO;
 import com.yondu.knowledgebase.DTO.user.UserDTO;
 import com.yondu.knowledgebase.Utils.Util;
+import com.yondu.knowledgebase.entities.LoginAttempt;
 import com.yondu.knowledgebase.entities.User;
 import com.yondu.knowledgebase.entities.UserOtp;
 import com.yondu.knowledgebase.exceptions.*;
+import com.yondu.knowledgebase.repositories.LoginAttemptRepository;
 import com.yondu.knowledgebase.repositories.UserOtpRepository;
 import com.yondu.knowledgebase.repositories.UserRepository;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -33,6 +36,10 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private PasswordChangesService passwordChangesService;
+    @Autowired
+    private LoginAttemptService loginAttemptService;
+    @Autowired
+    private LoginAttemptRepository loginAttemptRepository;
 
     public User login(UserDTO.LoginRequest request) {
         log.info("AuthService.login()");
@@ -50,11 +57,31 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
 
+
+
+        if(fetchedUser.getLoginAttempts() != null) {
+            if(fetchedUser.getLoginAttempts().isRestricted()) {
+                if(fetchedUser.getLoginAttempts().getRemoveRestriction().isAfter(LocalDateTime.now())){
+                    long minutesRemaining = ChronoUnit.MINUTES.between(LocalDateTime.now(), fetchedUser.getLoginAttempts().getRemoveRestriction());
+                    throw new LoginAttemptException("You are currently restricted due to multiple failed attempts of logging in come back after "+minutesRemaining+" minutes.");
+                } else {
+                    loginAttemptService.resetAttempts(fetchedUser);
+                }
+            }
+            else if (fetchedUser.getLoginAttempts().getLastAttempt()!=null) {
+                LocalDateTime resetTime = fetchedUser.getLoginAttempts().getLastAttempt().plusMinutes(10);
+                if (resetTime.isBefore(LocalDateTime.now())) {
+                    loginAttemptService.resetAttempts(fetchedUser);
+                }
+            }
+        }
+
         if(passwordEncoder.matches(request.password(), fetchedUser.getPassword())){
-            fetchedUser.setPassword("");
+            loginAttemptService.resetAttempts(fetchedUser);
             return fetchedUser;
         }else{
-            throw new InvalidCredentialsException();
+            LoginAttempt attempt = loginAttemptService.logLoginAttempt(fetchedUser);
+            throw new LoginAttemptException("Invalid Password, you only have "+(5-attempt.getAttempts())+" attempts left.");
         }
     }
 
@@ -139,6 +166,7 @@ public class AuthService {
         String newEncodedPassword = passwordEncoder.encode(request.newPassword());
         findUser.setPassword(newEncodedPassword);
         findUser.setPasswordExpiration(LocalDateTime.now().plusMonths(1));
+        loginAttemptService.resetAttempts(findUser);
 
         if(passwordChangesService.isPasswordExist(findUser, request.newPassword())){
             throw new PasswordRepeatException();
