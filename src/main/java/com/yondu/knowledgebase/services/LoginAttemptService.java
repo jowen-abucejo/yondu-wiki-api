@@ -20,36 +20,44 @@ public class LoginAttemptService {
         this.loginAttemptRepository = loginAttemptRepository;
     }
 
-    public void logLoginAttempt(User user) {
-
+    public LoginAttempt logLoginAttempt(User user) {
         LoginAttempt userAttempt = loginAttemptRepository.findByUser(user);
 
-        if (userAttempt!=null) {
+        if (userAttempt != null) {
             userAttempt.setLastAttempt(LocalDateTime.now());
-            userAttempt.setAttempts(userAttempt.getAttempts()+1);
+            userAttempt.setAttempts(userAttempt.getAttempts() + 1);
             userAttempt.setRestricted(false);
-            loginAttemptRepository.save(userAttempt);
 
-            if(userAttempt.getAttempts()==5) {
+            if (userAttempt.getAttempts() == 4) {
                 userAttempt.setRemoveRestriction(userAttempt.getLastAttempt().plusMinutes(30));
                 userAttempt.setRestricted(true);
-                loginAttemptRepository.save(userAttempt);
             }
-        } else  {
+
+            return loginAttemptRepository.save(userAttempt);
+        } else {
             LoginAttempt loginAttempt = new LoginAttempt();
             loginAttempt.setUser(user);
             loginAttempt.setLastAttempt(LocalDateTime.now());
             loginAttempt.setAttempts(1);
             loginAttempt.setRestricted(false);
-            loginAttemptRepository.save(loginAttempt);
+
+            if (loginAttempt.getAttempts() == 4) {
+                loginAttempt.setRemoveRestriction(loginAttempt.getLastAttempt().plusMinutes(30));
+                loginAttempt.setRestricted(true);
+            }
+
+            return loginAttemptRepository.save(loginAttempt);
         }
     }
+
     public void resetAttempts(User user) {
         LoginAttempt attempt = loginAttemptRepository.findByUser(user);
-        attempt.setAttempts(0);
-        attempt.setLastAttempt(null);
-        attempt.setRestricted(false);
-        attempt.setRemoveRestriction(null);
-        loginAttemptRepository.save(attempt);
+        if (attempt != null) {
+            attempt.setAttempts(0);
+            attempt.setLastAttempt(null);
+            attempt.setRestricted(false);
+            attempt.setRemoveRestriction(null);
+            loginAttemptRepository.save(attempt);
+        }
     }
 }
